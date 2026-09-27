@@ -4,12 +4,9 @@ Roblox creature game: hatch eggs from a conveyor, grow creatures from baby to
 adult, earn cash, and steal (or get stolen from). The goal is passive income
 (game passes, dev products, Premium Payouts, rewarded ads).
 
-This folder currently lives on the `claude/roblox-server-brainstorm-fi0l43`
-branch of `polymarket-scanner` because the session could not create a new
-GitHub repo (403). **Move it to its own repo (`hatch-and-snatch`) as soon as
-the owner creates one**:
-`git subtree split -P hatch-and-snatch -b hns-export`, then push that branch
-to the new repo's `main`. It has nothing to do with the Polymarket worker.
+Repo: `connord138-source/hatch-and-snatch`. History was carried over from the
+`hatch-and-snatch/` folder of `polymarket-scanner`; that copy is retired. It is
+unrelated to the Polymarket worker.
 
 ## Decisions already made (do not re-litigate)
 
