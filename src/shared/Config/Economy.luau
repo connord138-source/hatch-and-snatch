@@ -5,6 +5,7 @@ local Rarities = require(script.Parent.Rarities)
 local Stages = require(script.Parent.Stages)
 local Finishes = require(script.Parent.Finishes)
 local Mutations = require(script.Parent.Mutations)
+local Biomes = require(script.Parent.Biomes)
 
 local Tunables = {
 	-- Growth: stage N -> N+1 takes base × rarity growthFactor (runs offline too)
@@ -13,6 +14,8 @@ local Tunables = {
 		Juvenile = 3 * 60 * 60, -- Juvenile -> Adult
 	} :: { [Types.StageId]: number },
 
+	startingCash = 300, -- two starter eggs
+	incubatorSlots = 3,
 	offlineCapSeconds = 8 * 60 * 60,
 	homegrownBonus = 0.25,
 	rebirthBonusPerLevel = 0.10,
@@ -32,6 +35,7 @@ local Tunables = {
 }
 
 export type CreatureInstanceStats = {
+	biome: string,
 	rarity: Types.RarityId,
 	stage: Types.StageId,
 	finish: string,
@@ -64,7 +68,13 @@ local function cashPerSecond(stats: CreatureInstanceStats): number
 	if stats.homegrown then
 		bonus += Tunables.homegrownBonus
 	end
-	return rarity.baseCashPerSec * stage.earningsMultiplier * finish.earningsMultiplier * bonus
+	local biome = Biomes[stats.biome]
+	local biomeMultiplier = if biome then biome.earningsMultiplier else 1
+	return rarity.baseCashPerSec
+		* biomeMultiplier
+		* stage.earningsMultiplier
+		* finish.earningsMultiplier
+		* bonus
 end
 
 -- Seconds to grow from `stage` to the next stage (nil when already Adult).

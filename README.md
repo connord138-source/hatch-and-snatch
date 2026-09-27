@@ -45,3 +45,20 @@ src/
   client/          UI, VFX, creature movement (visual only)
 docs/              design, roster, art bible
 ```
+
+## Playtesting the core loop (Studio)
+
+1. `rojo serve`, connect the plugin, press **Play**.
+2. You spawn on your own plot. Walk to the conveyor ring and press **E** on an egg to buy it.
+3. It incubates at your base (timers are shown top-right), hatches, and the creature appears on a pedestal.
+4. Cash builds up on your green pad; step on it to collect.
+
+**Studio test mode** (`src/shared/Config/Debug.luau`, ignored in live servers):
+- Hatching and growth run 20× faster.
+- You start with $1M and every biome unlocked.
+- A moon event fires every 2 minutes.
+
+Drop a real model into `ReplicatedStorage.CreatureModels` named after the species id
+(for example `Emberlynx`, with its PrimaryPart set) and it replaces the placeholder block creature.
+
+Set **Game Settings → Places → Max Players = 8**: there are 8 base plots per server.

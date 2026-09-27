@@ -1,7 +1,8 @@
 --!strict
--- Server bootstrap. For now: validate all config data so content mistakes fail loudly
--- the moment you press Play. Services (Egg, Hatch, Growth, Economy, Steal, Event,
--- Monetization) get wired in here next — see docs/GDD.md §10.
+-- Server bootstrap: validate config data (content mistakes fail loudly the moment
+-- you press Play), then start services. Order matters: every service connects its
+-- DataService.loaded handler in start(), and DataService starts last so those
+-- handlers run in this order for each joining player.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -48,3 +49,26 @@ if #problems > 0 then
 end
 
 print(`[HatchAndSnatch] Config OK — {#Config.Creatures} creatures loaded`)
+
+local Services = script.Services
+local WorldService = require(Services.WorldService)
+local EventService = require(Services.EventService)
+local PlotService = require(Services.PlotService)
+local CreatureService = require(Services.CreatureService)
+local HatchService = require(Services.HatchService)
+local EconomyService = require(Services.EconomyService)
+local EggService = require(Services.EggService)
+local StateService = require(Services.StateService)
+local DataService = require(Services.DataService)
+
+WorldService.start() -- builds plots before anyone is assigned one
+EventService.start()
+PlotService.start() -- loaded: assign plot + teleport
+CreatureService.start() -- loaded: offline growth, spawn models on pedestals
+HatchService.start() -- loaded: show incubator state (offline hatches happen on first tick)
+EconomyService.start() -- loaded: leaderstats + offline earnings
+EggService.start()
+StateService.start()
+DataService.start() -- last: fires loaded for players already in the server
+
+print("[HatchAndSnatch] Server started")

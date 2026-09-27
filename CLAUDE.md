@@ -72,4 +72,7 @@ How to prompt for concepts:
 - Tool versions are pinned in `rokit.toml`; lint with selene and format with StyLua.
 - Config is data-driven in `src/shared/Config/*`. New content means editing tables, not code.
 - The server is authoritative for cash, hatching, growth and stealing, since stealing games attract exploiters.
-- Player data: ProfileStore (to be added).
+- Player data: ProfileStore, vendored at `src/server/Packages` (Apache-2.0). It falls back to a mock store in unpublished Studio places.
+- Services live in `src/server/Services`. The start order in `init.server.luau` matters: each service connects to `DataService.loaded` inside its `start()`, and DataService starts last.
+- **Verifying from a cloud session** (no Studio available): use `rojo sourcemap`, then `luau-lsp analyze --definitions=<globalTypes.d.luau> --sourcemap=... --ignore="**/Packages/**" src`, then `stylua --check src`. Pure config and economy logic can run in the plain `luau` runtime after swapping `script.Parent.X` requires for `./X` and stubbing `Color3`.
+- luau-lsp quirk: indexing `{ [Types.BiomeId]: T }` maps with values from other modules raises false singleton errors, so biome-keyed maps use `string` keys.

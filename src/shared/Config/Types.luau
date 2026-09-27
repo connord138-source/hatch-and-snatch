@@ -34,6 +34,7 @@ export type Biome = {
 	displayName: string,
 	order: number, -- unlock order via rebirth; 0 = not on the normal conveyor
 	eggPriceMultiplier: number,
+	earningsMultiplier: number, -- applied to cash/sec of creatures from this biome
 }
 
 export type Creature = {

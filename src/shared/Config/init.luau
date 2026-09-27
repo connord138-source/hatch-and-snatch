@@ -1,5 +1,20 @@
 --!strict
 -- Single entry point: `local Config = require(ReplicatedStorage.Shared.Config)`
+local Types = require(script.Types)
+local Creatures = require(script.Creatures)
+
+export type BiomeId = Types.BiomeId
+export type RarityId = Types.RarityId
+export type StageId = Types.StageId
+export type Creature = Types.Creature
+export type Finish = Types.Finish
+export type MoonEvent = Types.MoonEvent
+
+local creaturesById: { [string]: Types.Creature } = {}
+for _, creature in Creatures do
+	creaturesById[creature.id] = creature
+end
+
 return {
 	Rarities = require(script.Rarities),
 	Biomes = require(script.Biomes),
@@ -7,6 +22,9 @@ return {
 	Finishes = require(script.Finishes),
 	Mutations = require(script.Mutations),
 	MoonEvents = require(script.MoonEvents),
-	Creatures = require(script.Creatures),
+	Creatures = Creatures,
+	CreaturesById = creaturesById,
 	Economy = require(script.Economy),
+	Eggs = require(script.Eggs),
+	Debug = require(script.Debug),
 }

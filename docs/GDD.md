@@ -116,8 +116,9 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 | Junk | 100 | 20 min | ×1.5 |
 
 - **Growth times:** Baby → Juvenile takes 30 min × the growth factor; Juvenile → Adult takes 3 h × the growth factor.
-- **Egg prices** scale about ×8 per biome.
-- **Target payback** on a fresh egg is about 2–4 minutes early in the game, lengthening to 20–30 minutes late.
+- **Egg prices:** $150 × the biome's price multiplier (×8 per biome). New players start with $300 (two eggs).
+- **Biome earnings multiplier:** creatures earn base cash/sec × their biome's earnings multiplier (Mossvale 1, Coral 4, Magma 16, Frost 60, Storm 220, Moonfall 300, Junk 1). It grows slower than egg prices, so payback lengthens as players progress.
+- **Resulting payback** for a Common baby: about 2 min in Mossvale, 4 min in Coral, 8 min in Magma, 17 min in Frost, 37 min in Storm. Expected value per egg pays back faster because of the rare rolls, and growing to Adult (×15) is the big payoff. All of this is a first pass to tune in playtests.
 - **Rebirth** resets cash and pedestals, keeps creatures, unlocks the next biome and gives +10% earnings for each rebirth.
 - **Offline earnings** are capped at 8 hours; the cap can be raised by a game pass.
 
