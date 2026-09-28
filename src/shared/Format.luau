@@ -4,19 +4,24 @@ local Format = {}
 
 local suffixes = { "", "K", "M", "B", "T", "Qa", "Qi" }
 
--- 1234 -> "1.23K", 5_600_000 -> "5.6M"
+-- 1234 -> "1.23K", 5_600_000 -> "5.6M", 990_400 -> "990K"
 function Format.cash(amount: number): string
 	local value = math.max(0, amount)
+	if value < 1000 then
+		return "$" .. tostring(math.floor(value))
+	end
 	local tier = 1
-	while value >= 1000 and tier < #suffixes do
+	-- Roll over slightly early so 999.6K reads "1M", not "1000K"
+	while value >= 999.5 and tier < #suffixes do
 		value /= 1000
 		tier += 1
 	end
-	if tier == 1 then
-		return "$" .. tostring(math.floor(value))
-	end
 	local text = string.format(if value >= 100 then "%.0f" elseif value >= 10 then "%.1f" else "%.2f", value)
-	text = string.gsub(text, "%.?0+$", "")
+	-- Trim trailing zeros after the decimal point only ("1.50" -> "1.5", but "990" stays)
+	if string.find(text, ".", 1, true) then
+		text = string.gsub(text, "0+$", "")
+		text = string.gsub(text, "%.$", "")
+	end
 	return "$" .. text .. suffixes[tier]
 end
 
