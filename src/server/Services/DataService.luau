@@ -57,7 +57,10 @@ local TEMPLATE: PlayerData = {
 	stats = { hatched = 0, eggsBought = 0 },
 }
 
-local store = ProfileStore.New("PlayerData_v1", TEMPLATE :: any)
+-- Studio reads and writes the live game's DataStores, so Studio sessions (debug
+-- cash, unlocked biomes, test players) use their own store and never touch real saves.
+local STORE_NAME = if Timing.isStudio() then "PlayerData_Studio_v1" else "PlayerData_v2"
+local store = ProfileStore.New(STORE_NAME, TEMPLATE :: any)
 local profiles: { [Player]: any } = {}
 local dirty: { [Player]: boolean } = {}
 
