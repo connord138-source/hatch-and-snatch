@@ -82,10 +82,10 @@ function HudController.start()
 		Text = "",
 	})
 
-	-- Incubators (top-right)
+	-- Incubators (left, under the lock status; the top-right belongs to Roblox's player list)
 	local incubatorPanel = panel(gui, {
-		Size = UDim2.fromOffset(230, 40 + Config.Economy.tunables.incubatorSlots * 30),
-		Position = UDim2.new(1, -242, 0, 12),
+		Size = UDim2.fromOffset(250, 40 + Config.Economy.tunables.incubatorSlots * 30),
+		Position = UDim2.fromOffset(12, 158),
 	})
 	label(
 		incubatorPanel,

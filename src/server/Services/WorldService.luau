@@ -45,12 +45,14 @@ local function part(props: { [string]: any }): Part
 	return p
 end
 
-local function billboard(parent: BasePart, offset: Vector3, size: UDim2): TextLabel
+-- Small labels use a pixel size and a short view distance; the base sign is sized
+-- in studs (UDim2 scale) so other plots' signs shrink with distance instead of piling up.
+local function billboard(parent: BasePart, offset: Vector3, size: UDim2, maxDistance: number): TextLabel
 	local gui = Instance.new("BillboardGui")
 	gui.Size = size
 	gui.StudsOffset = offset
 	gui.AlwaysOnTop = false
-	gui.MaxDistance = 150
+	gui.MaxDistance = maxDistance
 	gui.Parent = parent
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
@@ -180,7 +182,7 @@ local function buildPlot(index: number): PlotLayout
 			pedestal.Name = `Nursery{i}`
 			pedestal.Material = Enum.Material.Fabric
 			pedestal.Color = Color3.fromRGB(120, 180, 255)
-			local nurseryLabel = billboard(pedestal, Vector3.new(0, 3, 0), UDim2.fromOffset(120, 30))
+			local nurseryLabel = billboard(pedestal, Vector3.new(0, 3, 0), UDim2.fromOffset(120, 30), 60)
 			nurseryLabel.Text = "Nursery"
 			nurseryLabel.TextColor3 = Color3.fromRGB(150, 200, 255)
 		end
@@ -211,7 +213,7 @@ local function buildPlot(index: number): PlotLayout
 		Color = Color3.fromRGB(80, 230, 120),
 		Parent = model,
 	})
-	local collectorLabel = billboard(collector, Vector3.new(0, 4, 0), UDim2.fromOffset(160, 50))
+	local collectorLabel = billboard(collector, Vector3.new(0, 4, 0), UDim2.fromOffset(160, 50), 60)
 	collectorLabel.Text = "$0"
 
 	-- Base lock button (front-center) + laser walls around the plot edge
@@ -232,7 +234,7 @@ local function buildPlot(index: number): PlotLayout
 	lockPrompt.RequiresLineOfSight = false
 	lockPrompt:SetAttribute("VisibleTo", "owner")
 	lockPrompt.Parent = lockButton
-	local lockLabel = billboard(lockButton, Vector3.new(0, 3, 0), UDim2.fromOffset(160, 36))
+	local lockLabel = billboard(lockButton, Vector3.new(0, 3, 0), UDim2.fromOffset(160, 36), 60)
 	lockLabel.Text = "Unlocked"
 
 	local lasers: { BasePart } = {}
@@ -269,7 +271,7 @@ local function buildPlot(index: number): PlotLayout
 		CanCollide = false,
 		Parent = model,
 	})
-	local label = billboard(sign, Vector3.zero, UDim2.fromOffset(260, 60))
+	local label = billboard(sign, Vector3.zero, UDim2.fromScale(18, 4), 300)
 	label.Text = "Free plot"
 
 	model.Parent = worldFolder
