@@ -8,6 +8,13 @@ Repo: `connord138-source/hatch-and-snatch`. History was carried over from the
 `hatch-and-snatch/` folder of `polymarket-scanner`; that copy is retired. It is
 unrelated to the Polymarket worker.
 
+## Owner's machine
+
+- Local clone: `C:\Users\neos1\Desktop\hatch-and-snatch` on Connor's Windows PC.
+- Work branch: `claude/core-systems`.
+- Start syncing from that folder with `rokit install`, then `rojo serve`, and connect the Rojo plugin in Studio.
+- Division of work: Claude does the building (code and Studio). Connor does the playtesting and reports the Output window or screenshots.
+
 ## Decisions already made (do not re-litigate)
 
 - **Concept:** the "Hatch & Snatch" tycoon won over survival co-op, obby and fishing ideas.
