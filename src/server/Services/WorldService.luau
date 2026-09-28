@@ -17,6 +17,9 @@ export type PlotLayout = {
 	collector: BasePart,
 	label: TextLabel,
 	collectorLabel: TextLabel,
+	lockPrompt: ProximityPrompt,
+	lockLabel: TextLabel,
+	lasers: { BasePart },
 }
 
 local PLOT_RADIUS = 115
@@ -172,6 +175,15 @@ local function buildPlot(index: number): PlotLayout
 			Parent = model,
 		})
 		pedestal:SetAttribute("Index", i)
+		if i <= Config.Economy.tunables.nurserySlotsBase then
+			-- Nursery pedestal: nothing standing here can be stolen
+			pedestal.Name = `Nursery{i}`
+			pedestal.Material = Enum.Material.Fabric
+			pedestal.Color = Color3.fromRGB(120, 180, 255)
+			local nurseryLabel = billboard(pedestal, Vector3.new(0, 3, 0), UDim2.fromOffset(120, 30))
+			nurseryLabel.Text = "Nursery"
+			nurseryLabel.TextColor3 = Color3.fromRGB(150, 200, 255)
+		end
 		table.insert(pedestals, origin * CFrame.new(localPos + Vector3.new(0, 0.7, 0)))
 	end
 
@@ -202,6 +214,52 @@ local function buildPlot(index: number): PlotLayout
 	local collectorLabel = billboard(collector, Vector3.new(0, 4, 0), UDim2.fromOffset(160, 50))
 	collectorLabel.Text = "$0"
 
+	-- Base lock button (front-center) + laser walls around the plot edge
+	local lockButton = part({
+		Name = "LockButton",
+		Size = Vector3.new(3, 1.2, 3),
+		CFrame = origin * CFrame.new(0, top + 0.6, -15),
+		Material = Enum.Material.Neon,
+		Color = Color3.fromRGB(255, 80, 80),
+		Parent = model,
+	})
+	local lockPrompt = Instance.new("ProximityPrompt")
+	lockPrompt.Name = "Lock"
+	lockPrompt.ActionText = "Lock Base"
+	lockPrompt.ObjectText = "Laser gate"
+	lockPrompt.HoldDuration = 0
+	lockPrompt.MaxActivationDistance = 10
+	lockPrompt.RequiresLineOfSight = false
+	lockPrompt:SetAttribute("VisibleTo", "owner")
+	lockPrompt.Parent = lockButton
+	local lockLabel = billboard(lockButton, Vector3.new(0, 3, 0), UDim2.fromOffset(160, 36))
+	lockLabel.Text = "Unlocked"
+
+	local lasers: { BasePart } = {}
+	local half = PLOT_SIZE / 2
+	for _, edge in
+		{
+			{ CFrame.new(0, 4, -half), Vector3.new(PLOT_SIZE, 7, 0.3) },
+			{ CFrame.new(0, 4, half), Vector3.new(PLOT_SIZE, 7, 0.3) },
+			{ CFrame.new(-half, 4, 0), Vector3.new(0.3, 7, PLOT_SIZE) },
+			{ CFrame.new(half, 4, 0), Vector3.new(0.3, 7, PLOT_SIZE) },
+		} :: { { any } }
+	do
+		local laser = part({
+			Name = "Laser",
+			Size = edge[2],
+			CFrame = origin * edge[1],
+			Material = Enum.Material.Neon,
+			Color = Color3.fromRGB(255, 40, 40),
+			Transparency = 1,
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = false,
+			Parent = model,
+		})
+		table.insert(lasers, laser)
+	end
+
 	-- Owner sign at the front edge
 	local sign = part({
 		Name = "Sign",
@@ -226,7 +284,22 @@ local function buildPlot(index: number): PlotLayout
 		collector = collector,
 		label = label,
 		collectorLabel = collectorLabel,
+		lockPrompt = lockPrompt,
+		lockLabel = lockLabel,
+		lasers = lasers,
 	}
+end
+
+-- True when a world position is inside the plot's footprint (any height).
+function WorldService.isInsidePlot(plot: PlotLayout, position: Vector3): boolean
+	local localPos = plot.origin:PointToObjectSpace(position)
+	local half = PLOT_SIZE / 2
+	return math.abs(localPos.X) <= half and math.abs(localPos.Z) <= half and localPos.Y < 40
+end
+
+-- Just outside the front edge of a plot (where the laser gate pushes intruders).
+function WorldService.outsideFront(plot: PlotLayout): CFrame
+	return plot.origin * CFrame.new(0, 4, -PLOT_SIZE / 2 - 6)
 end
 
 function WorldService.start()

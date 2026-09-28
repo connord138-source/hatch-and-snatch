@@ -110,6 +110,25 @@ function HudController.start()
 	})
 	local bannerLabel = label(banner, { Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4) })
 
+	-- Base lock status (under the cash panel)
+	local lockPanel = panel(gui, { Size = UDim2.fromOffset(250, 34), Position = UDim2.fromOffset(12, 116) })
+	local lockStatus = label(lockPanel, {
+		Size = UDim2.new(1, -20, 1, -8),
+		Position = UDim2.fromOffset(10, 4),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Text = "Base: unlocked",
+	})
+
+	-- Carry banner (center, while holding a stolen creature)
+	local carryBanner = panel(gui, {
+		Size = UDim2.fromOffset(420, 44),
+		Position = UDim2.new(0.5, -210, 0, 60),
+		BackgroundColor3 = Color3.fromRGB(150, 30, 30),
+		Visible = false,
+	})
+	local carryLabel =
+		label(carryBanner, { Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4) })
+
 	-- Toasts (bottom-center)
 	local toastHolder = Instance.new("Frame")
 	toastHolder.BackgroundTransparency = 1
@@ -183,6 +202,25 @@ function HudController.start()
 			uncollectedLabel.Text = if current.uncollected >= 1
 				then `{Format.cash(current.uncollected)} waiting — step on your green pad`
 				else ""
+			if now < current.lockedUntil then
+				lockStatus.Text = `Base: LOCKED {Format.duration(current.lockedUntil - now)}`
+				lockStatus.TextColor3 = Color3.fromRGB(255, 120, 120)
+			elseif now < current.lockCooldownUntil then
+				lockStatus.Text = `Lock recharging {Format.duration(current.lockCooldownUntil - now)}`
+				lockStatus.TextColor3 = Color3.fromRGB(200, 200, 200)
+			elseif now < current.protectedUntil then
+				lockStatus.Text = `New-player shield {Format.duration(current.protectedUntil - now)}`
+				lockStatus.TextColor3 = Color3.fromRGB(150, 200, 255)
+			else
+				lockStatus.Text = "Base: unlocked — lock it at the red button"
+				lockStatus.TextColor3 = Color3.fromRGB(255, 220, 120)
+			end
+			if current.carrying then
+				carryBanner.Visible = true
+				carryLabel.Text = `Carrying {current.carrying} — run back to your base!`
+			else
+				carryBanner.Visible = false
+			end
 			for i, row in incubatorRows do
 				local egg = current.incubators[i]
 				if egg then

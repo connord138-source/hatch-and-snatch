@@ -6,4 +6,5 @@ return table.freeze({
 	studioStartingCash = 1_000_000,
 	studioUnlockAllBiomes = true,
 	studioMoonEventIntervalSeconds = 120,
+	studioSkipNewPlayerProtection = true, -- so two Studio test players can steal right away
 })

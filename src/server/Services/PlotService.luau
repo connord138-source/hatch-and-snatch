@@ -21,6 +21,10 @@ function PlotService.get(player: Player): WorldService.PlotLayout?
 	return plotOf[player]
 end
 
+function PlotService.ownerOf(plot: WorldService.PlotLayout): Player?
+	return owners[plot.index]
+end
+
 local function teleportHome(player: Player, character: Model)
 	local plot = plotOf[player]
 	if plot == nil then

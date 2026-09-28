@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
+local Signal = require(ReplicatedStorage.Shared.Signal)
 local Net = require(script.Parent.Parent.Net)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
@@ -39,8 +40,20 @@ local FINISH_LOOKS: { [string]: { color: Color3?, material: Enum.Material?, tran
 	}
 
 local models: { [Player]: { [string]: Model } } = {}
+-- Creatures currently being carried by a thief (not shown on their pedestal)
+local carried: { [Player]: { [string]: boolean? } } = {}
 
-local CreatureService = {}
+local nurserySlots = Config.Economy.tunables.nurserySlotsBase
+local STEAL_HOLD: { [string]: number } = { Baby = 1.2, Juvenile = 1.6, Adult = 2.0 }
+
+local CreatureService = {
+	-- (thief: Player, owner: Player, uid: string) — a Steal prompt was completed
+	stealRequested = Signal.new(),
+}
+
+function CreatureService.isNursery(slot: number?): boolean
+	return slot ~= nil and slot <= nurserySlots
+end
 
 local function stageIndex(stage: string): number
 	return table.find(STAGE_ORDER, stage :: Types.StageId) or 1
@@ -157,7 +170,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 
 	local creature = Config.CreaturesById[record.species]
 	local tag = Instance.new("BillboardGui")
-	tag.Size = UDim2.fromOffset(180, 44)
+	tag.Size = UDim2.fromOffset(220, 44)
 	tag.StudsOffsetWorldSpace = Vector3.new(0, extents.Y / 2 + 1.5, 0)
 	tag.MaxDistance = 80
 	tag.Parent = model.PrimaryPart
@@ -169,7 +182,11 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	label.TextColor3 = Config.Rarities[creature.rarity].color
 	label.TextStrokeTransparency = 0.3
 	local finishText = if record.finish ~= "Normal" then `{record.finish} ` else ""
-	label.Text = `{finishText}{creature.displayName}\n{record.stage}`
+	local origin = if record.stolenFrom
+		then ` · stolen from {record.stolenFrom}`
+		elseif record.homegrown then " · Homegrown"
+		else ""
+	label.Text = `{finishText}{creature.displayName}\n{record.stage}{origin}`
 	label.Parent = tag
 
 	model:SetAttribute("Uid", uid)
@@ -179,6 +196,26 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	model:SetAttribute("OwnerUserId", owner.UserId)
 	CollectionService:AddTag(model, "Creature")
 	return model
+end
+
+local function addPrompt(
+	parent: Instance,
+	name: string,
+	action: string,
+	object: string,
+	hold: number,
+	visibleTo: string
+): ProximityPrompt
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = name
+	prompt.ActionText = action
+	prompt.ObjectText = object
+	prompt.HoldDuration = hold
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt:SetAttribute("VisibleTo", visibleTo) -- client PromptFilter hides it for the wrong players
+	prompt.Parent = parent
+	return prompt
 end
 
 local function despawn(player: Player, uid: string)
@@ -197,10 +234,83 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	if plot == nil or slot == nil or not plot.pedestals[slot] then
 		return
 	end
+	if carried[player] and carried[player][uid] then
+		return -- a thief is holding it; StealService respawns it if it comes home
+	end
 	local model = buildModel(player, uid, record, plot.pedestals[slot])
+	local primary = model.PrimaryPart :: BasePart
+	local name = Config.CreaturesById[record.species].displayName
+	local inNursery = CreatureService.isNursery(slot)
+
+	local steal = addPrompt(primary, "Steal", "Steal", name, STEAL_HOLD[record.stage] or 1.5, "others")
+	steal:SetAttribute("Protected", inNursery)
+	steal.Triggered:Connect(function(thief)
+		CreatureService.stealRequested:fire(thief, player, uid)
+	end)
+
+	local nurseryPrompt = addPrompt(
+		primary,
+		"Nursery",
+		if inNursery then "Move out of Nursery" else "Move to Nursery",
+		name,
+		0,
+		"owner"
+	)
+	nurseryPrompt.KeyboardKeyCode = Enum.KeyCode.F
+	nurseryPrompt.UIOffset = Vector2.new(0, 60)
+	nurseryPrompt.Triggered:Connect(function(who)
+		if who == player then
+			CreatureService.toggleNursery(player, uid)
+		end
+	end)
+
+	if inNursery then
+		model:SetAttribute("Nursery", true)
+	end
 	model.Parent = plot.model
 	models[player] = models[player] or {}
 	models[player][uid] = model
+end
+
+-- Public wrappers used by StealService
+function CreatureService.despawn(player: Player, uid: string)
+	despawn(player, uid)
+end
+
+function CreatureService.respawn(player: Player, uid: string)
+	local data = DataService.get(player)
+	local record = data and data.creatures[uid]
+	if record then
+		spawn(player, uid, record)
+	end
+end
+
+function CreatureService.setCarried(owner: Player, uid: string, isCarried: boolean)
+	carried[owner] = carried[owner] or {}
+	carried[owner][uid] = if isCarried then true else nil
+	if isCarried then
+		despawn(owner, uid)
+	end
+end
+
+function CreatureService.isCarried(owner: Player, uid: string): boolean
+	return carried[owner] ~= nil and carried[owner][uid] == true
+end
+
+-- A copy of the creature's model to hold above a thief's head (not tagged for the animator).
+function CreatureService.buildCarryModel(owner: Player, uid: string, record: CreatureRecord): Model
+	local model = buildModel(owner, uid, record, CFrame.identity)
+	CollectionService:RemoveTag(model, "Creature")
+	CollectionService:RemoveTag(model, "Prismatic")
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Anchored = false
+			descendant.Massless = true
+			descendant.CanCollide = false
+		end
+	end
+	model:SetAttribute("Carried", true)
+	return model
 end
 
 local function freeSlot(data: PlayerData): number?
@@ -210,12 +320,74 @@ local function freeSlot(data: PlayerData): number?
 			used[record.slot] = true
 		end
 	end
-	for slot = 1, Config.Economy.tunables.pedestalsBase do
+	-- Regular pedestals first; the nursery is filled only on request (or as a last resort)
+	for slot = nurserySlots + 1, Config.Economy.tunables.pedestalsBase do
+		if not used[slot] then
+			return slot
+		end
+	end
+	for slot = 1, nurserySlots do
 		if not used[slot] then
 			return slot
 		end
 	end
 	return nil
+end
+
+-- Swaps a creature into the nursery (or back out to a regular pedestal).
+function CreatureService.toggleNursery(player: Player, uid: string)
+	local data = DataService.get(player)
+	local record = data and data.creatures[uid]
+	if data == nil or record == nil or CreatureService.isCarried(player, uid) then
+		return
+	end
+	local target: number? = nil
+	if CreatureService.isNursery(record.slot) then
+		for slot = nurserySlots + 1, Config.Economy.tunables.pedestalsBase do
+			local taken = false
+			for _, other in data.creatures do
+				if other.slot == slot then
+					taken = true
+				end
+			end
+			if not taken then
+				target = slot
+				break
+			end
+		end
+		if target == nil then
+			Net.notify(player, "No free pedestal to move it to.", "bad")
+			return
+		end
+	else
+		target = 1
+	end
+	-- Swap with whatever currently occupies the target slot
+	for otherUid, other in data.creatures do
+		if otherUid ~= uid and other.slot == target then
+			other.slot = record.slot
+			spawn(player, otherUid, other)
+		end
+	end
+	record.slot = target
+	spawn(player, uid, record)
+	DataService.markDirty(player)
+end
+
+-- Removes a creature from a player's collection (e.g. it was stolen). Returns the record.
+function CreatureService.remove(player: Player, uid: string): CreatureRecord?
+	local data = DataService.get(player)
+	local record = data and data.creatures[uid]
+	if data == nil or record == nil then
+		return nil
+	end
+	data.creatures[uid] = nil
+	if carried[player] then
+		carried[player][uid] = nil
+	end
+	despawn(player, uid)
+	DataService.markDirty(player)
+	return record
 end
 
 -- Adds a freshly hatched (or later: stolen) creature. Returns its uid.
@@ -266,6 +438,7 @@ function CreatureService.start()
 			end
 			models[player] = nil
 		end
+		carried[player] = nil
 	end)
 	task.spawn(function()
 		while true do

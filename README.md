@@ -62,3 +62,19 @@ Drop a real model into `ReplicatedStorage.CreatureModels` named after the specie
 (for example `Emberlynx`, with its PrimaryPart set) and it replaces the placeholder block creature.
 
 Set **Game Settings → Places → Max Players = 8**: there are 8 base plots per server.
+
+## Testing stealing (needs 2 players)
+
+In Studio, go to **Test → Clients and Servers**, set **2 players**, then **Start**. Two client windows open.
+
+1. **Player 1:** buy and hatch a creature.
+2. **Player 2:** walk into Player 1's base and hold **E** on the creature (Steal).
+   - It lifts over your head.
+   - Carry speed drops with growth stage, and you can't jump while carrying an adult.
+3. **Player 2:** run back into your own plot to deliver it. It arrives tagged "stolen from Player1".
+4. **Player 1** can instead hold **E** on the thief to take it back (fastest for adults), or try:
+   - pressing **F** on their own creature to move it into the blue Nursery pedestal, where it can't be stolen;
+   - pressing the red **Lock** button for a 60-second laser gate that pushes intruders out.
+5. Homegrown creatures have a 35% chance to break free on the way.
+
+New-player protection (10 minutes) is switched off in Studio so you can test right away.

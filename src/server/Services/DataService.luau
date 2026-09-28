@@ -32,6 +32,7 @@ export type PlayerData = {
 	cash: number,
 	uncollected: number,
 	lastSeen: number,
+	createdAt: number, -- first join (new-player steal protection)
 	rebirths: number,
 	unlockedBiome: number, -- highest Biomes[].order the player may buy
 	nextUid: number,
@@ -46,6 +47,7 @@ local TEMPLATE: PlayerData = {
 	cash = Config.Economy.tunables.startingCash,
 	uncollected = 0,
 	lastSeen = 0,
+	createdAt = 0,
 	rebirths = 0,
 	unlockedBiome = 1,
 	nextUid = 1,
@@ -126,6 +128,9 @@ local function onPlayerAdded(player: Player)
 	end
 
 	local data = profile.Data :: PlayerData
+	if data.createdAt == 0 then
+		data.createdAt = Timing.now()
+	end
 	if Timing.isStudio() then
 		data.cash = math.max(data.cash, Config.Debug.studioStartingCash)
 		if Config.Debug.studioUnlockAllBiomes then
