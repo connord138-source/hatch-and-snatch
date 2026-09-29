@@ -7,6 +7,7 @@
 -- otherwise a placeholder is built.
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
@@ -200,6 +201,112 @@ local function applyFinish(model: Model, finish: string)
 	end
 end
 
+-- Element effects that grow in with the creature: none on a Baby, a light trail
+-- on a Juvenile, the full effect plus a glow on an Adult.
+type ElementFx = { texture: string, color: Color3, speed: number, drift: Vector3, size: number, light: boolean }
+local ELEMENT_FX: { [string]: ElementFx } = {
+	Mossvale = {
+		texture = "rbxasset://textures/particles/sparkles_main.dds",
+		color = Color3.fromRGB(140, 210, 90),
+		speed = 0.6,
+		drift = Vector3.new(0, -0.6, 0),
+		size = 0.35,
+		light = false,
+	},
+	CoralCoast = {
+		texture = "rbxasset://textures/particles/sparkles_main.dds",
+		color = Color3.fromRGB(150, 230, 255),
+		speed = 1.2,
+		drift = Vector3.new(0, 1.5, 0),
+		size = 0.3,
+		light = false,
+	},
+	MagmaRift = {
+		texture = "rbxasset://textures/particles/fire_main.dds",
+		color = Color3.fromRGB(255, 130, 40),
+		speed = 2,
+		drift = Vector3.new(0, 2.5, 0),
+		size = 0.35,
+		light = true,
+	},
+	FrostShelf = {
+		texture = "rbxasset://textures/particles/sparkles_main.dds",
+		color = Color3.fromRGB(220, 240, 255),
+		speed = 0.5,
+		drift = Vector3.new(0, -0.4, 0),
+		size = 0.3,
+		light = false,
+	},
+	StormPeaks = {
+		texture = "rbxasset://textures/particles/sparkles_main.dds",
+		color = Color3.fromRGB(255, 240, 110),
+		speed = 5,
+		drift = Vector3.zero,
+		size = 0.25,
+		light = true,
+	},
+	Moonfall = {
+		texture = "rbxasset://textures/particles/sparkles_main.dds",
+		color = Color3.fromRGB(190, 130, 255),
+		speed = 0.4,
+		drift = Vector3.new(0, 0.5, 0),
+		size = 0.4,
+		light = true,
+	},
+	Junk = {
+		texture = "rbxasset://textures/particles/smoke_main.dds",
+		color = Color3.fromRGB(200, 200, 205),
+		speed = 1,
+		drift = Vector3.new(0, 1.2, 0),
+		size = 0.6,
+		light = false,
+	},
+}
+local STAGE_FX_RATE: { [string]: number } = { Baby = 0, Juvenile = 2, Adult = 7 }
+
+local function addStageEffects(model: Model, creature: Types.Creature, stage: string)
+	local fx = ELEMENT_FX[creature.biome]
+	local rate = STAGE_FX_RATE[stage] or 0
+	local primary = model.PrimaryPart
+	if fx == nil or rate <= 0 or primary == nil then
+		return
+	end
+	local _, size = model:GetBoundingBox()
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "ElementFx"
+	attachment.WorldPosition = model:GetBoundingBox().Position
+	attachment.Parent = primary
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = fx.texture
+	emitter.Color = ColorSequence.new(fx.color)
+	emitter.LightEmission = if fx.light then 0.8 else 0.2
+	emitter.Rate = rate
+	emitter.Lifetime = NumberRange.new(1.2, 2.2)
+	emitter.Speed = NumberRange.new(fx.speed * 0.5, fx.speed)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Acceleration = fx.drift
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, fx.size),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	emitter.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.2),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	-- Box-shaped emitter on the body part, so particles come off the creature itself
+	emitter.Shape = Enum.ParticleEmitterShape.Box
+	emitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+	emitter.Name = "ElementFx"
+	emitter.Parent = primary
+	if stage == "Adult" and fx.light then
+		local glow = Instance.new("PointLight")
+		glow.Color = fx.color
+		glow.Brightness = 0.8
+		glow.Range = math.max(size.X, size.Z) + 4
+		glow.Parent = attachment
+	end
+end
+
 -- Longest side (studs) of an imported adult model; babies/juveniles scale down from this.
 local TEMPLATE_ADULT_SIZE = 7
 local BABY_MODEL_BOOST = 1.15
@@ -243,6 +350,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 		model:ScaleTo(stage.scale)
 	end
 	applyFinish(model, record.finish)
+	addStageEffects(model, Config.CreaturesById[record.species], record.stage)
 
 	-- Stand the model's bounding box on the pedestal, whatever its pivot is
 	local boxCFrame, boxSize = model:GetBoundingBox()
@@ -650,6 +758,10 @@ local function tick()
 					ProgressionService.bump(player, "adults")
 				end
 				spawn(player, uid, record)
+				local grown = models[player] and models[player][uid]
+				if grown then
+					grown:SetAttribute("GrewAt", Workspace:GetServerTimeNow()) -- client plays the grow-up burst
+				end
 				local name = Config.CreaturesById[record.species].displayName
 				Net.notify(player, `Your {name} grew into a {record.stage}!`, "good")
 				DataService.markDirty(player)

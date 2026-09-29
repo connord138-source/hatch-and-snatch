@@ -127,6 +127,30 @@ rayParams.FilterType = Enum.RaycastFilterType.Exclude
 
 local CreatureAnimator = {}
 
+-- Grow-up moment: a burst of gold sparkles when a creature reaches its next stage
+local function growBurst(model: Model)
+	local grewAt = model:GetAttribute("GrewAt")
+	local primary = model.PrimaryPart
+	if typeof(grewAt) ~= "number" or primary == nil or Workspace:GetServerTimeNow() - grewAt > 4 then
+		return
+	end
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	emitter.Color = ColorSequence.new(Color3.fromRGB(255, 230, 120))
+	emitter.LightEmission = 1
+	emitter.Rate = 0
+	emitter.Lifetime = NumberRange.new(0.8, 1.4)
+	emitter.Speed = NumberRange.new(6, 12)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Size =
+		NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 0) })
+	emitter.Parent = primary
+	emitter:Emit(60)
+	task.delay(2, function()
+		emitter:Destroy()
+	end)
+end
+
 local function track(instance: Instance)
 	if not instance:IsA("Model") then
 		return
@@ -136,6 +160,7 @@ local function track(instance: Instance)
 		if instance.Parent == nil then
 			return
 		end
+		growBurst(instance)
 		local bones = collectBones(instance)
 		local pivot = instance:GetPivot()
 		local boxCFrame, boxSize = instance:GetBoundingBox()
