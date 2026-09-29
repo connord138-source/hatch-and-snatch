@@ -46,6 +46,19 @@ unrelated to the Polymarket worker.
 - **Junk Egg:** rare and event-only, containing comic household-object creatures such as the Toaster Tortoise and Fridge Hedgehog.
 - **Roster:** 30 launch creatures are final. See `docs/ROSTER.md` and `src/shared/Config/Creatures.luau`.
 - **Ultra-rares above Legendary** (owner asked for them): Mythic (1 per biome, about 1/1,000), Celestial (moon events only), Cosmic (Moonfall only, about 1/10,000) and Secret (about 1/50,000, ??? in the Index). That adds 11 species; the concepts are low-quality drafts awaiting approval. See docs/GDD.md §7.1.
+- **Servers:** 6 players, 6 plots (set Max Players = 6 in Game Settings).
+- **Progression:** Hatcher Level (XP) plus base level unlock biome eggs; there are achievements; rebirth is prestige only. See GDD §7.2.
+- **Eggs and incubators:**
+  - Bought eggs are carried over your head and placed into an incubator.
+  - Players start with 1 incubator and can buy up to 6.
+  - Incubator tiers (Basic → Cosmic) hatch faster and accept later biomes.
+  - The rarity color fades in from 40% incubation.
+  - There is a Luck Wheel and a case-opening hatch reveal. See GDD §3.1.
+- **Belt:** eggs roll out of and back into the hatchery tunnel; they never vanish in view.
+- **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed.
+- **Bases:** 5 upgrade levels (bigger plot, +5 pedestals, longer lock) and biome base themes. See GDD §6.1.
+- **World:** biome zones between plots; round island, beach and sea. See GDD §7.3.
+- **Instructions for the owner's PC session must be written as a paste-ready prompt** (the owner asked for this).
 - **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 
 ## Art direction lessons (learned the hard way)
