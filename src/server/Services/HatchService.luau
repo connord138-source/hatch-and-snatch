@@ -151,10 +151,13 @@ local function refreshBay(data: PlayerData?, slot: number, part: BasePart, pad: 
 	end
 	local nextSlot = if data then #data.incubatorTiers + 1 else 0
 	local slotCost = Progression.incubatorSlotCosts[slot]
-	prompts.buy:SetAttribute("Active", data ~= nil and slot == nextSlot and slotCost ~= nil)
+	local held = if data then data.heldEgg else nil
+	-- Not while carrying an egg: Roblox shows one E prompt at a time, and the next
+	-- pad's Buy prompt kept winning over Place Egg on the bay beside it. (Carrying an
+	-- egg means a free incubator exists — buying checks that — so nothing is lost.)
+	prompts.buy:SetAttribute("Active", data ~= nil and slot == nextSlot and slotCost ~= nil and held == nil)
 	prompts.buy.ActionText = `Buy Incubator ({Format.cash(slotCost or 0)})`
 
-	local held = if data then data.heldEgg else nil
 	prompts.place:SetAttribute("Active", owned and egg == nil and held ~= nil)
 	if held and owned then
 		local need = Progression.tierForBiome(biomeOrder(held.biome))
