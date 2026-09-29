@@ -36,10 +36,11 @@ local FINISH_LOOKS: { [string]: { color: Color3?, material: Enum.Material?, tran
 			material = Enum.Material.Glass,
 			transparency = 0.3,
 		},
-		Molten = { color = Color3.fromRGB(255, 110, 20), material = Enum.Material.Neon },
-		Galaxy = { color = Color3.fromRGB(80, 40, 160), material = Enum.Material.Neon },
+		Molten = { color = Color3.fromRGB(255, 110, 20), material = Enum.Material.CrackedLava },
+		-- ForceField renders an animated shimmer over the mesh: reads as moving nebula
+		Galaxy = { color = Color3.fromRGB(110, 60, 255), material = Enum.Material.ForceField },
 		Prismatic = { material = Enum.Material.Neon }, -- client cycles the color
-		BloodMoon = { color = Color3.fromRGB(120, 0, 10), material = Enum.Material.Neon },
+		BloodMoon = { color = Color3.fromRGB(120, 0, 10), material = Enum.Material.CrackedLava },
 	}
 
 local models: { [Player]: { [string]: Model } } = {}
@@ -163,6 +164,204 @@ local function buildPlaceholder(record: CreatureRecord): Model
 	return model
 end
 
+-- Particle looks shared by finishes (on any creature) and rarity auras (by species)
+type ParticleSpec = {
+	texture: string,
+	colors: { Color3 },
+	rate: number,
+	size: number,
+	speed: number,
+	lifetime: number,
+	rise: number,
+	light: Color3?,
+}
+local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
+local FIRE = "rbxasset://textures/particles/fire_main.dds"
+local SMOKE = "rbxasset://textures/particles/smoke_main.dds"
+
+local function addParticles(part: BasePart, spec: ParticleSpec)
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Name = "LookFx"
+	emitter.Texture = spec.texture
+	local keypoints = {}
+	for i, color in spec.colors do
+		table.insert(keypoints, ColorSequenceKeypoint.new((i - 1) / math.max(#spec.colors - 1, 1), color))
+	end
+	if #keypoints == 1 then
+		table.insert(keypoints, ColorSequenceKeypoint.new(1, spec.colors[1]))
+	end
+	emitter.Color = ColorSequence.new(keypoints)
+	emitter.LightEmission = 1
+	emitter.Rate = spec.rate
+	emitter.Lifetime = NumberRange.new(spec.lifetime * 0.6, spec.lifetime)
+	emitter.Speed = NumberRange.new(spec.speed * 0.4, spec.speed)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Acceleration = Vector3.new(0, spec.rise, 0)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, spec.size),
+		NumberSequenceKeypoint.new(0.5, spec.size * 0.8),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	emitter.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	emitter.Shape = Enum.ParticleEmitterShape.Box
+	emitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+	emitter.Parent = part
+	if spec.light then
+		local light = Instance.new("PointLight")
+		light.Name = "LookLight"
+		light.Color = spec.light
+		light.Brightness = 1.2
+		light.Range = 12
+		light.Parent = part
+	end
+end
+
+local FINISH_FX: { [string]: ParticleSpec } = {
+	Gold = {
+		texture = SPARKLE,
+		colors = { Color3.fromRGB(255, 230, 120) },
+		rate = 3,
+		size = 0.35,
+		speed = 0.5,
+		lifetime = 1.2,
+		rise = 0,
+	},
+	Chrome = {
+		texture = SPARKLE,
+		colors = { Color3.new(1, 1, 1) },
+		rate = 2,
+		size = 0.3,
+		speed = 0.3,
+		lifetime = 1,
+		rise = 0,
+	},
+	Diamond = {
+		texture = SPARKLE,
+		colors = { Color3.fromRGB(200, 245, 255), Color3.new(1, 1, 1) },
+		rate = 8,
+		size = 0.4,
+		speed = 0.4,
+		lifetime = 1.2,
+		rise = 0,
+		light = Color3.fromRGB(180, 230, 255),
+	},
+	Molten = {
+		texture = FIRE,
+		colors = { Color3.fromRGB(255, 200, 60), Color3.fromRGB(255, 70, 10) },
+		rate = 14,
+		size = 0.45,
+		speed = 2,
+		lifetime = 1.4,
+		rise = 4,
+		light = Color3.fromRGB(255, 120, 30),
+	},
+	Galaxy = {
+		texture = SPARKLE,
+		colors = { Color3.fromRGB(150, 220, 255), Color3.fromRGB(190, 120, 255), Color3.new(1, 1, 1) },
+		rate = 16,
+		size = 0.35,
+		speed = 0.4,
+		lifetime = 3,
+		rise = 0.3,
+		light = Color3.fromRGB(120, 70, 255),
+	},
+	Prismatic = {
+		texture = SPARKLE,
+		colors = {
+			Color3.fromRGB(255, 80, 80),
+			Color3.fromRGB(255, 230, 80),
+			Color3.fromRGB(80, 255, 140),
+			Color3.fromRGB(80, 160, 255),
+			Color3.fromRGB(220, 90, 255),
+		},
+		rate = 20,
+		size = 0.45,
+		speed = 1.5,
+		lifetime = 2,
+		rise = 1,
+		light = Color3.new(1, 1, 1),
+	},
+	BloodMoon = {
+		texture = SMOKE,
+		colors = { Color3.fromRGB(200, 0, 20), Color3.fromRGB(40, 0, 0) },
+		rate = 8,
+		size = 1.2,
+		speed = 0.6,
+		lifetime = 2.5,
+		rise = 1.5,
+		light = Color3.fromRGB(255, 20, 30),
+	},
+}
+
+-- Rarity auras by species rarity: rarer species glow more, readable across the map
+local RARITY_FX: { [string]: ParticleSpec } = {
+	Legendary = {
+		texture = SPARKLE,
+		colors = { Color3.fromRGB(255, 190, 60) },
+		rate = 4,
+		size = 0.4,
+		speed = 0.8,
+		lifetime = 1.6,
+		rise = 1.5,
+	},
+	Mythic = {
+		texture = SPARKLE,
+		colors = { Color3.fromRGB(255, 70, 110), Color3.fromRGB(255, 180, 200) },
+		rate = 9,
+		size = 0.5,
+		speed = 1,
+		lifetime = 2,
+		rise = 2,
+		light = Color3.fromRGB(255, 70, 110),
+	},
+	Celestial = {
+		texture = SPARKLE,
+		colors = { Color3.fromRGB(255, 250, 220), Color3.fromRGB(150, 235, 255) },
+		rate = 12,
+		size = 0.55,
+		speed = 0.6,
+		lifetime = 2.4,
+		rise = 3,
+		light = Color3.fromRGB(200, 240, 255),
+	},
+	Cosmic = {
+		texture = SPARKLE,
+		colors = { Color3.fromRGB(140, 70, 255), Color3.fromRGB(90, 200, 255), Color3.new(1, 1, 1) },
+		rate = 18,
+		size = 0.45,
+		speed = 0.5,
+		lifetime = 3.5,
+		rise = 0.4,
+		light = Color3.fromRGB(140, 70, 255),
+	},
+	Secret = {
+		texture = SPARKLE,
+		colors = {
+			Color3.fromRGB(255, 80, 80),
+			Color3.fromRGB(255, 230, 80),
+			Color3.fromRGB(80, 255, 140),
+			Color3.fromRGB(80, 160, 255),
+			Color3.fromRGB(220, 90, 255),
+		},
+		rate = 22,
+		size = 0.55,
+		speed = 1.2,
+		lifetime = 2.5,
+		rise = 1,
+		light = Color3.new(1, 1, 1),
+	},
+}
+
+local function addRarityAura(model: Model, rarity: string)
+	local fx = RARITY_FX[rarity]
+	if fx and model.PrimaryPart then
+		addParticles(model.PrimaryPart, fx)
+	end
+end
+
 local function applyFinish(model: Model, finish: string)
 	local look = FINISH_LOOKS[finish]
 	if look == nil then
@@ -191,10 +390,9 @@ local function applyFinish(model: Model, finish: string)
 			end
 		end
 	end
-	if finish == "Galaxy" or finish == "Prismatic" or finish == "BloodMoon" then
-		local sparkles = Instance.new("Sparkles")
-		sparkles.SparkleColor = look.color or Color3.new(1, 1, 1)
-		sparkles.Parent = model.PrimaryPart
+	local fx = FINISH_FX[finish]
+	if fx and model.PrimaryPart then
+		addParticles(model.PrimaryPart, fx)
 	end
 	if finish == "Prismatic" then
 		CollectionService:AddTag(model, "Prismatic")
@@ -354,6 +552,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	end
 	applyFinish(model, record.finish)
 	addStageEffects(model, Config.CreaturesById[record.species], record.stage)
+	addRarityAura(model, Config.CreaturesById[record.species].rarity)
 
 	-- Stand the model's bounding box on the pedestal, whatever its pivot is
 	local boxCFrame, boxSize = model:GetBoundingBox()
