@@ -34,6 +34,7 @@ export type PlotLayout = {
 	trim: { BasePart },
 	pedestalParts: { BasePart },
 	pedestalProps: { Model? },
+	deckParts: { BasePart },
 	level: number,
 	width: number,
 	depth: number,
@@ -106,8 +107,33 @@ local function plotAngle(index: number): number
 end
 
 -- Plot footprint for a base level: it widens and deepens (away from the hub).
+-- Levels 4-5 add the upper deck instead of more depth.
+local PLOT_WIDTHS = { 60, 64, 68, 72, 76 }
+local PLOT_DEPTHS = { 48, 56, 68, 68, 68 }
 local function plotSize(level: number): (number, number)
-	return 44 + (level - 1) * 6, 44 + (level - 1) * 9
+	local i = math.clamp(level, 1, #PLOT_WIDTHS)
+	return PLOT_WIDTHS[i], PLOT_DEPTHS[i]
+end
+
+-- Upper deck (base level 4+): a floor over the back of the plot, reached by a ramp
+-- on the right side, so creatures up there take a longer run to steal.
+local DECK_LEVEL = 4
+local DECK_TOP = 15 -- deck floor height above the plot floor
+local DECK_X = 28 -- half width
+local DECK_Z0, DECK_Z1 = 2, 46
+local PEDESTAL_SPACING = 11
+
+-- Where pedestal `i` stands, relative to the plot origin (center of its top face
+-- minus 0.7): 1-20 on the ground in rows of 5, 21-30 on the deck.
+local function pedestalPosition(i: number): Vector3
+	local column = (i - 1) % 5
+	local x = -22 + column * PEDESTAL_SPACING
+	if i <= 20 then
+		local row = (i - 1) // 5
+		return Vector3.new(x, TOP + 0.7, 6 + row * PEDESTAL_SPACING)
+	end
+	local row = (i - 21) // 5
+	return Vector3.new(x, TOP + DECK_TOP + 0.7, 12 + row * 16)
 end
 
 ---------------------------------------------------------------------------
@@ -391,9 +417,7 @@ local function buildPlot(index: number): PlotLayout
 	local pedestalParts: { BasePart } = {}
 	local pedestalProps: { Model? } = {}
 	for i = 1, maxPedestals do
-		local column = (i - 1) % 5
-		local row = (i - 1) // 5
-		local localPos = Vector3.new(-16 + column * 8, TOP + 0.7, 6 + row * 9.5)
+		local localPos = pedestalPosition(i)
 		local isNursery = i <= Config.Economy.tunables.nurserySlotsBase
 		local pedestal = part({
 			Name = if isNursery then `Nursery{i}` else `Pedestal{i}`,
@@ -419,6 +443,61 @@ local function buildPlot(index: number): PlotLayout
 		pedestalParts[i] = pedestal
 		pedestals[i] = origin * CFrame.new(localPos + Vector3.new(0, 0.7, 0))
 	end
+
+	-- Upper deck, its rails and the ramp up to it (shown from base level 4)
+	local deckParts: { BasePart } = {}
+	local deckColor = Color3.fromRGB(120, 95, 70)
+	local function deckPart(name: string, size: Vector3, offset: CFrame)
+		table.insert(
+			deckParts,
+			part({
+				Name = name,
+				Size = size,
+				CFrame = origin * offset,
+				Material = Enum.Material.WoodPlanks,
+				Color = deckColor,
+				Parent = model,
+			})
+		)
+	end
+	local deckMidZ = (DECK_Z0 + DECK_Z1) / 2
+	local deckDepth = DECK_Z1 - DECK_Z0
+	deckPart("Deck", Vector3.new(DECK_X * 2, 1, deckDepth), CFrame.new(0, TOP + DECK_TOP - 0.5, deckMidZ))
+	-- Rails (open at the front-right corner where the ramp arrives)
+	deckPart("DeckRail", Vector3.new(DECK_X * 2 - 6, 3, 0.6), CFrame.new(-3, TOP + DECK_TOP + 1.5, DECK_Z0))
+	deckPart("DeckRail", Vector3.new(DECK_X * 2, 3, 0.6), CFrame.new(0, TOP + DECK_TOP + 1.5, DECK_Z1))
+	deckPart("DeckRail", Vector3.new(0.6, 3, deckDepth), CFrame.new(-DECK_X, TOP + DECK_TOP + 1.5, deckMidZ))
+	deckPart(
+		"DeckRail",
+		Vector3.new(0.6, 3, deckDepth - 10),
+		CFrame.new(DECK_X, TOP + DECK_TOP + 1.5, deckMidZ + 5)
+	)
+	-- Support posts
+	for _, corner in { Vector2.new(-1, 0), Vector2.new(1, 0), Vector2.new(-1, 1), Vector2.new(1, 1) } do
+		deckPart(
+			"DeckPost",
+			Vector3.new(1.6, DECK_TOP, 1.6),
+			CFrame.new(
+				corner.X * (DECK_X - 1),
+				TOP + DECK_TOP / 2,
+				if corner.Y == 0 then DECK_Z0 + 1 else DECK_Z1 - 1
+			)
+		)
+	end
+	-- Ramp from the front-right up to the deck's open corner
+	local rampFrom = Vector3.new(DECK_X + 3, TOP, -16)
+	local rampTo = Vector3.new(DECK_X + 3, TOP + DECK_TOP, DECK_Z0 + 6)
+	local rampLength = (rampTo - rampFrom).Magnitude
+	deckPart(
+		"Ramp",
+		Vector3.new(6, 1, rampLength),
+		CFrame.lookAt((rampFrom + rampTo) / 2, rampTo) * CFrame.new(0, -0.5, 0)
+	)
+	deckPart(
+		"RampLanding",
+		Vector3.new(7, 1, 10),
+		CFrame.new(DECK_X + 0.5, TOP + DECK_TOP - 0.5, DECK_Z0 + 8)
+	)
 
 	-- Incubator bays, front-left: 2 rows of 3. HatchService shows owned/locked states.
 	local incubators: { BasePart } = {}
@@ -600,6 +679,7 @@ local function buildPlot(index: number): PlotLayout
 		trim = trim,
 		pedestalParts = pedestalParts,
 		pedestalProps = pedestalProps,
+		deckParts = deckParts,
 		level = 0,
 		width = 44,
 		depth = 44,
@@ -631,9 +711,19 @@ function WorldService.setLevel(plot: PlotLayout, level: number)
 		local offset: CFrame, size: Vector3 = edge[1], edge[2]
 		plot.trim[i].Size = Vector3.new(size.X, 1.3, size.Z)
 		plot.trim[i].CFrame = plot.origin * offset * CFrame.new(0, 0.65, 0)
+		-- Lasers grow tall enough to cover the deck once it exists
+		local laserHeight = if level >= DECK_LEVEL then DECK_TOP + 8 else 7
 		local laser = plot.lasers[i]
-		laser.Size = Vector3.new(if size.X > 1 then size.X else 0.3, 7, if size.Z > 1 then size.Z else 0.3)
-		laser.CFrame = plot.origin * offset * CFrame.new(0, 4, 0)
+		laser.Size =
+			Vector3.new(if size.X > 1 then size.X else 0.3, laserHeight, if size.Z > 1 then size.Z else 0.3)
+		laser.CFrame = plot.origin * offset * CFrame.new(0, 0.5 + laserHeight / 2, 0)
+	end
+
+	local hasDeck = level >= DECK_LEVEL
+	for _, deckPiece in plot.deckParts do
+		deckPiece.Transparency = if hasDeck then 0 else 1
+		deckPiece.CanCollide = hasDeck
+		deckPiece.CanQuery = hasDeck
 	end
 
 	local count = Config.Economy.baseLevel(level).pedestals

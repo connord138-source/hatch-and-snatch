@@ -96,8 +96,10 @@ local function update(display: Display, now: number, t: number)
 		if progress > 0.85 then
 			display.base = display.base or part.CFrame
 			local strength = (progress - 0.85) / 0.15
-			local wobble = math.sin(t * (10 + strength * 14)) * math.rad(4 + strength * 10)
-			part.CFrame = (display.base :: CFrame) * CFrame.Angles(wobble * 0.6, 0, wobble)
+			-- A gentle rock that quickens near the end, with short rests in between
+			local rock = math.sin(t * (4 + strength * 5)) * math.rad(1.5 + strength * 4)
+			local rest = if math.sin(t * 0.9) > 0.3 then 1 else 0.25
+			part.CFrame = (display.base :: CFrame) * CFrame.Angles(0, 0, rock * rest)
 		elseif display.base then
 			part.CFrame = display.base
 			display.base = nil

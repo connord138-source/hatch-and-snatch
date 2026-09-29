@@ -45,6 +45,7 @@ local BONE_DISTANCE = 90 -- beyond this bones stay put
 local RIGGED_HOP = 0.5 -- rigged legs do part of the work, so the body lifts less
 local FOLLOW_OFFSET = CFrame.new(4, 0, 4.5) -- beside and behind the owner
 local SNAP_DISTANCE = 70 -- teleported owner: jump straight there
+local TURNTABLE_SPEED = 2 * math.pi / 24 -- one slow turn every 24 s on a pedestal
 
 -- Rig bones point along their local Y (Blender convention), so pitch is local X,
 -- side-to-side sway is local Z and a head turn is local Y.
@@ -297,14 +298,17 @@ function CreatureAnimator.start()
 				model:PivotTo(follow(info, dt, root))
 			else
 				-- Sitting on the pedestal. Unrigged models lean back a little to read as sitting.
+				-- Slow display turntable: the creature turns around its own middle
 				info.moving = 0
+				local boxCFrame = info.base * info.pivotToBox
+				local spin = CFrame.Angles(0, (t * TURNTABLE_SPEED + info.seed) % (2 * math.pi), 0)
+				local turned = CFrame.new(boxCFrame.Position) * spin * boxCFrame.Rotation
+				local pivot = turned * info.pivotToBox:Inverse()
 				if not info.rigged then
 					local breath = math.sin(t * 1.6 + info.seed) * 0.03
-					local sit = CFrame.Angles(math.rad(-6) + breath * 0.3, info.lookYaw * 0.35, 0)
-					model:PivotTo(info.base * sit)
-				elseif model:GetPivot() ~= info.base then
-					model:PivotTo(info.base)
+					pivot *= CFrame.Angles(math.rad(-6) + breath * 0.3, 0, 0)
 				end
+				model:PivotTo(pivot)
 			end
 			if info.rigged and distance <= BONE_DISTANCE then
 				poseBones(info, t)

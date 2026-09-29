@@ -6,9 +6,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
+local CreaturePhoto = require(script.Parent.Parent.CreaturePhoto)
 local Ui = require(script.Parent.Parent.Ui)
 
 type Card = {
+	frame: Frame,
+	photo: ViewportFrame?,
 	name: TextLabel,
 	info: TextLabel,
 	adult: TextLabel,
@@ -41,7 +44,7 @@ local function text(
 	props: { [string]: any }
 ): TextLabel
 	props.Position = UDim2.fromOffset(10, y)
-	props.Size = UDim2.new(1, -20, 0, height)
+	props.Size = UDim2.new(1, -80, 0, height) -- room for the photo on the right
 	props.TextScaled = false
 	props.TextSize = size
 	props.TextXAlignment = Enum.TextXAlignment.Left
@@ -94,7 +97,7 @@ local function makeCard(parent: Instance, creature: Types.Creature, order: numbe
 		dot.Parent = frame
 		dots[finish.id] = dot
 	end
-	return { name = name, info = info, adult = adult, dots = dots }
+	return { frame = frame, photo = nil, name = name, info = info, adult = adult, dots = dots }
 end
 
 function IndexMenu.build(content: Frame)
@@ -171,6 +174,17 @@ function IndexMenu.refresh(state: { [string]: any })
 		local known = owned[id] == true
 		if known then
 			found += 1
+		end
+		-- A photo of the creature once you've discovered it
+		if known and card.photo == nil then
+			local photo = CreaturePhoto.make(card.frame, id)
+			if photo then
+				photo.AnchorPoint = Vector2.new(1, 0)
+				photo.Position = UDim2.new(1, -4, 0, 4)
+				photo.Size = UDim2.fromOffset(62, 62)
+				photo.ZIndex = 2
+				card.photo = photo
+			end
 		end
 		card.name.Text = if known then creature.displayName else "???"
 		card.name.TextColor3 = if known then Color3.new(1, 1, 1) else Ui.colors.muted
