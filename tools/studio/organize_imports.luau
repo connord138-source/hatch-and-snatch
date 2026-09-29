@@ -4,7 +4,8 @@
 --   <SpeciesId> / <SpeciesId>_Baby -> ReplicatedStorage.CreatureModels
 --   <BiomeId> / Egg                -> ReplicatedStorage.EggModels
 --   prop names                     -> ReplicatedStorage.WorldProps
--- and sets each model's PrimaryPart to its largest part. Safe to run again.
+-- and sets each model's PrimaryPart to its largest part (creatures also get their
+-- pivot squared up with the body). Safe to run again.
 -- Then File → Save (Ctrl+S): these folders live in the place file, not in Rojo.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -55,6 +56,12 @@ for _, model in workspace:GetChildren() do
 		continue
 	end
 	model.PrimaryPart = largest
+	if target == "CreatureModels" then
+		-- An FBX exported without "Apply Transform" keeps its Z-up -> Y-up turn in the
+		-- pivot, and the game stands creatures up by their pivot (they'd stand on their
+		-- heads). Keep only the pivot's position so it matches the body's orientation.
+		largest.PivotOffset = CFrame.new(largest.PivotOffset.Position)
+	end
 	local destination = folder(target)
 	local old = destination:FindFirstChild(model.Name)
 	if old then

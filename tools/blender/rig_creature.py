@@ -232,6 +232,10 @@ bpy.ops.export_scene.fbx(
     bake_anim=False,
     axis_forward="-Z",
     axis_up="Y",
+    # Bake the Z-up -> Y-up conversion into the mesh and bones. Without it the
+    # conversion is only a root transform, which Studio's importer drops for
+    # skinned meshes: every creature came in rotated 90°, standing on its head.
+    bake_space_transform=True,
     apply_scale_options="FBX_SCALE_ALL",
     path_mode="COPY",
     embed_textures=True,
