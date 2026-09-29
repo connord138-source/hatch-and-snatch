@@ -63,6 +63,11 @@ How to prompt for concepts:
 2. Give every creature a **distinct body shape** (see the body-shape groups in `docs/ART_BIBLE.md`) and a **signature pose and silhouette**.
 3. Use the neutral, legs-apart pose only for the clean model sheet sent to 3D conversion.
 
+## 3D assets
+
+- Only the models in `docs/ASSETS.md` exist in 3D. Everything else is concept art until converted.
+- Import them in Studio into `ReplicatedStorage.CreatureModels.<SpeciesId>` and `ReplicatedStorage.EggModels.Egg`. The code handles scale, placement, tint and finishes.
+
 ## Tooling notes
 
 - **Higgsfield:** project "Hatch & Snatch — Art Tests".

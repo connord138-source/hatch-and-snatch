@@ -7,3 +7,6 @@ sourcemap.json
 
 # Blender autosaves
 *.blend1
+
+# Downloaded GLB source models (large; links live in docs/ASSETS.md)
+assets/glb/

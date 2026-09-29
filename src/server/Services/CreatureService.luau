@@ -152,6 +152,13 @@ local function applyFinish(model: Model, finish: string)
 	if look == nil then
 		return
 	end
+	-- Imported meshes carry their texture in a SurfaceAppearance; a finish replaces it
+	-- with a solid material (the look of the approved finish sheet)
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("SurfaceAppearance") then
+			descendant:Destroy()
+		end
+	end
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") and not descendant:GetAttribute("KeepMaterial") then
 			if look.color then
@@ -178,12 +185,16 @@ local function applyFinish(model: Model, finish: string)
 	end
 end
 
+-- Longest side (studs) of an imported adult model; babies/juveniles scale down from this.
+local TEMPLATE_ADULT_SIZE = 7
+
 local function buildModel(owner: Player, uid: string, record: CreatureRecord, at: CFrame): Model
 	local templates = ReplicatedStorage:FindFirstChild("CreatureModels")
 	local template = templates and templates:FindFirstChild(record.species)
 	local model: Model
-	if template and template:IsA("Model") and template.PrimaryPart then
-		model = template:Clone()
+	local fromTemplate = template ~= nil and template:IsA("Model") and template.PrimaryPart ~= nil
+	if fromTemplate then
+		model = (template :: Model):Clone()
 	else
 		model = buildPlaceholder(record)
 	end
@@ -197,11 +208,22 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	end
 
 	local stage = Config.Stages[record.stage :: Types.StageId]
-	model:ScaleTo(stage.scale)
+	if fromTemplate then
+		-- Imported meshes come in at arbitrary sizes: normalize the longest side, then apply the stage
+		local size = model:GetExtentsSize()
+		local longest = math.max(size.X, size.Y, size.Z, 0.01)
+		model:ScaleTo(model:GetScale() * (TEMPLATE_ADULT_SIZE / longest) * stage.scale)
+	else
+		model:ScaleTo(stage.scale)
+	end
 	applyFinish(model, record.finish)
 
-	local extents = model:GetExtentsSize()
-	model:PivotTo(at * CFrame.new(0, extents.Y / 2, 0))
+	-- Stand the model's bounding box on the pedestal, whatever its pivot is
+	local boxCFrame, boxSize = model:GetBoundingBox()
+	local pivotToBox = model:GetPivot():ToObjectSpace(boxCFrame)
+	local targetBox = at * CFrame.new(0, boxSize.Y / 2, 0)
+	model:PivotTo(targetBox * pivotToBox:Inverse())
+	local extents = boxSize
 
 	local creature = Config.CreaturesById[record.species]
 	local tag = Instance.new("BillboardGui")

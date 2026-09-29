@@ -26,6 +26,7 @@ type Egg = {
 }
 
 local conveyor = Config.Eggs.conveyor
+local EGG_HEIGHT = 3.4 -- studs, for imported egg meshes
 local rng = Random.new()
 local eggs: { Egg } = {}
 local folder: Folder
@@ -99,10 +100,47 @@ local function spawnEgg()
 	part.Material = if biomeId == "Moonfall" or biomeId == "Junk"
 		then Enum.Material.Neon
 		else Enum.Material.SmoothPlastic
-	local mesh = Instance.new("SpecialMesh")
-	mesh.MeshType = Enum.MeshType.Sphere
-	mesh.Scale = Vector3.new(1, 1.3, 1)
-	mesh.Parent = part
+	local eggModels = ReplicatedStorage:FindFirstChild("EggModels")
+	local template = eggModels and eggModels:FindFirstChild("Egg")
+	if template and template:IsA("Model") then
+		-- Imported egg mesh: the anchor part goes invisible and the mesh is welded to it,
+		-- tinted per biome (SurfaceAppearance.Color multiplies the texture)
+		part.Transparency = 1
+		local model = template:Clone()
+		local size = model:GetExtentsSize()
+		model:ScaleTo(model:GetScale() * (EGG_HEIGHT / math.max(size.Y, 0.01)))
+		model:PivotTo(CFrame.new())
+		local boxCFrame = model:GetBoundingBox()
+		model:PivotTo(part.CFrame * boxCFrame:Inverse()) -- center the mesh on the anchor part
+		local tint = Config.Eggs.eggColors[biomeId]
+		for _, descendant in model:GetDescendants() do
+			if descendant:IsA("BasePart") then
+				descendant.Anchored = false
+				descendant.CanCollide = false
+				descendant.Massless = true
+				descendant.Color = tint
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0 = part
+				weld.Part1 = descendant
+				weld.Parent = descendant
+			elseif descendant:IsA("SurfaceAppearance") then
+				(descendant :: any).Color = tint
+			end
+		end
+		if biomeId == "Moonfall" or biomeId == "Junk" then
+			local light = Instance.new("PointLight")
+			light.Color = tint
+			light.Range = 8
+			light.Brightness = 2
+			light.Parent = part
+		end
+		model.Parent = part
+	else
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Scale = Vector3.new(1, 1.3, 1)
+		mesh.Parent = part
+	end
 
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Buy"
