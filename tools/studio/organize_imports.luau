@@ -37,7 +37,7 @@ for _, model in workspace:GetChildren() do
 	if not model:IsA("Model") then
 		continue
 	end
-	local base = model.Name:gsub("_Baby$", "")
+	local base = model.Name:gsub("_Baby$", ""):gsub("_Juvenile$", "")
 	local target = if species[base] then "CreatureModels"
 		elseif EGGS[model.Name] then "EggModels"
 		elseif PROPS[model.Name] then "WorldProps"

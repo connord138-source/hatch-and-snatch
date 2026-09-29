@@ -3,7 +3,7 @@
 -- real time (including offline catch-up) and the in-world models.
 --
 -- Models: if ReplicatedStorage.CreatureModels.<SpeciesId> exists it is cloned
--- (Babies use <SpeciesId>_Baby when imported, a separate big-headed model);
+-- (Babies/Juveniles use <SpeciesId>_Baby / _Juvenile when imported: their own stage look);
 -- otherwise a placeholder is built.
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -309,18 +309,21 @@ end
 
 -- Longest side (studs) of an imported adult model; babies/juveniles scale down from this.
 local TEMPLATE_ADULT_SIZE = 7
-local BABY_MODEL_BOOST = 1.15
+local STAGE_MODEL_BOOST = 1.15
 
 local function buildModel(owner: Player, uid: string, record: CreatureRecord, at: CFrame): Model
 	local templates = ReplicatedStorage:FindFirstChild("CreatureModels")
 	local template = templates and templates:FindFirstChild(record.species)
-	-- `if` (not `and`): for Juveniles/Adults this must be nil, not false
-	local babyTemplate = if templates and record.stage == "Baby"
-		then templates:FindFirstChild(`{record.species}_Baby`)
+	-- Babies and Juveniles use their own stage model (<SpeciesId>_Baby / _Juvenile)
+	-- when imported; `if` (not `and`) so a missing one is nil, not false
+	local stageTemplate = if templates and record.stage ~= "Adult"
+		then templates:FindFirstChild(`{record.species}_{record.stage}`)
 		else nil
-	local isBabyModel = babyTemplate ~= nil and babyTemplate:IsA("Model") and babyTemplate.PrimaryPart ~= nil
-	if isBabyModel then
-		template = babyTemplate
+	local isStageModel = stageTemplate ~= nil
+		and stageTemplate:IsA("Model")
+		and stageTemplate.PrimaryPart ~= nil
+	if isStageModel then
+		template = stageTemplate
 	end
 	local model: Model
 	local fromTemplate = template ~= nil and template:IsA("Model") and template.PrimaryPart ~= nil
@@ -343,8 +346,8 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 		-- Imported meshes come in at arbitrary sizes: normalize the longest side, then apply the stage
 		local size = model:GetExtentsSize()
 		local longest = math.max(size.X, size.Y, size.Z, 0.01)
-		-- Baby models already have baby proportions; they read small enough a bit larger
-		local stageScale = if isBabyModel then stage.scale * BABY_MODEL_BOOST else stage.scale
+		-- Stage models already have young proportions; they read small enough a bit larger
+		local stageScale = if isStageModel then stage.scale * STAGE_MODEL_BOOST else stage.scale
 		model:ScaleTo(model:GetScale() * (TEMPLATE_ADULT_SIZE / longest) * stageScale)
 	else
 		model:ScaleTo(stage.scale)

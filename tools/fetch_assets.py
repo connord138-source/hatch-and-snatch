@@ -16,7 +16,7 @@ import sys
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-FOLDERS = {"creatures": "glb", "babies": "glb", "eggs": "eggs", "props": "props"}
+FOLDERS = {"creatures": "glb", "babies": "glb", "juveniles": "glb", "eggs": "eggs", "props": "props"}
 
 manifest = json.loads((ROOT / "tools/assets_manifest.json").read_text())
 force = "--force" in sys.argv
@@ -26,7 +26,8 @@ for group, folder in FOLDERS.items():
     out_dir = ROOT / "assets" / folder
     out_dir.mkdir(parents=True, exist_ok=True)
     for name, url in manifest.get(group, {}).items():
-        filename = f"{name}_Baby.glb" if group == "babies" else f"{name}.glb"
+        suffix = {"babies": "_Baby", "juveniles": "_Juvenile"}.get(group, "")
+        filename = f"{name}{suffix}.glb"
         out = out_dir / filename
         if out.exists() and not force:
             continue

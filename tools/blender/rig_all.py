@@ -22,7 +22,7 @@ fbx_dir.mkdir(parents=True, exist_ok=True)
 
 failed = []
 for glb in sorted(glb_dir.glob("*.glb")):
-    species = glb.stem.removesuffix("_Baby")
+    species = glb.stem.removesuffix("_Baby").removesuffix("_Juvenile")
     if species not in plans:
         print(f"skip {glb.name}: not a species id in bodyplans.json")
         continue
