@@ -96,6 +96,27 @@ function BaseService.setTheme(player: Player, themeId: any)
 	DataService.markDirty(player)
 end
 
+-- Buys the next security upgrade (alarm → tripwire → auto-lock).
+function BaseService.buySecurity(player: Player)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local nextLevel = Config.Economy.tunables.securityLevels[data.security + 1]
+	if nextLevel == nil then
+		Net.notify(player, "Your base security is maxed out!", "info")
+		return
+	end
+	if not EconomyService.spend(player, nextLevel.cost) then
+		Net.notify(player, `You need {Format.cash(nextLevel.cost)} for the {nextLevel.name}.`, "bad")
+		return
+	end
+	data.security += 1
+	Net.notify(player, `{nextLevel.name} installed! {nextLevel.description}.`, "rare")
+	ProgressionService.addXp(player, 100 * data.security)
+	DataService.markDirty(player)
+end
+
 function BaseService.start()
 	DataService.loaded:connect(apply) -- after PlotService assigned the plot
 	for _, plot in WorldService.plots do
@@ -107,6 +128,7 @@ function BaseService.start()
 	end
 	Net.onRequest("UpgradeBase", BaseService.upgrade)
 	Net.onRequest("Theme", BaseService.setTheme)
+	Net.onRequest("Security", BaseService.buySecurity)
 end
 
 return BaseService

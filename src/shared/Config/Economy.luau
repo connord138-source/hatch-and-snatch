@@ -53,6 +53,26 @@ local Tunables = {
 		{ cost = 15_000_000, pedestals = 30, lockBonusSeconds = 60 },
 	},
 
+	-- Base security (bought in order in the Base menu)
+	securityLevels = {
+		{
+			name = "Intruder Alarm",
+			cost = 15_000,
+			description = "Alerts you when someone walks into your base; intruders glow red",
+		},
+		{
+			name = "Tripwire",
+			cost = 250_000,
+			description = "Thieves carrying your creatures move 25% slower inside your base",
+		},
+		{
+			name = "Auto-Lock",
+			cost = 3_000_000,
+			description = "Your laser gate locks itself when an intruder walks in (if it's charged)",
+		},
+	},
+	tripwireSlow = 0.75,
+
 	-- Walking a creature: it follows you around, can't be stolen, and grows faster
 	walkGrowthMultiplier = 2,
 

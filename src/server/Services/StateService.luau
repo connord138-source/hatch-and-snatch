@@ -57,6 +57,7 @@ local function snapshot(player: Player): { [string]: any }?
 			then Config.Economy.tunables.baseLevels[data.baseLevel + 1].cost
 			else nil,
 		baseTheme = data.baseTheme,
+		security = data.security,
 		ownedThemes = data.ownedThemes,
 		progression = ProgressionService.snapshot(data),
 		spins = data.spins,

@@ -26,6 +26,7 @@ local requests: { [string]: RemoteEvent } = {
 	Rebirth = makeEvent("Rebirth"), -- ()
 	UpgradeBase = makeEvent("UpgradeBase"), -- ()
 	Theme = makeEvent("Theme"), -- (themeId: string) buy if needed, then apply
+	Security = makeEvent("Security"), -- () buy the next security upgrade
 }
 
 folder.Parent = ReplicatedStorage

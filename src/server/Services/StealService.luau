@@ -36,6 +36,7 @@ type Carry = {
 	expiresAt: number,
 	breakFreeAt: number?,
 	walkSpeed: number,
+	moveSpeed: number, -- carrying speed (before any tripwire)
 	jumpPower: number,
 	jumpHeight: number,
 	connections: { RBXScriptConnection },
@@ -51,6 +52,7 @@ local TAKE_BACK_HOLD: { [string]: number } = { Baby = 1.0, Juvenile = 0.6, Adult
 
 local carries: { [Player]: Carry } = {} -- keyed by thief
 local locks: { [number]: LockState } = {} -- keyed by plot index
+local intruders: { [number]: { [Player]: boolean } } = {} -- plot index -> players inside
 local rng = Random.new()
 
 local StealService = {}
@@ -250,6 +252,7 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 			then os.clock() + rng:NextNumber(2, 5)
 			else nil,
 		walkSpeed = humanoid.WalkSpeed,
+		moveSpeed = humanoid.WalkSpeed,
 		jumpPower = humanoid.JumpPower,
 		jumpHeight = humanoid.JumpHeight,
 		connections = {},
@@ -258,7 +261,8 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 	thief:SetAttribute("Carrying", true) -- clients hide Steal prompts while you carry one
 
 	local speed = stage.carrySpeed * (if record.homegrown then HOMEGROWN_STRUGGLE else 1)
-	humanoid.WalkSpeed = carry.walkSpeed * speed
+	carry.moveSpeed = carry.walkSpeed * speed
+	humanoid.WalkSpeed = carry.moveSpeed
 	if not stage.thiefCanJump then
 		humanoid.JumpPower = 0
 		humanoid.JumpHeight = 0
@@ -286,9 +290,20 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 	DataService.markDirty(owner)
 end
 
-local function tryLock(player: Player, plot: WorldService.PlotLayout)
+local function security(owner: Player?): number
+	local data = owner and DataService.get(owner)
+	return if data then data.security else 0
+end
+
+local function tryLock(player: Player, plot: WorldService.PlotLayout, automatic: boolean?)
 	if PlotService.ownerOf(plot) ~= player then
 		return
+	end
+	if automatic then
+		local lock = locks[plot.index]
+		if lock and serverNow() < lock.cooldownUntil then
+			return -- not charged: auto-lock stays quiet
+		end
 	end
 	local now = serverNow()
 	local lock = locks[plot.index]
@@ -304,7 +319,13 @@ local function tryLock(player: Player, plot: WorldService.PlotLayout)
 		* (if event then event.lockDurationMultiplier else 1)
 	locks[plot.index] =
 		{ lockedUntil = now + duration, cooldownUntil = now + duration + tunables.lockCooldownSeconds }
-	Net.notify(player, `Base locked for {Format.duration(duration)}!`, "good")
+	Net.notify(
+		player,
+		if automatic
+			then `Auto-Lock: an intruder walked in — base locked for {Format.duration(duration)}!`
+			else `Base locked for {Format.duration(duration)}!`,
+		"good"
+	)
 	DataService.markDirty(player)
 end
 
@@ -330,14 +351,57 @@ local function tick()
 	local clock = os.clock()
 
 	for _, carry in carries do
-		local _, root = humanoidOf(carry.thief)
+		local humanoid, root = humanoidOf(carry.thief)
 		local thiefPlot = PlotService.get(carry.thief)
+		-- Tripwire: slower while still inside the owner's base
+		local ownerPlot = PlotService.get(carry.owner)
+		if humanoid and root and ownerPlot then
+			local tripped = security(carry.owner) >= 2 and WorldService.isInsidePlot(ownerPlot, root.Position)
+			humanoid.WalkSpeed = carry.moveSpeed * (if tripped then tunables.tripwireSlow else 1)
+		end
 		if root and thiefPlot and WorldService.isInsidePlot(thiefPlot, root.Position) then
 			endCarry(carry, "delivered")
 		elseif carry.breakFreeAt and clock >= carry.breakFreeAt then
 			endCarry(carry, "brokeFree")
 		elseif clock >= carry.expiresAt or root == nil then
 			endCarry(carry, "returned")
+		end
+	end
+
+	-- Security: alarm (alert + red highlight) and auto-lock on intruders
+	for _, plot in WorldService.plots do
+		local owner = PlotService.ownerOf(plot)
+		local level = security(owner)
+		local inside = intruders[plot.index] or {}
+		intruders[plot.index] = inside
+		for _, player in Players:GetPlayers() do
+			local _, root = humanoidOf(player)
+			local isIn = owner ~= nil
+				and player ~= owner
+				and root ~= nil
+				and WorldService.isInsidePlot(plot, (root :: BasePart).Position)
+			local character = player.Character
+			if isIn and not inside[player] then
+				inside[player] = true
+				if level >= 1 and owner and character then
+					Net.notify(owner, `⚠ {player.DisplayName} walked into your base!`, "bad")
+					local highlight = Instance.new("Highlight")
+					highlight.Name = "IntruderHighlight"
+					highlight.FillColor = Color3.fromRGB(255, 40, 40)
+					highlight.FillTransparency = 0.6
+					highlight.OutlineColor = Color3.fromRGB(255, 80, 80)
+					highlight.Parent = character
+				end
+				if level >= 3 and owner and not isLocked(plot) then
+					tryLock(owner, plot, true)
+				end
+			elseif not isIn and inside[player] then
+				inside[player] = nil
+				local highlight = character and character:FindFirstChild("IntruderHighlight")
+				if highlight then
+					highlight:Destroy()
+				end
+			end
 		end
 	end
 
@@ -371,6 +435,12 @@ function StealService.start()
 			tryLock(player, plot)
 		end)
 	end
+
+	Players.PlayerRemoving:Connect(function(player)
+		for _, inside in intruders do
+			inside[player] = nil
+		end
+	end)
 
 	DataService.releasing:connect(function(player: Player)
 		-- Thief left: the creature goes home. Owner left: it leaves with them.

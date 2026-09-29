@@ -70,6 +70,7 @@ export type PlayerData = {
 	baseTheme: string,
 	ownedThemes: { [string]: boolean },
 	baseLevel: number, -- Config.Economy.tunables.baseLevels index
+	security: number, -- how many of Config.Economy.tunables.securityLevels are bought
 	spins: number, -- banked Luck Wheel spins
 	luckCharge: number, -- luck multiplier waiting for the next egg bought (1 = none)
 	spinProgress: number, -- seconds played toward the next free spin
@@ -109,6 +110,7 @@ local TEMPLATE: PlayerData = {
 	baseTheme = "Mossvale",
 	ownedThemes = { Mossvale = true },
 	baseLevel = 1,
+	security = 0,
 	spins = Config.Economy.tunables.startingSpins,
 	luckCharge = 1,
 	spinProgress = 0,

@@ -1,5 +1,6 @@
 --!strict
--- Base menu: base level (what the next upgrade gives and costs) and base themes,
+-- Base menu: base level (what the next upgrade gives and costs), security
+-- upgrades (alarm -> tripwire -> auto-lock), and base themes,
 -- one per biome. A theme is buyable once its biome's eggs are unlocked; owned
 -- themes can be switched freely. The server checks every request.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,14 +12,19 @@ local Ui = require(script.Parent.Parent.Ui)
 
 local Progression = Config.Progression
 local levels = Config.Economy.tunables.baseLevels
+local securityLevels = Config.Economy.tunables.securityLevels
 
 type ThemeRow = { frame: Frame, status: TextLabel, button: TextButton }
 
 local levelLabel: TextLabel
 local levelInfo: TextLabel
 local upgradeButton: TextButton
+local securityLabel: TextLabel
+local securityInfo: TextLabel
+local securityButton: TextButton
 local themeRows: { [string]: ThemeRow } = {}
 local affordable = false
+local securityAffordable = false
 
 local BaseMenu = {}
 
@@ -49,15 +55,40 @@ function BaseMenu.build(content: Frame)
 		end
 	end)
 
-	local header = text(content, {
+	securityLabel = text(content, {
 		Position = UDim2.fromOffset(0, 76),
+		Size = UDim2.new(1, -230, 0, 24),
+		TextSize = 19,
+		TextColor3 = Color3.fromRGB(255, 130, 130),
+	})
+	securityInfo = text(content, {
+		Position = UDim2.fromOffset(0, 102),
+		Size = UDim2.new(1, -230, 0, 36),
+		TextSize = 13,
+		TextWrapped = true,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		TextColor3 = Ui.colors.muted,
+	})
+	securityButton = Ui.button(content, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, 0, 0, 80),
+		Size = UDim2.fromOffset(220, 48),
+	})
+	securityButton.Activated:Connect(function()
+		if securityAffordable then
+			ClientState.request("Security")
+		end
+	end)
+
+	local header = text(content, {
+		Position = UDim2.fromOffset(0, 146),
 		Size = UDim2.new(1, 0, 0, 22),
 		TextSize = 17,
 		Text = "Base themes — restyle your plot in a biome's look",
 	})
 	header.TextColor3 = Color3.fromRGB(255, 220, 120)
 	local list =
-		Ui.scrollList(content, { Position = UDim2.fromOffset(0, 104), Size = UDim2.new(1, 0, 1, -104) })
+		Ui.scrollList(content, { Position = UDim2.fromOffset(0, 174), Size = UDim2.new(1, 0, 1, -174) })
 	for i, theme in Progression.themes do
 		local frame = Ui.panel(list, {
 			Size = UDim2.new(1, -10, 0, 50),
@@ -118,6 +149,25 @@ function BaseMenu.refresh(state: { [string]: any })
 		affordable = false
 		upgradeButton.Text = "Max level"
 		upgradeButton.BackgroundColor3 = Ui.colors.disabled
+	end
+
+	local security: number = state.security or 0
+	local nextSecurity = securityLevels[security + 1]
+	securityLabel.Text = if security > 0
+		then `Security: {securityLevels[security].name} ({security} / {#securityLevels})`
+		else `Security: none (0 / {#securityLevels})`
+	if nextSecurity then
+		securityInfo.Text = `Next — {nextSecurity.name}: {nextSecurity.description}.`
+		securityAffordable = state.cash >= nextSecurity.cost
+		securityButton.Text = if securityAffordable
+			then `{nextSecurity.name} — {Format.cash(nextSecurity.cost)}`
+			else `Need {Format.cash(nextSecurity.cost - state.cash)} more`
+		securityButton.BackgroundColor3 = if securityAffordable then Ui.colors.good else Ui.colors.disabled
+	else
+		securityInfo.Text = "Fully secured: alarm, tripwire and auto-lock are all active."
+		securityAffordable = false
+		securityButton.Text = "Max security"
+		securityButton.BackgroundColor3 = Ui.colors.disabled
 	end
 
 	for id, row in themeRows do
