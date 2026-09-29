@@ -81,23 +81,38 @@ How to prompt for concepts:
 ## 3D assets
 
 - **Everything has a model now** (the Sept 2026 credit promo): 41 adults, babies, 8 eggs and 16 world props.
+  - Juveniles: 23 of 41 (every Common–Legendary species). Still missing: the 12 ultra-rares and 6 Junk; the game uses the adult model for those.
+  - Set pieces: 12 (`src/server/SetPieces.luau`, 2–3 per biome zone), each with a part-built stand-in.
   - The links are in `tools/assets_manifest.json`; the workflow is in `docs/ASSETS.md`.
   - `fetch_assets.py` downloads them, `rig_all.py` rigs them, Studio imports them, and `tools/studio/organize_imports.luau` files them.
 - **Folders the code reads:**
-  - `ReplicatedStorage.CreatureModels.<SpeciesId>`, plus `<SpeciesId>_Baby` for the Baby stage.
+  - `ReplicatedStorage.CreatureModels.<SpeciesId>`, plus `<SpeciesId>_Baby` and `<SpeciesId>_Juvenile` for those stages.
   - `EggModels.<BiomeId>` (or `Egg`).
   - `WorldProps.<Name>`.
   - `src/server/Props.luau` fits props over placeholder parts; code must keep working when a model is missing.
 - Clean model sheets (neutral pose) are the 3D inputs. Never convert an action-pose concept directly, because it rigs badly.
-- **Rigging:** `tools/blender/rig_all.py` auto-rigs GLBs to FBX headless, and CreatureAnimator drives the bone names procedurally. It was verified in the sandbox via `pip install bpy` on a test quadruped, but not yet on the real models.
+- **Rigging:** `tools/blender/rig_all.py` auto-rigs GLBs to FBX headless, and CreatureAnimator drives the bone names procedurally.
+  - All 105 creature models rig cleanly in the sandbox (`pip install bpy pillow`; bpy 5.0 needs Python 3.11).
+  - Tripo keeps the concept's three-quarter turn, so the rig squares each body up (PCA) before guessing the head end.
+  - The head guess (higher end = head) fails on raised tail clubs, tufts and swirls. Wrong ones carry `"flip"` in `bodyplans.json`, under `front`, `frontBaby` or `frontJuvenile` (each GLB has its own orientation).
+  - After adding models, check them with `tools/blender/facing_check.py`: colored side and top views, head should be on the left.
 
 ## Tooling notes
 
 - **Higgsfield:** project "Hatch & Snatch — Art Tests".
   - Folder/project id `6d89dc0f-9bb7-4421-aa38-a2c3f0e1a49a`, workspace `0e9c384c-231d-44f7-92bd-b44c00f8b6ff`.
-  - Concept images: `gpt_image_2_5` at 0.25 credits (low quality) or 1.5 (high quality).
+  - Concept images: `gpt_image_2_5` costs 0.25 (low), 0.5 (medium) or 1.5 (high) credits. **Medium matches the old 8–9-credit recipe** for stage variants.
   - 3D: `tripo_h3_1_image_to_3d` with face_limit 8000, about 9 credits.
-- **Image files are not reachable from the sandbox.** The CloudFront download is blocked, so images can't be viewed here; only the owner sees them in the gallery. Use the job IDs in `docs/ROSTER.md` as `medias` references.
+  - File storage: `media_upload` accepts `.glb` as a general file and returns a permanent `d2ol7oe51mr4n9.cloudfront.net` URL. PUT with `Content-Type` and `If-None-Match: *`, then `media_confirm` with type `file`. This is how the direct-Tripo GLBs are hosted.
+- **Tripo API direct** (`tools/tripo.py`, key in `TRIPO_API_KEY`). API credits are separate from the tripo3d.ai web app's credits.
+  - Costs: image_to_model (v3.1, textured) 30, text_to_model 20, generate_image 5 (`gemini_2.5_flash_image_preview`, `gpt_4o`) or 10 (`gpt_image_2`).
+  - Text-to-3D is good enough for props.
+  - For concepts use nano-banana (`gemini_2.5_flash_image_preview`); `gpt_4o` drifts to cartoon eyes.
+  - Every task is logged in `tools/tripo_log.json`.
+- **Images are reachable from the sandbox now** (CloudFront downloads work as of 2026-09-29), so review concepts and Tripo previews before converting.
+- **Juvenile prompts:**
+  - "Lanky, slightly long legs" puts heavy, low and shelled bodies on stilts. For those, use "legs only a little longer in proportion but still short and sturdy like the reference".
+  - Name the signature feature to keep (for example "keep its shaggy aurora-tipped coat").
 - The owner has granted **full permission** for this work, including Higgsfield spend at this scale. Don't ask for small confirmations.
 - The owner prefers compact, decision-focused replies and keeping conversation context.
 

@@ -14,6 +14,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Props = require(script.Parent.Parent.Props)
+local SetPieces = require(script.Parent.Parent.SetPieces)
 
 export type PlotLayout = {
 	index: number,
@@ -977,6 +978,9 @@ type Zone = {
 	wall: Enum.Material,
 	wallColor: Color3,
 	decor: { string },
+	-- Hero set pieces (SetPieces.luau): angle in degrees from the gate direction and
+	-- distance from the zone center, same layout as the harvest nodes
+	heroes: { { name: string, angle: number, distance: number, scale: number? } },
 }
 -- One zone in each gap between plots, in biome unlock order
 local ZONES: { Zone } = {
@@ -988,6 +992,10 @@ local ZONES: { Zone } = {
 		wall = Enum.Material.WoodPlanks,
 		wallColor = Color3.fromRGB(120, 85, 55),
 		decor = { "MossTree", "BerryBush", "MushroomCluster", "FlowerPatch", "FallenLog" },
+		heroes = {
+			{ name = "GlowcapRing", angle = 0, distance = 0 },
+			{ name = "HollowStump", angle = 67.5, distance = 35 },
+		},
 	},
 	{
 		biome = "CoralCoast",
@@ -997,6 +1005,10 @@ local ZONES: { Zone } = {
 		wall = Enum.Material.Sandstone,
 		wallColor = Color3.fromRGB(215, 190, 150),
 		decor = { "CoralCluster", "RockCluster", "CoralCluster" },
+		heroes = {
+			{ name = "TideArch", angle = 0, distance = 17 },
+			{ name = "GiantClam", angle = 292.5, distance = 35 },
+		},
 	},
 	{
 		biome = "MagmaRift",
@@ -1006,6 +1018,10 @@ local ZONES: { Zone } = {
 		wall = Enum.Material.Basalt,
 		wallColor = Color3.fromRGB(55, 45, 45),
 		decor = { "LavaRock", "LavaRock", "RockCluster" },
+		heroes = {
+			{ name = "LavaVent", angle = 180, distance = 7 },
+			{ name = "ObsidianSpikes", angle = 67.5, distance = 35 },
+		},
 	},
 	{
 		biome = "FrostShelf",
@@ -1015,6 +1031,10 @@ local ZONES: { Zone } = {
 		wall = Enum.Material.Ice,
 		wallColor = Color3.fromRGB(175, 215, 240),
 		decor = { "IceSpire", "PineTree", "IceSpire" },
+		heroes = {
+			{ name = "IceArch", angle = 0, distance = 17 },
+			{ name = "FrozenBoulder", angle = 292.5, distance = 35 },
+		},
 	},
 	{
 		biome = "StormPeaks",
@@ -1024,6 +1044,11 @@ local ZONES: { Zone } = {
 		wall = Enum.Material.Slate,
 		wallColor = Color3.fromRGB(80, 85, 100),
 		decor = { "RockCluster", "PineTree", "RockCluster" },
+		heroes = {
+			{ name = "LightningCrag", angle = 180, distance = 7 },
+			{ name = "WindSpire", angle = 67.5, distance = 36 },
+			{ name = "WindSpire", angle = 292.5, distance = 37, scale = 0.75 },
+		},
 	},
 	{
 		biome = "Moonfall",
@@ -1033,6 +1058,11 @@ local ZONES: { Zone } = {
 		wall = Enum.Material.Marble,
 		wallColor = Color3.fromRGB(90, 80, 125),
 		decor = { "CrystalCluster", "CrystalCluster", "RockCluster" },
+		heroes = {
+			{ name = "MoonMonolith", angle = 180, distance = 7 },
+			{ name = "CraterRim", angle = 292.5, distance = 34 },
+			{ name = "MoonMonolith", angle = 67.5, distance = 37, scale = 0.55 },
+		},
 	},
 }
 
@@ -1265,7 +1295,19 @@ local function buildZones(folder: Folder)
 			shrineLabel = shrineLabel,
 		})
 
-		-- Decor inside the walls, clear of the nodes, the shrine and the gate path
+		-- Hero set pieces: side ones face the middle, central ones face the gate
+		local heroSpots: { { position: Vector3, radius: number } } = {}
+		for _, hero in zone.heroes do
+			local angle = inwardAngle + math.rad(hero.angle)
+			local position = center
+				+ Vector3.new(math.cos(angle) * hero.distance, 0, math.sin(angle) * hero.distance)
+			local facing = if hero.distance > 20 then center else gateCenter
+			local frame = CFrame.lookAt(position, Vector3.new(facing.X, position.Y, facing.Z))
+			local radius = SetPieces.build(hero.name, frame, hero.scale or 1, zoneFolder, rng)
+			table.insert(heroSpots, { position = position, radius = radius })
+		end
+
+		-- Decor inside the walls, clear of the nodes, the shrine, the set pieces and the gate path
 		local available: { string } = {}
 		for _, name in zone.decor do
 			if Props.template("WorldProps", name) then
@@ -1294,6 +1336,11 @@ local function buildZones(folder: Folder)
 				for _, node in nodes do
 					local nodePos = (node.PrimaryPart :: BasePart).Position
 					if (Vector3.new(nodePos.X, position.Y, nodePos.Z) - position).Magnitude < 6 then
+						blocked = true
+					end
+				end
+				for _, spot in heroSpots do
+					if (position - spot.position).Magnitude < spot.radius + 3 then
 						blocked = true
 					end
 				end

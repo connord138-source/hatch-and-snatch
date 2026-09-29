@@ -15,6 +15,10 @@ local PROPS = {
 	LockButton = true, PlotArch = true, LampPost = true, MossTree = true, RockCluster = true,
 	BerryBush = true, MushroomCluster = true, CrystalCluster = true, CoralCluster = true,
 	LavaRock = true, IceSpire = true, FlowerPatch = true, WoodFence = true, FallenLog = true, PineTree = true,
+	-- Biome zone set pieces (src/server/SetPieces.luau)
+	HollowStump = true, GiantGlowcap = true, TideArch = true, GiantClam = true, LavaVent = true,
+	ObsidianSpikes = true, IceArch = true, FrozenBoulder = true, LightningCrag = true, WindSpire = true,
+	MoonMonolith = true, CraterRim = true,
 }
 local species = {}
 for _, creature in require(ReplicatedStorage.Shared.Config).Creatures do

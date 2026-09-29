@@ -1,0 +1,493 @@
+{
+ "concepts/Aurorox": {
+  "credits": 5,
+  "files": [
+   "Aurorox.png"
+  ],
+  "status": "success",
+  "task_id": "180a65f1-1b06-4169-b32a-3aa5daf94c9e",
+  "type": "generate_image"
+ },
+ "concepts/Aurorox_v2": {
+  "credits": 5,
+  "files": [
+   "Aurorox_v2.png"
+  ],
+  "status": "success",
+  "task_id": "bd7582f0-74c1-47e6-8ca2-e3eff9d06fdd",
+  "type": "generate_image"
+ },
+ "concepts/Clamodon_v2": {
+  "credits": 5,
+  "files": [
+   "Clamodon_v2.png"
+  ],
+  "status": "success",
+  "task_id": "a71c96d2-ef1e-475e-a8e0-e4068b8d2db1",
+  "type": "generate_image"
+ },
+ "concepts/Clamodon_v3": {
+  "credits": 5,
+  "files": [
+   "Clamodon_v3.png"
+  ],
+  "status": "success",
+  "task_id": "6f9f72b2-a08f-4828-8d34-6dc0ad53d762",
+  "type": "generate_image"
+ },
+ "concepts/Eclipsaur": {
+  "credits": 5,
+  "files": [
+   "Eclipsaur.png"
+  ],
+  "status": "success",
+  "task_id": "c4c4677c-d81b-47fd-a445-ad72de94a59d",
+  "type": "generate_image"
+ },
+ "concepts/Fridgehog": {
+  "credits": 5,
+  "files": [
+   "Fridgehog.png"
+  ],
+  "status": "success",
+  "task_id": "8212d751-ed71-4fd4-a249-f4648aadaa01",
+  "type": "generate_image"
+ },
+ "concepts/Glacibear_gpt4o": {
+  "credits": 5,
+  "files": [
+   "Glacibear_gpt4o.png"
+  ],
+  "status": "success",
+  "task_id": "c6e13b0b-c0f4-4ded-ab14-88cf99e4dfe5",
+  "type": "generate_image"
+ },
+ "concepts/Glacibear_nano": {
+  "credits": 5,
+  "files": [
+   "Glacibear_nano.png"
+  ],
+  "status": "success",
+  "task_id": "6069ff45-45cc-49c9-b944-fdca2efa9897",
+  "type": "generate_image"
+ },
+ "concepts/Iceadillo_v2": {
+  "credits": 5,
+  "files": [
+   "Iceadillo_v2.png"
+  ],
+  "status": "success",
+  "task_id": "2a96036d-3863-49d7-a362-659dabe68466",
+  "type": "generate_image"
+ },
+ "concepts/Nebulion": {
+  "credits": 5,
+  "files": [
+   "Nebulion.png"
+  ],
+  "status": "success",
+  "task_id": "7c2dc601-7d97-42ec-9796-1d69f898e555",
+  "type": "generate_image"
+ },
+ "concepts/Novapanda": {
+  "credits": 5,
+  "files": [
+   "Novapanda.png"
+  ],
+  "status": "success",
+  "task_id": "bf2d9554-7c65-4573-a524-0520c0b43377",
+  "type": "generate_image"
+ },
+ "concepts/Slagodon_v2": {
+  "credits": 5,
+  "files": [
+   "Slagodon_v2.png"
+  ],
+  "status": "success",
+  "task_id": "ea841e3f-3375-4547-91a7-e7b7dbb80770",
+  "type": "generate_image"
+ },
+ "concepts/Squallcoon": {
+  "credits": 5,
+  "files": [
+   "Squallcoon.png"
+  ],
+  "status": "success",
+  "task_id": "d608e500-bdb2-423a-8e95-b124f4d93b6e",
+  "type": "generate_image"
+ },
+ "concepts/Squallcoon_v2": {
+  "credits": 5,
+  "files": [
+   "Squallcoon_v2.png"
+  ],
+  "status": "success",
+  "task_id": "d8dc057a-1b70-429c-91e9-9999303e82cc",
+  "type": "generate_image"
+ },
+ "concepts/Stormback": {
+  "credits": 5,
+  "files": [
+   "Stormback.png"
+  ],
+  "status": "success",
+  "task_id": "59b987da-e33c-4eb9-82f8-5894f821b0b2",
+  "type": "generate_image"
+ },
+ "concepts/Stormback_v2": {
+  "credits": 5,
+  "files": [
+   "Stormback_v2.png"
+  ],
+  "status": "success",
+  "task_id": "48a1132c-7ec9-4d61-88d4-c54bc31dfd05",
+  "type": "generate_image"
+ },
+ "concepts/Thunderhoof": {
+  "credits": 5,
+  "files": [
+   "Thunderhoof.png"
+  ],
+  "status": "success",
+  "task_id": "b5c6ce0d-4832-43ec-8e39-936b86a88563",
+  "type": "generate_image"
+ },
+ "concepts/Toastoise": {
+  "credits": 5,
+  "files": [
+   "Toastoise.png"
+  ],
+  "status": "success",
+  "task_id": "a3d4da71-5826-4cb4-b38b-9bc9fbdf56be",
+  "type": "generate_image"
+ },
+ "concepts/Zapybara": {
+  "credits": 5,
+  "files": [
+   "Zapybara.png"
+  ],
+  "status": "success",
+  "task_id": "dd91e92e-7198-4d4f-8bd0-95cc1f54d6be",
+  "type": "generate_image"
+ },
+ "juveniles/Aurorox": {
+  "credits": 30,
+  "files": [
+   "Aurorox.glb",
+   "Aurorox_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "1ee163d5-f1ff-4758-86b3-797c94a21a7d",
+  "type": "image_to_model"
+ },
+ "juveniles/Calderhorn": {
+  "credits": 30,
+  "files": [
+   "Calderhorn.glb",
+   "Calderhorn_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "4ec003e9-22a4-4829-bf64-56e5b6b70aef",
+  "type": "image_to_model"
+ },
+ "juveniles/Clamodon": {
+  "credits": 30,
+  "files": [
+   "Clamodon.glb",
+   "Clamodon_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "80828270-2740-40cc-a129-79e05b5e5c65",
+  "type": "image_to_model"
+ },
+ "juveniles/Coalby": {
+  "credits": 30,
+  "files": [
+   "Coalby.glb",
+   "Coalby_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "2caa65ae-de35-4617-9228-61fa683fce60",
+  "type": "image_to_model"
+ },
+ "juveniles/Coralope": {
+  "credits": 30,
+  "files": [
+   "Coralope.glb",
+   "Coralope_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "4750be96-2a8b-458b-9631-52513d5aa9a2",
+  "type": "image_to_model"
+ },
+ "juveniles/Eclipsaur": {
+  "credits": 30,
+  "files": [
+   "Eclipsaur.glb",
+   "Eclipsaur_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "6a7aae89-5b21-4e92-90d9-ba5dc1beb497",
+  "type": "image_to_model"
+ },
+ "juveniles/Emberlynx": {
+  "credits": 30,
+  "files": [
+   "Emberlynx.glb",
+   "Emberlynx_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "5d0928e9-ec6f-404e-80d1-26cd11c0cbd5",
+  "type": "image_to_model"
+ },
+ "juveniles/Frostbun": {
+  "credits": 30,
+  "files": [
+   "Frostbun.glb",
+   "Frostbun_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "0d1f70ed-e5c3-4bf1-9456-7aa7dc4cbf87",
+  "type": "image_to_model"
+ },
+ "juveniles/Geodeer": {
+  "credits": 30,
+  "files": [
+   "Geodeer.glb",
+   "Geodeer_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "2f2f8861-f29c-43c9-a09c-b194d3ad02be",
+  "type": "image_to_model"
+ },
+ "juveniles/Glacibear": {
+  "credits": 30,
+  "files": [
+   "Glacibear.glb",
+   "Glacibear_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "434afbaf-ca50-4e44-b60b-07c92a34f444",
+  "type": "image_to_model"
+ },
+ "juveniles/Iceadillo": {
+  "credits": 30,
+  "files": [
+   "Iceadillo.glb",
+   "Iceadillo_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "c0370354-82b9-4b7d-8b5d-91ee0f23a111",
+  "type": "image_to_model"
+ },
+ "juveniles/Kelpotter": {
+  "credits": 30,
+  "files": [
+   "Kelpotter.glb",
+   "Kelpotter_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "0a855338-feba-45f8-ad60-a0f851e56cb7",
+  "type": "image_to_model"
+ },
+ "juveniles/Nebulion": {
+  "credits": 30,
+  "files": [
+   "Nebulion.glb",
+   "Nebulion_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "b6ad893f-8f2d-4993-804a-2f34690041e0",
+  "type": "image_to_model"
+ },
+ "juveniles/Novapanda": {
+  "credits": 30,
+  "files": [
+   "Novapanda.glb",
+   "Novapanda_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "d8a0a34d-e9df-4ca5-a8e2-5e7336df404c",
+  "type": "image_to_model"
+ },
+ "juveniles/Slagodon": {
+  "credits": 30,
+  "files": [
+   "Slagodon.glb",
+   "Slagodon_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "dc466fae-0178-4e74-9ce9-f75371620a72",
+  "type": "image_to_model"
+ },
+ "juveniles/Squallcoon": {
+  "credits": 30,
+  "files": [
+   "Squallcoon.glb",
+   "Squallcoon_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "207c305b-2907-4670-982a-8a54ebce2b98",
+  "type": "image_to_model"
+ },
+ "juveniles/Stormback": {
+  "credits": 30,
+  "files": [
+   "Stormback.glb",
+   "Stormback_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "2f355948-393a-49d0-b6c2-c4defc98897a",
+  "type": "image_to_model"
+ },
+ "juveniles/Thunderhoof": {
+  "credits": 30,
+  "files": [
+   "Thunderhoof.glb",
+   "Thunderhoof_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "f85320db-795d-47d4-b683-1f8e7626e4f4",
+  "type": "image_to_model"
+ },
+ "juveniles/Tidalotl": {
+  "credits": 30,
+  "files": [
+   "Tidalotl.glb",
+   "Tidalotl_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "910cc4da-525c-4fa4-b408-46815e46ed70",
+  "type": "image_to_model"
+ },
+ "juveniles/Zapybara": {
+  "credits": 30,
+  "files": [
+   "Zapybara.glb",
+   "Zapybara_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "bb2494d3-c08b-487c-a09a-da508528545b",
+  "type": "image_to_model"
+ },
+ "props/CraterRim": {
+  "credits": 20,
+  "files": [
+   "CraterRim.glb",
+   "CraterRim_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "04f67810-3c52-477a-9f41-82d754e1af32",
+  "type": "text_to_model"
+ },
+ "props/FrozenBoulder": {
+  "credits": 20,
+  "files": [
+   "FrozenBoulder.glb",
+   "FrozenBoulder_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "893575e2-f38b-4b36-a255-6b6d5682d0d7",
+  "type": "text_to_model"
+ },
+ "props/GiantClam": {
+  "credits": 20,
+  "files": [
+   "GiantClam.glb",
+   "GiantClam_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "e8fe8626-35ca-41a6-8cce-2b92c0b31550",
+  "type": "text_to_model"
+ },
+ "props/GiantGlowcap": {
+  "credits": 20,
+  "files": [
+   "GiantGlowcap.glb",
+   "GiantGlowcap_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "3d45884a-3c1b-409a-b566-4174cb04b8d2",
+  "type": "text_to_model"
+ },
+ "props/HollowStump": {
+  "credits": 20,
+  "files": [
+   "HollowStump.glb",
+   "HollowStump_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "ef9b172f-9c11-44b4-8808-7cc39afda409",
+  "type": "text_to_model"
+ },
+ "props/IceArch": {
+  "credits": 20,
+  "files": [
+   "IceArch.glb",
+   "IceArch_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "f3a42c70-4c94-4b61-9140-b9f22d5ca09d",
+  "type": "text_to_model"
+ },
+ "props/LavaVent": {
+  "credits": 20,
+  "files": [
+   "LavaVent.glb",
+   "LavaVent_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "49b02563-b3fd-4c09-af5b-c35a2abdde8a",
+  "type": "text_to_model"
+ },
+ "props/LightningCrag": {
+  "credits": 20,
+  "files": [
+   "LightningCrag.glb",
+   "LightningCrag_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "f753db9f-0f0f-45f2-bc4a-f7ad090a995f",
+  "type": "text_to_model"
+ },
+ "props/MoonMonolith": {
+  "credits": 20,
+  "files": [
+   "MoonMonolith.glb",
+   "MoonMonolith_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "07760467-5fa2-4fe2-9392-18ec157b1245",
+  "type": "text_to_model"
+ },
+ "props/ObsidianSpikes": {
+  "credits": 20,
+  "files": [
+   "ObsidianSpikes.glb",
+   "ObsidianSpikes_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "304be4df-e948-4174-92f6-1f4c278da0e4",
+  "type": "text_to_model"
+ },
+ "props/TideArch": {
+  "credits": 20,
+  "files": [
+   "TideArch.glb",
+   "TideArch_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "78dfeb40-ff37-4c73-955c-a97261415f52",
+  "type": "text_to_model"
+ },
+ "props/WindSpire": {
+  "credits": 20,
+  "files": [
+   "WindSpire.glb",
+   "WindSpire_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "c9c95566-8cec-4874-8572-f5d6e5a5023d",
+  "type": "text_to_model"
+ }
+}

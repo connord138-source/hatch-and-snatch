@@ -4,12 +4,15 @@ Auto-rig a Tripo/Higgsfield creature GLB for Roblox (Blender 4.x, runs headless)
     blender --background --python tools/blender/rig_creature.py -- IN.glb OUT.fbx BODYPLAN [FRONT]
 
   BODYPLAN  one of the body plans in src/shared/Config/Creatures.luau (e.g. lean-predator)
-  FRONT     auto | +x | -x | +y | -y  — which way the head points in the GLB (auto = guess)
+  FRONT     auto | flip | +x | -x | +y | -y  — auto squares the body up and guesses which
+            end is the head; flip does the same but takes the other end (for a wrong guess);
+            an axis says where the head points in the GLB as imported (no squaring)
 
 What it does
   1. Imports the GLB, joins all meshes, centers it on the ground.
-  2. Finds the long axis and guesses which end is the head (override with FRONT),
-     then rotates so the head points -Y (becomes -Z / "front" in Roblox).
+  2. Squares the body up (Tripo keeps the concept's three-quarter turn, so bodies often
+     come in 20-35 degrees off-axis), guesses which end is the head (override with
+     FRONT), then rotates so the head points -Y (becomes -Z / "front" in Roblox).
   3. Finds the four feet from the lowest vertices and builds a quadruped skeleton:
      Root > Hips > Spine > Chest > Neck > Head, Tail1-3, and a 2-bone leg per foot
      (LegFL/FR/BL/BR _Upper/_Lower). Bone names are what CreatureAnimator drives.
@@ -83,6 +86,31 @@ def bounds(vs):
 
 
 vs = verts_world()
+
+
+def square_up():
+    """Turn the mesh about Z so its main horizontal axis (by PCA) runs along Y."""
+    n = len(vs)
+    cx, cy = sum(v.x for v in vs) / n, sum(v.y for v in vs) / n
+    sxx = sum((v.x - cx) ** 2 for v in vs) / n
+    syy = sum((v.y - cy) ** 2 for v in vs) / n
+    sxy = sum((v.x - cx) * (v.y - cy) for v in vs) / n
+    spread = math.sqrt(((sxx - syy) / 2) ** 2 + sxy**2)
+    major, minor = (sxx + syy) / 2 + spread, (sxx + syy) / 2 - spread
+    if major < 1.15 * max(minor, 1e-9):
+        return 0.0  # too round to tell; keep the bounding-box axis below
+    theta = 0.5 * math.atan2(2 * sxy, sxx - syy)  # main axis angle from +X
+    turn = math.pi / 2 - theta  # smallest turn that lays it along Y
+    if turn > math.pi / 2:
+        turn -= math.pi
+    body.data.transform(Matrix.Rotation(turn, 4, "Z"))
+    return turn
+
+
+if FRONT in ("auto", "flip"):
+    turned = square_up()
+    print(f"[rig] squared up by {math.degrees(turned):.0f} degrees")
+    vs = verts_world()
 mn, mx = bounds(vs)
 size = mx - mn
 long_axis = "x" if size.x >= size.y else "y"
@@ -99,8 +127,8 @@ def head_sign_auto():
     return 1 if avg(high_end) >= avg(low_end) else -1
 
 
-if FRONT == "auto":
-    sign = head_sign_auto()
+if FRONT in ("auto", "flip"):
+    sign = head_sign_auto() * (-1 if FRONT == "flip" else 1)
     front_axis = long_axis
 else:
     front_axis = FRONT[1]

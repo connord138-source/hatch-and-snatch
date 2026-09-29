@@ -186,6 +186,13 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 - **Biome zones:** one walled zone in each gap between plots (Mossvale, Coral Coast, Magma Rift, Frost Shelf, Storm Peaks, Moonfall), 88 studs across. The gate faces the hub and shows the requirement (the same Hatcher Level + base level that unlocks the biome's eggs); it glows green once you qualify. Locked-out players are bounced back out.
   - **Harvest nodes:** 7 glowing crystal nodes per zone (hold E). Each gives 1–2 of that biome's Essence and regrows after 40 s. Nodes are shared, so it pays to get there first.
   - **Shrine:** spend Essence on a **forged egg** of that biome (15) or on the biome's **blessing** (8): Mossvale cash (3 min of income), Coral +3 spins, Magma halves the time left on every incubating egg, Frost ×5 luck on the next egg, Storm XP (400 × level), Moonfall ×25 luck on the next egg.
+  - **Set pieces:** each zone has 2–3 landmark props (`src/server/SetPieces.luau`), placed clear of the nodes, the shrine and the gate path:
+    - Mossvale: a glowing fairy ring of giant glowcaps around the middle and a giant hollow stump.
+    - Coral Coast: a tide-pool rock arch over the gate path and a giant clam with a glowing pearl.
+    - Magma Rift: a smoking lava vent behind the middle and a cluster of obsidian spikes.
+    - Frost Shelf: an ice arch over the gate path and a boulder frozen in ice.
+    - Storm Peaks: a lightning-rod crag that gets struck every 6–14 s, and two wind-bent spires.
+    - Moonfall: a moon-crystal monolith (plus a smaller one) and a meteor crater.
   - **Release:** unwanted or duplicate creatures can be released from the Creatures menu for their biome's Essence (by rarity × stage: Baby ×1, Juvenile ×2, Adult ×3), plus Luck Wheel spins for Legendary and up. Selling for cash is still there.
 - **Lighting:** atmosphere, bloom, sun rays, clouds and a slight color grade. During moon events the whole world is tinted in the moon's color, and the banner says what the event does.
 

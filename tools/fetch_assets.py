@@ -5,7 +5,7 @@ Download every 3D model listed in tools/assets_manifest.json into assets/.
     python tools/fetch_assets.py --force    # re-download everything
 
 Layout it creates (all gitignored):
-    assets/glb/<SpeciesId>.glb, assets/glb/<SpeciesId>_Baby.glb   -> rig with tools/blender/rig_all.py
+    assets/glb/<SpeciesId>.glb, _Baby.glb, _Juvenile.glb           -> rig with tools/blender/rig_all.py
     assets/eggs/<BiomeId>.glb   (and Egg.glb, the tinted fallback) -> ReplicatedStorage.EggModels
     assets/props/<PropName>.glb                                    -> ReplicatedStorage.WorldProps
 """

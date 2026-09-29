@@ -1,151 +1,65 @@
-# Session handoff: Juveniles + biome set pieces via direct Tripo API
+# Session handoff: after the Juvenile and set-piece batch
 
-Start a new session with: **"read docs/HANDOFF.md and continue"**. Read `CLAUDE.md`
-first. It holds the owner's preferences and the art-direction lessons, and they
-are binding.
+Start a new session with **"read docs/HANDOFF.md and continue"**. Read `CLAUDE.md`
+first: it holds the owner's preferences and the art-direction lessons, and they are
+binding.
 
 ## How we work (owner's rules)
 
-- Claude builds everything. The owner playtests through a separate local PC
-  Claude session ("the other chat").
+- Claude builds everything. The owner playtests through a separate Claude session on the PC ("the other chat").
 - **Anything the PC session has to do goes to the owner as a paste-ready prompt.**
-- The owner granted full permission for this project, including Higgsfield and
-  Tripo spend, so don't keep asking. Report costs as you go.
-- Repo: `connord138-source/hatch-and-snatch`, branch **`claude/core-systems`**.
-  The PC session pulls this branch. If the new session starts in another repo,
-  attach this one with `add_repo` (push access) and clone it.
+- Full permission for this project, including Higgsfield and Tripo spend. Report costs as you go.
+- Repo `connord138-source/hatch-and-snatch`, branch **`claude/core-systems`**.
 
-## State at handoff (2026-09-29, commit 47fa53e)
+## State at handoff (2026-09-29)
 
-Done and pushed; the PC session hasn't playtested it yet:
-- the physical Luck Wheel;
-- security upgrades;
-- the upper deck at base level 4 and up;
-- walled, level-gated biome zones with harvest nodes, Essence and shrines;
-- Release for Essence;
-- slow turntable rotation on pedestals;
-- Index photos.
+### Done this session (pushed; the PC session hasn't imported or playtested it yet)
 
-The owner has a pending PC-session prompt for playtesting all of this. Expect
-screenshots or notes back.
+- **20 new Juvenile models:** every Common–Legendary species now has `<SpeciesId>_Juvenile` (23 of 41 including Mossmunk, Brambloar and Hivebadger). They're listed in `tools/assets_manifest.json` → `juveniles`.
+- **12 biome set pieces**, in `src/server/SetPieces.luau`, wired in by `WorldService.buildZones` (the `heroes` list per zone):
+  - HollowStump and a GlowcapRing of GiantGlowcaps in Mossvale.
+  - TideArch and GiantClam in Coral Coast.
+  - LavaVent and ObsidianSpikes in Magma Rift.
+  - IceArch and FrozenBoulder in Frost Shelf.
+  - LightningCrag and 2 WindSpires in Storm Peaks. The crag gets struck by lightning every 6–14 s.
+  - MoonMonolith ×2 and CraterRim in Moonfall.
+  - Each uses its GLB when imported (`WorldProps.<Name>`) and a part-built stand-in otherwise. Lights and particles are added either way.
+  - GDD §7.3 lists them.
+- **Rig fixes, found by auditing all 105 creature models headless with bpy:**
+  - Tripo bodies come in 20–35° off-axis, so `rig_creature.py` now squares them up with PCA.
+  - The head guess was wrong on 23 models, including **16 adults that ran tail-first**: Emberlynx, Coalby, Slagodon, Frostbun, Squallcoon, Novapanda, Nebulion, Lunaris, Grillgator, Bassdog, Pyrodrake, Solarion, Quasarfox, Nullcat, Mossmunk and Tidalotl.
+  - The fixes are per-stage `"flip"` overrides in `bodyplans.json`: `front`, `frontBaby`, `frontJuvenile`.
+  - `tools/blender/facing_check.py` draws colored side and top views for checking.
+  - The PC session must **re-rig and re-import every creature** to get the fixes.
+- **Pipeline:**
+  - `tools/tripo.py` drives the Tripo API directly. `tools/tripo_jobs.json` records exactly what was made, and `tools/tripo_log.json` holds the task ids and credits.
+  - GLBs are hosted permanently on Higgsfield file storage (`d2ol7oe51mr4n9.cloudfront.net`). See `docs/ASSETS.md`.
 
-## Tooling (re-download; the old session's scratchpad is gone)
+### Also still pending from before
 
-Rojo 7, luau-lsp (plus `globalTypes.d.luau` from the luau-lsp repo) and StyLua,
-from their GitHub releases. Check with:
+The Luck Wheel, security upgrades, upper deck, zones, Release and Index photos (commit 47fa53e) still await the owner's playtest.
+
+### Credits left
+
+- **Tripo API: 65.** Enough for 2 textured models, kept as a buffer for redos after the playtest. 935 were spent on 20 Juveniles, 12 props and concepts.
+- **Higgsfield: 0.25.** Needs a top-up for any `gpt_image_2_5` concepts (0.5 each at medium).
+
+## Next steps
+
+1. Wait for the owner's playtest notes: Juveniles, set-piece placement and size, facing after the re-rig, and the older features.
+   - Fix what they report. Set-piece sizes are the `size` boxes in `SetPieces.luau`. Positions are the `heroes` angle and distance in `WorldService` (same layout as the harvest nodes: angle 0 = gate direction).
+2. The remaining 18 Juveniles need about 35 credits each (5 for the concept, 30 for the model), about 630 in all. Top up first.
+   - Ultra-rares: Sylvanox, Capybaron, Lurehound, Pyrodrake, Solarion, Glacierion, Stormgriff, Halosaur, Lunaris, Quasarfox, Singularis, Nullcat.
+   - Junk: Toastoise, Fridgehog, Grillgator, Laundrophant, Lawnmoose, Bassdog.
+   - Toastoise and Fridgehog concepts already exist (uploads `d0d68ca8`, `ffe908cf`) but came out nearly identical to the adults. Redo them with a stronger juvenile push before converting.
+3. After any new models, run the facing check (see CLAUDE.md → Rigging) and add `"flip"` where needed.
+
+## Verifying from a cloud session
 
 ```
-stylua src --glob '!**/Packages/**'
 rojo sourcemap default.project.json -o /tmp/sourcemap.json
 luau-lsp analyze --definitions=globalTypes.d.luau --sourcemap=/tmp/sourcemap.json --ignore="**/Packages/**" src
+stylua --check src --glob '!**/Packages/**'     # use the pinned StyLua 2.0.2; newer versions reformat
 ```
 
-## Credentials and network
-
-- `TRIPO_API_KEY` is set in the environment (the owner has about 3000 Tripo
-  credits). Never print it.
-- `api.tripo3d.ai` is allowed, and the session has full internet access.
-- Higgsfield has about 7 credits left. The owner may top it up.
-
-## Task 1: the 38 missing Juvenile models
-
-`tools/assets_manifest.json` → `juveniles` has only Mossmunk, Brambloar and
-Hivebadger. Every other species in `src/shared/Config/Creatures.luau` (41 total)
-needs `<SpeciesId>_Juvenile`. The code already uses them when present
-(`CreatureService` picks `<SpeciesId>_Juvenile` for the Juvenile stage). The
-pipeline (`fetch_assets.py` → `rig_all.py` → `organize_imports.luau`) already
-handles the `juveniles` group.
-
-Order: the players see Mossvale and Coral Coast most, so do them first, then
-Magma, Frost, Storm, Moonfall and Junk.
-
-### Step A: concept image (Higgsfield, or a cheaper route)
-
-The proven recipe was `gpt_image_2`, quality high, 1k, 1:1, costing about 8–9
-credits each. The reference media (`role: "image"`) is the species' **adult
-source image**; its Higgsfield id is in `docs/ASSETS.md` under "Source images".
-The prompt that worked:
-
-> Using the creature from the reference image, create its JUVENILE (teenage) version as a single clean 3D character reference render: same species, same materials, colors and markings, but an adolescent: lanky proportions with slightly long legs, a head a little large for the body, a leaner body than the adult, and its signature features only half-grown (horns, antlers, crystals, plates, manes, tail clubs and glowing parts about half their adult size). Semi-realistic like the reference, not cartoon. Side three-quarter view, neutral stance with all four legs straight, clearly separated and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no particles, no text.
-
-For low-slung bodies (Hivebadger needed this), name the actual feature (for
-example "honeycomb plates about half their adult size") and add "belly held
-above the ground with nothing hanging between the legs".
-
-Cost savers to try before a big batch:
-- a cheaper Higgsfield image model or a lower quality setting;
-- whether Tripo's own API offers image generation or multiview-from-reference
-  (check the Tripo docs).
-
-Show the owner **one test Juvenile** from any new route before batching. The
-art lessons in `CLAUDE.md` still apply: no cartoon eyes, no toy proportions, no
-glossy "AI" look.
-
-Higgsfield MCP quirks:
-- Calls often time out at 60 s even though the job was submitted. Check
-  `balance` and `show_generations` before retrying, so you don't pay twice.
-- `gpt_image_2_5` no longer exists; use `gpt_image_2`.
-
-### Step B: 3D model (Tripo API direct)
-
-The old pipeline ran Tripo **through Higgsfield**
-(`tripo_h3_1_image_to_3d`, `face_limit: 8000`, `texture: true`, `pbr: true`).
-Match those settings on the direct API:
-1. Upload the concept image, or pass its URL.
-2. Create an `image_to_model` task.
-3. Poll it.
-4. Download the GLB.
-
-Check the current Tripo API docs for the exact model-version name and cost per
-task. Try `GET /v2/openapi/user/balance` first to confirm the key works.
-
-### Step C: host the GLB and register it
-
-Tripo's output URLs expire, and `assets/` is gitignored, so pick a durable
-home:
-- **Option 1:** re-host on Higgsfield's CDN (`media_import_url` /
-  `media_upload`), like every other asset. The manifest entries are
-  `d8j0ntlcm91z4.cloudfront.net` URLs.
-- **Option 2:** commit the GLBs, which are small at 8000 faces, to e.g.
-  `tools/glb/juveniles/`, and teach `fetch_assets.py` to copy repo-relative
-  paths as well as URLs.
-
-Then:
-1. Add each entry to `tools/assets_manifest.json` → `juveniles`.
-2. Add a line to `docs/ASSETS.md` with the concept-image id.
-3. Commit and push.
-4. Give the owner a PC-session prompt:
-   - `python tools/fetch_assets.py`;
-   - `rig_all.py` (Juveniles need the rig);
-   - import the new FBX files from `assets/fbx/`;
-   - run `organize_imports.luau` in the Command Bar;
-   - save;
-   - check the Juveniles at Juvenile stage, using the Studio hook
-     `game.ServerStorage.StudioDebug:Invoke("grant", "<Species>", "Normal", "Juvenile")`.
-
-## Task 2: biome set pieces (after the Juveniles)
-
-The zones are 88-stud walled circles (`WorldService.buildZones`, `ZONES`
-table). Each has a `decor` list of WorldProps names plus a height table in the
-decor loop. Storm Peaks and Moonfall look sparse. Add 2–3 hero props per biome:
-
-| Biome | Hero props |
-|---|---|
-| Mossvale | giant hollow stump, glowcap ring |
-| Coral Coast | tide-pool rock arch, giant clam |
-| Magma Rift | lava vent, obsidian spikes |
-| Frost Shelf | ice arch, frozen boulder |
-| Storm Peaks | lightning-rod crag, wind-bent rock spire |
-| Moonfall | moon-crystal monolith, crater rim |
-
-These are props (GLB, no rig):
-1. Add them to the manifest's `props` group.
-2. Add them to that biome's `decor` list.
-3. Give them a sensible height in the decor loop.
-4. Keep them clear of nodes, the shrine and the gate path. The loop already
-   does this.
-
-## Afterwards
-
-- Update `docs/GDD.md` and `CLAUDE.md` if anything about the design changes.
-- Always finish with a paste-ready PC-session prompt for the owner.
+selene can't fetch the Roblox API dump from the sandbox. For Blender work: `python3.11 -m venv v && v/bin/pip install bpy pillow`.

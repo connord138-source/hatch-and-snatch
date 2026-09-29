@@ -1,0 +1,209 @@
+{
+ "_note": "What produced the Juvenile and set-piece models on 2026-09-29 (see docs/ASSETS.md). Redo one with: python tools/tripo.py run tools/tripo_jobs.json --only Name --redo Name. Juvenile images are the approved concept renders (Toastoise/Fridgehog concepts exist but were not converted: too close to their adults).",
+ "jobs": [
+  {
+   "name": "Geodeer",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_203403_4bc5f9d8-92bb-45c8-9917-744183fd7efb.png"
+  },
+  {
+   "name": "Kelpotter",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_204426_9566053c-ef72-47ff-ac53-0996a8ebf2ec.png"
+  },
+  {
+   "name": "Clamodon",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/6c03ed64-2aa4-4421-b984-4bfeafad3afb.png"
+  },
+  {
+   "name": "Coralope",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_204209_dace4571-d6c3-4c0d-b2ff-ad00f47c26b8.png"
+  },
+  {
+   "name": "Tidalotl",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_203402_190415ee-516b-48e6-ac3c-467fb87ef041.png"
+  },
+  {
+   "name": "Coalby",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_204210_0fb94bd1-d3e1-4f36-ad0c-16154410bae7.png"
+  },
+  {
+   "name": "Slagodon",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/a6305212-f703-428e-ac7a-5619ae6e5996.png"
+  },
+  {
+   "name": "Emberlynx",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_204211_f6f5a5ad-ab63-4b1a-b415-623c6e60fa8a.png"
+  },
+  {
+   "name": "Calderhorn",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_204210_f1eb251b-3dfc-4938-ab14-e6c64c836b2b.png"
+  },
+  {
+   "name": "Frostbun",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_204209_5a9a6268-e7ca-4be0-8835-4cb3a30af986.png"
+  },
+  {
+   "name": "Iceadillo",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/e4f1f7a0-2e0b-4f77-8525-ee7af64fbe29.png"
+  },
+  {
+   "name": "Glacibear",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/517cce74-0fa7-4b6e-b8c7-28c83418d109.png"
+  },
+  {
+   "name": "Aurorox",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/91808e49-e411-458c-a396-3a57daff576f.png"
+  },
+  {
+   "name": "Zapybara",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/df2ab93f-0ab3-4d5c-ba04-0cc9349ec321.png"
+  },
+  {
+   "name": "Squallcoon",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/c165890a-96b5-424d-b6b2-f0d101d82899.png"
+  },
+  {
+   "name": "Thunderhoof",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/0ec39d1e-2aed-408e-aa62-c08378c2b61c.png"
+  },
+  {
+   "name": "Stormback",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/9f02c823-8733-4575-9f01-7ab6847e70ea.png"
+  },
+  {
+   "name": "Novapanda",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/332293a2-b0b2-4de1-843c-2232126adf5b.png"
+  },
+  {
+   "name": "Nebulion",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/72f8d24b-b28f-48a9-826c-1d1a6f9355d2.png"
+  },
+  {
+   "name": "Eclipsaur",
+   "group": "juveniles",
+   "type": "image_to_model",
+   "image": "https://d2ol7oe51mr4n9.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/52077973-0fee-4329-afe4-bccb3fae6107.png"
+  },
+  {
+   "name": "HollowStump",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A giant hollow tree stump, a fantasy game world prop: thick gnarled bark walls with a jagged broken rim, a tall arched opening in one side big enough to walk through, thick roots splayed out gripping the ground, patches of green moss on the rim and a few small glowing teal mushrooms. Stylized semi-realistic, faceted low-poly shapes with smooth shading and solid color regions, earthy browns and moss greens. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, base, multiple objects"
+  },
+  {
+   "name": "GiantGlowcap",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A cluster of three giant mushrooms of different heights growing together: thick pale stems and wide domed caps glowing soft teal-cyan underneath, small moss tufts at the base. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "TideArch",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A natural sea rock arch: a thick sandstone arch with a wide walk-through opening, its legs crusted with pink and orange coral, small starfish and barnacles, darker wet rock near the bottom. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "GiantClam",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A giant clam shell sitting half open, wavy scalloped ridges striped cream, teal and lavender, a large glowing white pearl inside, a few barnacles on the outside. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "LavaVent",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A volcanic lava vent: a craggy black basalt cone about as wide as it is tall, glowing orange lava pooling in the crater on top and molten cracks running down its sides. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "ObsidianSpikes",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A cluster of tall jagged obsidian spikes: seven sharp black volcanic glass shards of different heights bursting up from a rocky mound, thin glowing orange cracks around their roots. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "IceArch",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A natural ice arch: a thick arch of pale blue translucent glacier ice with a wide walk-through opening, icicles hanging from its underside and snow piled on top. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "FrozenBoulder",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A large gray boulder frozen inside a rough block of clear pale blue ice, snow on top and a few ice crystals jutting out of the sides. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "LightningCrag",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tall jagged slate rock crag with a rusty iron lightning rod standing on its peak, glowing blue lightning scorch lines running down the rock. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "WindSpire",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tall wind-carved rock spire bent sideways by strong winds, layered gray and blue slate with smooth wind-worn curves, narrower at the base than in the middle. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "MoonMonolith",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tall moon crystal monolith: one large faceted pale lavender crystal pillar rising from a rocky base, smaller crystals clustered around it, silver veins and a soft inner glow. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  },
+  {
+   "name": "CraterRim",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A small meteor crater: a jagged ring of cracked purple-gray moon rock rising around a shallow bowl, a few glowing lilac moon crystals in the middle. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane.",
+   "negative_prompt": "cartoon, toy, glossy plastic, text, ground plane, square base, pedestal, multiple separate objects"
+  }
+ ]
+}

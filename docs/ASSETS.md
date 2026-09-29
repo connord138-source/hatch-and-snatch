@@ -4,8 +4,9 @@ Every model the game uses is listed in **`tools/assets_manifest.json`**, which m
 
 - **creatures:** all 41 species (adults), from clean neutral-pose model sheets.
 - **babies:** `<SpeciesId>_Baby` models with baby proportions: big head, big eyes, stubby legs.
+- **juveniles:** `<SpeciesId>_Juvenile` teenage models, 23 of 41 so far (every Common–Legendary species). A species without one uses its adult model at the Juvenile stage.
 - **eggs:** one per biome, plus `Egg`, the generic fallback that gets tinted.
-- **props:** the reactor, pedestal, nursery nest, incubator, cash pad, lock button, entrance arch, lamp post and 8 kinds of decor.
+- **props:** the reactor, pedestal, nursery nest, incubator, cash pad, lock button, entrance arch, lamp post, 8 kinds of decor, and 12 biome-zone set pieces (`src/server/SetPieces.luau`).
 
 The code runs without any of them: each piece falls back to a plain block until its model is imported.
 
@@ -42,7 +43,10 @@ Don't scale or position anything; the code does it:
 
 ## Check in Studio
 
-- **Facing:** a creature that walks backwards needs its `"front"` set in `tools/blender/bodyplans.json` (`+x`, `-x`, `+y`, `-y`); then rerun `rig_all.py` and re-import that one. Re-running the organizer replaces the old copy.
+- **Facing:** `rig_creature.py` squares each body up and guesses the head end. A raised tail club, tuft or swirl can fool the guess.
+  - The fix is `"flip"` in `tools/blender/bodyplans.json`, under `front` (adult), `frontBaby` or `frontJuvenile`. Each GLB has its own orientation, so a species can need it for one stage only.
+  - Then rerun `rig_all.py` and re-import that model. Re-running the organizer replaces the old copy.
+  - All 105 current models were checked with `tools/blender/facing_check.py` (2026-09-29) and 23 carry a flip.
 - **Legs:** if they bend the wrong way, flip `pitch` in `src/client/Controllers/CreatureAnimator.luau`.
 - **Props:** a prop that sits sideways was modeled lying down. Rotate the imported model once in WorldProps and save.
 
@@ -64,3 +68,20 @@ Eggs: Mossvale `af112e5a` · CoralCoast `488cbccd` · MagmaRift `8a701ed4` · Fr
 Props: HatcheryReactor `db53ee3f` · Pedestal `7b096c76` · NurseryNest `21cba2fc` · Incubator `1ebc1fa1` · Collector `3a4cc5c1` · LockButton `c60f5654` · MossTree `0b1bd165` · RockCluster `bd80a0a6` · BerryBush `11e81571` · MushroomCluster `eb6dca66` · CrystalCluster `e85b0179` · CoralCluster `0afaa00a` · LavaRock `fd86cb46` · IceSpire `ad45e3f7` · LampPost `b6587dec` · PlotArch `052389a8`
 
 Babies: Coalby `7abeb627` · Slagodon `3ffbc4f3` · Calderhorn `61aca522` · Frostbun `c4749f76` · Iceadillo `db43148d` · Glacibear `ba2a9b09` · Thunderhoof `73cf0a99` · Stormback `6e9a2bc4` · Zapybara `a314e838` · Squallcoon `872118cf` · Novapanda `2daea7d9` · Aurorox `0b76f3e8` · Nebulion `17c986a4` · Eclipsaur `0c330293` · Lunaris `7470fb96` · Toastoise `36b6ae87` · Fridgehog `7e4ce7ae` · Grillgator `8fbaeb38` · Laundrophant `46c63a89` · Lawnmoose `95a927f9` · Bassdog `eb19b4f3` · Sylvanox `05ce04a8` · Capybaron `c1cc59f2` · Lurehound `62b0d230` · Pyrodrake `8cea3e74` · Glacierion `fc387bb9` · Stormgriff `590a60b4` · Solarion `000dade1` · Halosaur `0fbd8eb1` · Quasarfox `e3edc364` · Singularis `eefab87c` · Nullcat `15f75539` · Mossmunk `10ee1c9e` · Brambloar `84f64a2a` · Hivebadger `68692fe7` · Geodeer `06fae8cf` · Kelpotter `938c79f2` · Clamodon `e5700f54` · Coralope `05831810` · Tidalotl `b7d85d3d` · Emberlynx `183d9421`
+
+Juveniles (concept image the model was made from; plain ids are Higgsfield jobs, "upload" ids are Higgsfield media uploads of Tripo-made concepts). Mossmunk, Brambloar and Hivebadger came from the earlier Higgsfield run:
+
+Geodeer 4bc5f9d8 · Kelpotter 9566053c · Clamodon upload 6c03ed64 · Coralope dace4571 · Tidalotl 190415ee · Coalby 0fb94bd1 · Slagodon upload a6305212 · Emberlynx f6f5a5ad · Calderhorn f1eb251b · Frostbun 5a9a6268 · Iceadillo upload e4f1f7a0 · Glacibear upload 517cce74 · Aurorox upload 91808e49 · Zapybara upload df2ab93f · Squallcoon upload c165890a · Thunderhoof upload 0ec39d1e · Stormback upload 9f02c823 · Novapanda upload 332293a2 · Nebulion upload 72f8d24b · Eclipsaur upload 52077973 · Toastoise upload d0d68ca8 · Fridgehog upload ffe908cf
+
+Set pieces (Tripo text_to_model task ids; the prompts are in `tools/tripo_jobs.json`):
+
+HollowStump ef9b172f · GiantGlowcap 3d45884a · TideArch 78dfeb40 · GiantClam e8fe8626 · LavaVent 49b02563 · ObsidianSpikes 304be4df · IceArch f3a42c70 · FrozenBoulder 893575e2 · LightningCrag f753db9f · WindSpire c9c95566 · MoonMonolith 07760467 · CraterRim 04f67810
+
+## Making new models (direct Tripo API)
+
+`tools/tripo.py` runs Tripo tasks from a jobs file, downloads the results into `assets/tripo/` and logs every task in `tools/tripo_log.json`, skipping jobs that already succeeded:
+
+    python tools/tripo.py balance
+    python tools/tripo.py run jobs.json --dry
+
+Settings match the old Higgsfield route: v3.1, 8000 faces, standard texture with PBR. Tripo's download links expire within minutes, so host each GLB on Higgsfield file storage (`media_upload` → PUT → `media_confirm` with type `file`) before adding its permanent URL to the manifest.

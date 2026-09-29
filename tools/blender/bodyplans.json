@@ -1,7 +1,7 @@
 {
   "Mossmunk": {
     "bodyPlan": "small-round",
-    "front": "auto"
+    "front": "flip"
   },
   "Brambloar": {
     "bodyPlan": "stocky",
@@ -29,19 +29,23 @@
   },
   "Tidalotl": {
     "bodyPlan": "big-floppy",
-    "front": "auto"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Coalby": {
     "bodyPlan": "small-round",
-    "front": "auto"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Slagodon": {
     "bodyPlan": "heavy-tank",
-    "front": "auto"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Emberlynx": {
     "bodyPlan": "lean-predator",
-    "front": "auto"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Calderhorn": {
     "bodyPlan": "heavy-tank",
@@ -49,7 +53,7 @@
   },
   "Frostbun": {
     "bodyPlan": "hopper",
-    "front": "auto"
+    "front": "flip"
   },
   "Iceadillo": {
     "bodyPlan": "small-round",
@@ -69,7 +73,8 @@
   },
   "Squallcoon": {
     "bodyPlan": "upright-bandit",
-    "front": "auto"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Thunderhoof": {
     "bodyPlan": "tall-leggy",
@@ -81,11 +86,13 @@
   },
   "Novapanda": {
     "bodyPlan": "small-round",
-    "front": "auto"
+    "front": "flip"
   },
   "Nebulion": {
     "bodyPlan": "lean-predator",
-    "front": "auto"
+    "front": "flip",
+    "frontBaby": "flip",
+    "frontJuvenile": "flip"
   },
   "Eclipsaur": {
     "bodyPlan": "low-long",
@@ -93,7 +100,7 @@
   },
   "Lunaris": {
     "bodyPlan": "heavy-tank",
-    "front": "auto"
+    "front": "flip"
   },
   "Toastoise": {
     "bodyPlan": "shelled",
@@ -105,7 +112,7 @@
   },
   "Grillgator": {
     "bodyPlan": "low-long",
-    "front": "auto"
+    "front": "flip"
   },
   "Laundrophant": {
     "bodyPlan": "big-floppy",
@@ -117,7 +124,7 @@
   },
   "Bassdog": {
     "bodyPlan": "stocky",
-    "front": "auto"
+    "front": "flip"
   },
   "Sylvanox": {
     "bodyPlan": "heavy-tank",
@@ -133,11 +140,11 @@
   },
   "Pyrodrake": {
     "bodyPlan": "low-long",
-    "front": "auto"
+    "front": "flip"
   },
   "Solarion": {
     "bodyPlan": "lean-predator",
-    "front": "auto"
+    "front": "flip"
   },
   "Glacierion": {
     "bodyPlan": "lean-predator",
@@ -153,7 +160,7 @@
   },
   "Quasarfox": {
     "bodyPlan": "lean-predator",
-    "front": "auto"
+    "front": "flip"
   },
   "Singularis": {
     "bodyPlan": "shelled",
@@ -161,6 +168,6 @@
   },
   "Nullcat": {
     "bodyPlan": "lean-predator",
-    "front": "auto"
+    "front": "flip"
   }
 }

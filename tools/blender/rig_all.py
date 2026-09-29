@@ -1,12 +1,14 @@
 """
-Rig every creature GLB in assets/glb/ (named <SpeciesId>.glb or <SpeciesId>_Baby.glb)
+Rig every creature GLB in assets/glb/ (<SpeciesId>.glb, <SpeciesId>_Baby.glb, <SpeciesId>_Juvenile.glb)
 into assets/fbx/ with the same name.
 
     python tools/blender/rig_all.py            # uses `blender` on PATH
     python tools/blender/rig_all.py "C:\\Program Files\\Blender Foundation\\Blender 4.2\\blender.exe"
 
-Body plans and head-direction overrides come from tools/blender/bodyplans.json.
-If a creature comes out facing backwards, set its "front" there (+x, -x, +y, -y) and rerun.
+Body plans and head-direction overrides come from tools/blender/bodyplans.json: "front"
+for the adult, "frontBaby" and "frontJuvenile" for the other stages (each GLB has its own
+orientation). "auto" squares the body up and guesses the head end; "flip" takes the other
+end when that guess is wrong (a raised tail club or tuft fools it). Rerun after a change.
 """
 
 import json
@@ -27,9 +29,11 @@ for glb in sorted(glb_dir.glob("*.glb")):
         print(f"skip {glb.name}: not a species id in bodyplans.json")
         continue
     entry = plans[species]
+    stage = "Baby" if glb.stem.endswith("_Baby") else "Juvenile" if glb.stem.endswith("_Juvenile") else ""
+    front = entry.get(f"front{stage}", "auto")  # "front" (adult), "frontBaby", "frontJuvenile"
     out = fbx_dir / f"{glb.stem}.fbx"
     cmd = [BLENDER, "--background", "--python", str(ROOT / "tools/blender/rig_creature.py"), "--",
-           str(glb), str(out), entry["bodyPlan"], entry.get("front", "auto")]
+           str(glb), str(out), entry["bodyPlan"], front]
     print(">>", glb.stem)
     if subprocess.run(cmd).returncode != 0 or not out.exists():
         failed.append(glb.stem)
