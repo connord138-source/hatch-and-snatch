@@ -27,6 +27,7 @@ export type PlotLayout = {
 local PLOT_RADIUS = 115
 local PLOT_SIZE = 44
 local GROUND_Y = 0.2
+local INCUBATOR_GLASS = 0.45 -- transparency of the imported incubator model
 
 local WorldService = {
 	plots = {} :: { PlotLayout },
@@ -197,6 +198,7 @@ local function buildPlot(index: number): PlotLayout
 		Props.dress(pedestal, if isNursery then "NurseryNest" else "Pedestal", {
 			cframe = origin * CFrame.new(localPos),
 			size = Vector3.new(6.4, 1.4, 6.4),
+			stretch = true, -- the models are taller than a pedestal slot; fill the width instead
 		})
 		table.insert(pedestals, origin * CFrame.new(localPos + Vector3.new(0, 0.7, 0)))
 	end
@@ -213,11 +215,19 @@ local function buildPlot(index: number): PlotLayout
 			Color = Color3.fromRGB(200, 230, 255),
 			Parent = model,
 		})
-		Props.dress(
+		local incubatorProp = Props.dress(
 			incubator,
 			"Incubator",
 			{ size = Vector3.new(3.6, 4.4, 3.6), cframe = incubator.CFrame * CFrame.new(0, 0.2, 0) }
 		)
+		if incubatorProp then
+			-- The model's glass is baked opaque into its texture; see-through shows the egg inside
+			for _, descendant in incubatorProp:GetDescendants() do
+				if descendant:IsA("BasePart") then
+					descendant.Transparency = INCUBATOR_GLASS
+				end
+			end
+		end
 		table.insert(incubators, incubator)
 	end
 
@@ -230,11 +240,11 @@ local function buildPlot(index: number): PlotLayout
 		Color = Color3.fromRGB(80, 230, 120),
 		Parent = model,
 	})
-	Props.dress(
-		collector,
-		"Collector",
-		{ size = Vector3.new(7.5, 1.2, 7.5), cframe = collector.CFrame * CFrame.new(0, 0.4, 0) }
-	)
+	Props.dress(collector, "Collector", {
+		size = Vector3.new(7.5, 1.2, 7.5),
+		cframe = collector.CFrame * CFrame.new(0, 0.4, 0),
+		stretch = true,
+	})
 	local collectorLabel = billboard(collector, Vector3.new(0, 4, 0), UDim2.fromOffset(160, 50), 60)
 	collectorLabel.Text = "$0"
 
@@ -301,8 +311,14 @@ local function buildPlot(index: number): PlotLayout
 	local label = billboard(sign, Vector3.zero, UDim2.fromScale(18, 4), 300)
 	label.Text = "Free plot"
 
-	-- Entrance arch over the front edge (decor only)
-	Props.spawn("PlotArch", origin * CFrame.new(0, top, -PLOT_SIZE / 2 + 0.5), 13, model)
+	-- Entrance arch over the front edge (decor only). The model spans its own Z
+	-- axis, so turn it 90° to span the front edge and let players walk through.
+	Props.spawn(
+		"PlotArch",
+		origin * CFrame.new(0, top, -PLOT_SIZE / 2 + 0.5) * CFrame.Angles(0, math.pi / 2, 0),
+		13,
+		model
+	)
 
 	model.Parent = worldFolder
 
