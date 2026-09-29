@@ -105,3 +105,12 @@ Odds and rules: docs/GDD.md §7.1. After approval, redo each at `quality: high`,
 
 - **Rejected:** Kitefin, Puffleece and Crateroo (too cartoon), Cometoad, Galebat, Cindermander, and the lean-cat versions of Rimewolf, Staticat, Tempestiger, Leviathound and Voidfang.
 - **Held for updates:** Blazemole (Magma), Voltpine (Storm), Celestapir (Moonfall).
+
+## Store art (drafts, awaiting owner pick)
+
+| Use | Image (job) |
+|---|---|
+| Game icon (512×512): baby Emberlynx peeking out of a golden egg, a thief's hand reaching in | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_034954_0a0bc141-44e9-4f05-aa25-aeed75db0a18.png) `0a0bc141` |
+| Thumbnail 1, the steal: a player sprinting off with a giant Tidalotl | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_034954_c826ccbe-14b6-4deb-9d92-56e9cbdb1a17.png) `c826ccbe` |
+| Thumbnail 2, the hatch: a Cosmic Quasarfox bursting from an incubator | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_034955_a95a62f6-6401-4c93-af4c-c880be8b93d5.png) `a95a62f6` |
+| Thumbnail 3, the collection: finish lineup plus a confused Toastoise | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_034954_1ccbf410-e3d9-42f0-877a-8a4b28973b15.png) `1ccbf410` |
