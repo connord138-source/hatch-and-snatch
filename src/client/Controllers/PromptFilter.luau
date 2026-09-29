@@ -3,6 +3,9 @@
 --   VisibleTo = "owner"  -> only the owner (Steal targets' owners, lock button, nursery, take back)
 --   VisibleTo = "others" -> everyone except the owner (Steal)
 --   Protected = true     -> hidden from everyone (creature is in a nursery)
+--   Active = false       -> hidden: the server switches situational prompts (buy the
+--                           next incubator, place an egg, spin...) on and off with this.
+--                           It can't use Enabled, because this filter sets Enabled.
 -- Steal prompts also hide while you're already carrying a creature (the server
 -- sets a "Carrying" attribute on your Player). The owner is the nearest ancestor
 -- with an OwnerUserId attribute. This is cosmetic only: the server re-validates
@@ -36,7 +39,7 @@ local function evaluate(prompt: ProximityPrompt)
 	local owner = ownerOf(prompt)
 	local isOwner = owner == localUserId
 	local visible = if visibleTo == "owner" then isOwner else (owner ~= nil and not isOwner)
-	if prompt:GetAttribute("Protected") == true then
+	if prompt:GetAttribute("Protected") == true or prompt:GetAttribute("Active") == false then
 		visible = false
 	end
 	if visibleTo == "others" and localPlayer:GetAttribute("Carrying") == true then
@@ -55,6 +58,10 @@ local function track(instance: Instance)
 	if instance:IsA("ProximityPrompt") and instance:GetAttribute("VisibleTo") ~= nil then
 		prompts[instance] = true
 		evaluate(instance)
+		-- Show/hide the moment the server flips it, not on the next half-second sweep
+		instance:GetAttributeChangedSignal("Active"):Connect(function()
+			evaluate(instance)
+		end)
 	end
 end
 

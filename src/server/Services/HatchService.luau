@@ -107,7 +107,8 @@ local function prompt(
 	p.MaxActivationDistance = 9
 	p.RequiresLineOfSight = false
 	p.UIOffset = Vector2.new(0, offset)
-	p.Enabled = false
+	-- Shown/hidden with the Active attribute: the client PromptFilter owns Enabled
+	p:SetAttribute("Active", false)
 	p:SetAttribute("VisibleTo", "owner")
 	p.Parent = parent
 	return p
@@ -150,11 +151,11 @@ local function refreshBay(data: PlayerData?, slot: number, part: BasePart, pad: 
 	end
 	local nextSlot = if data then #data.incubatorTiers + 1 else 0
 	local slotCost = Progression.incubatorSlotCosts[slot]
-	prompts.buy.Enabled = data ~= nil and slot == nextSlot and slotCost ~= nil
+	prompts.buy:SetAttribute("Active", data ~= nil and slot == nextSlot and slotCost ~= nil)
 	prompts.buy.ActionText = `Buy Incubator ({Format.cash(slotCost or 0)})`
 
 	local held = if data then data.heldEgg else nil
-	prompts.place.Enabled = owned and egg == nil and held ~= nil
+	prompts.place:SetAttribute("Active", owned and egg == nil and held ~= nil)
 	if held and owned then
 		local need = Progression.tierForBiome(biomeOrder(held.biome))
 		prompts.place.ActionText = if tier >= need
@@ -163,11 +164,11 @@ local function refreshBay(data: PlayerData?, slot: number, part: BasePart, pad: 
 	end
 
 	local spins = if data then data.spins else 0
-	prompts.spin.Enabled = egg ~= nil and not egg.spun
+	prompts.spin:SetAttribute("Active", egg ~= nil and not egg.spun)
 	prompts.spin.ActionText = if spins > 0 then `Spin Luck Wheel ({spins} left)` else "No spins left"
 
 	local nextTier = Progression.incubatorTiers[tier + 1]
-	prompts.upgrade.Enabled = owned and nextTier ~= nil
+	prompts.upgrade:SetAttribute("Active", owned and nextTier ~= nil)
 	if nextTier then
 		prompts.upgrade.ActionText = `Upgrade to {nextTier.name} ({Format.cash(nextTier.upgradeCost)})`
 		prompts.upgrade.ObjectText = `{nextTier.speed}× speed · takes biome {nextTier.maxBiomeOrder} eggs`

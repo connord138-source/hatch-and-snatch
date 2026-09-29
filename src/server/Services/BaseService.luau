@@ -35,12 +35,12 @@ local function apply(player: Player, data: PlayerData)
 	local nextLevel = data.baseLevel + 1
 	if nextLevel <= maxLevel() then
 		local cost = Config.Economy.baseLevel(nextLevel).cost
-		plot.upgradePrompt.Enabled = true
+		plot.upgradePrompt:SetAttribute("Active", true) -- not Enabled: PromptFilter owns that
 		plot.upgradePrompt.ActionText = `Upgrade Base ({Format.cash(cost)})`
 		plot.upgradeLabel.Text =
 			`Base Lv {data.baseLevel} → {nextLevel}\n+5 pedestals · bigger base · longer lock`
 	else
-		plot.upgradePrompt.Enabled = false
+		plot.upgradePrompt:SetAttribute("Active", false)
 		plot.upgradeLabel.Text = `Base Lv {data.baseLevel} (max)`
 	end
 end
