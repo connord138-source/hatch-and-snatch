@@ -12,3 +12,6 @@ sourcemap.json
 assets/glb/
 # Rigged output of tools/blender/rig_all.py
 assets/fbx/
+
+# Python
+__pycache__/
