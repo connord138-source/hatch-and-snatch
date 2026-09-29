@@ -8,6 +8,7 @@ local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Net = require(script.Parent.Parent.Net)
+local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EventService = require(script.Parent.EventService)
 local PlotService = require(script.Parent.PlotService)
@@ -19,10 +20,11 @@ local tunables = Config.Economy.tunables
 local EconomyService = {}
 
 -- Cash per second for a player's placed creatures, excluding the moon event bonus.
-local function baseRate(data: PlayerData): number
+-- A creature a thief is carrying off earns nothing until it's back on its pedestal.
+local function baseRate(player: Player, data: PlayerData): number
 	local total = 0
-	for _, record in data.creatures do
-		if record.slot ~= nil then
+	for uid, record in data.creatures do
+		if record.slot ~= nil and not CreatureService.isCarried(player, uid) then
 			local creature = Config.CreaturesById[record.species]
 			total += Config.Economy.cashPerSecond({
 				biome = creature.biome,
@@ -42,7 +44,7 @@ function EconomyService.rate(player: Player): number
 	if data == nil then
 		return 0
 	end
-	return baseRate(data) * EventService.earningsMultiplier()
+	return baseRate(player, data) * EventService.earningsMultiplier()
 end
 
 local function updateLeaderstats(player: Player, data: PlayerData)
@@ -117,7 +119,7 @@ function EconomyService.start()
 		-- Offline earnings (uses the rate the base has now; growth already caught up)
 		if data.lastSeen > 0 then
 			local away = math.clamp(Timing.now() - data.lastSeen, 0, tunables.offlineCapSeconds)
-			local earned = math.floor(baseRate(data) * away)
+			local earned = math.floor(baseRate(player, data) * away)
 			if earned > 0 then
 				data.uncollected += earned
 				Net.notify(player, `While you were away your creatures earned {Format.cash(earned)}!`, "good")

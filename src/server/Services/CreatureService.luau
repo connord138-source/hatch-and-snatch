@@ -286,10 +286,12 @@ function CreatureService.respawn(player: Player, uid: string)
 end
 
 function CreatureService.setCarried(owner: Player, uid: string, isCarried: boolean)
-	carried[owner] = carried[owner] or {}
-	carried[owner][uid] = if isCarried then true else nil
 	if isCarried then
+		carried[owner] = carried[owner] or {}
+		carried[owner][uid] = true
 		despawn(owner, uid)
+	elseif carried[owner] then
+		carried[owner][uid] = nil
 	end
 end
 
