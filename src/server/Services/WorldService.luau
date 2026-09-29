@@ -173,9 +173,19 @@ end
 
 local function buildSeaAndIsland()
 	local terrain = Workspace.Terrain
+	-- The place was made from Studio's Baseplate template: its 2048-stud grey floor
+	-- (top at y 0) would cover the sea and hide the beach, which sits just below it.
+	local baseplate = Workspace:FindFirstChild("Baseplate")
+	if baseplate and baseplate:IsA("BasePart") then
+		baseplate:Destroy()
+	end
 	-- Sea around the island (terrain water), with a sandy sea floor
 	terrain:FillCylinder(CFrame.new(0, -24, 0), 10, 1500, Enum.Material.Sand)
 	terrain:FillCylinder(CFrame.new(0, -11, 0), 16, 1500, Enum.Material.Water)
+	-- No water under the island itself: its top voxel layer (y -4..0) pokes up
+	-- through the grass in blue patches. Keep it only under the beach's outer edge,
+	-- where it laps up as a shoreline. (Runs before buildZones, so no hill is cut.)
+	terrain:FillCylinder(CFrame.new(0, -11, 0), 18, ISLAND_RADIUS + 10, Enum.Material.Air)
 
 	disc("Beach", Vector3.new(0, GROUND_Y - 2.4, 0), ISLAND_RADIUS * 2 + 40, 4, {
 		Material = Enum.Material.Sand,
