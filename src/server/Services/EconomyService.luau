@@ -11,6 +11,7 @@ local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EventService = require(script.Parent.EventService)
 local PlotService = require(script.Parent.PlotService)
+local ProgressionService = require(script.Parent.ProgressionService)
 
 type CreatureRecord = DataService.CreatureRecord
 type PlayerData = DataService.PlayerData
@@ -101,6 +102,7 @@ local function collect(player: Player)
 	data.cash += amount
 	updateLeaderstats(player, data)
 	Net.notify(player, `Collected {Format.cash(amount)}`, "good")
+	ProgressionService.bump(player, "earned", amount)
 	DataService.markDirty(player)
 end
 

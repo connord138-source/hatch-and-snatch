@@ -14,6 +14,7 @@ local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Net = require(script.Parent.Parent.Net)
 local DataService = require(script.Parent.DataService)
+local ProgressionService = require(script.Parent.ProgressionService)
 local PlotService = require(script.Parent.PlotService)
 
 type CreatureRecord = DataService.CreatureRecord
@@ -43,6 +44,8 @@ local FINISH_LOOKS: { [string]: { color: Color3?, material: Enum.Material?, tran
 local models: { [Player]: { [string]: Model } } = {}
 -- Creatures currently being carried by a thief (not shown on their pedestal)
 local carried: { [Player]: { [string]: boolean? } } = {}
+-- The one creature each player is walking (following them around), if any
+local walking: { [Player]: string } = {}
 
 local tunables = Config.Economy.tunables
 local nurserySlots = tunables.nurserySlotsBase
@@ -75,7 +78,12 @@ function CreatureService.stats(record: CreatureRecord)
 end
 
 -- Collection index: every species, finish and Adult the player has ever owned.
-local function recordInIndex(data: PlayerData, record: CreatureRecord)
+-- `player` is nil when backfilling at load (no XP for that).
+local function recordInIndex(player: Player?, data: PlayerData, record: CreatureRecord)
+	if not data.index[record.species] and player then
+		ProgressionService.addXp(player, Config.Progression.xp.newSpecies)
+		ProgressionService.bump(player, "discovered")
+	end
 	data.index[record.species] = true
 	local finishes = data.indexFinishes[record.species] or {}
 	finishes[record.finish] = true
@@ -85,14 +93,20 @@ local function recordInIndex(data: PlayerData, record: CreatureRecord)
 	end
 end
 
+-- Pedestals the player's base level provides.
+local function pedestalCount(data: PlayerData): number
+	return Config.Economy.baseLevel(data.baseLevel).pedestals
+end
+CreatureService.pedestalCount = pedestalCount
+
 -- Whether the player can take one more creature: owned creatures plus eggs still
--- incubating must fit on pedestals + storage. Buying and stealing check this.
+-- incubating or carried must fit on pedestals + storage. Buying and stealing check this.
 function CreatureService.hasRoom(data: PlayerData): boolean
-	local owned = #data.incubators
+	local owned = #data.incubators + (if data.heldEgg then 1 else 0)
 	for _ in data.creatures do
 		owned += 1
 	end
-	return owned < tunables.pedestalsBase + tunables.storageSlots
+	return owned < pedestalCount(data) + tunables.storageSlots
 end
 
 -- Absolute unix time the creature reaches its next stage (nil when Adult).
@@ -296,15 +310,50 @@ local function despawn(player: Player, uid: string)
 	end
 end
 
+local function characterRoot(player: Player): BasePart?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	return if root and root:IsA("BasePart") then root else nil
+end
+
+-- A walked creature: spawned beside its owner; the client animator makes it follow.
+local function spawnWalking(player: Player, uid: string, record: CreatureRecord)
+	local plot = PlotService.get(player)
+	local root = characterRoot(player)
+	if plot == nil or root == nil then
+		return -- followOwner spawns it once the character exists
+	end
+	local at = CFrame.new((root.CFrame * CFrame.new(4, -3, 3)).Position)
+	local model = buildModel(player, uid, record, at)
+	model:SetAttribute("Walking", true)
+	model:SetAttribute("FollowUserId", player.UserId)
+	local primary = model.PrimaryPart :: BasePart
+	local name = Config.CreaturesById[record.species].displayName
+	local home = addPrompt(primary, "SendHome", "Send Home", name, 0, "owner")
+	home.KeyboardKeyCode = Enum.KeyCode.R
+	home.Triggered:Connect(function(who)
+		if who == player then
+			CreatureService.stopWalking(player)
+		end
+	end)
+	model.Parent = plot.model
+	models[player] = models[player] or {}
+	models[player][uid] = model
+end
+
 local function spawn(player: Player, uid: string, record: CreatureRecord)
 	despawn(player, uid)
 	local plot = PlotService.get(player)
+	if carried[player] and carried[player][uid] then
+		return -- a thief is holding it; StealService respawns it if it comes home
+	end
+	if walking[player] == uid then
+		spawnWalking(player, uid, record)
+		return
+	end
 	local slot = record.slot
 	if plot == nil or slot == nil or not plot.pedestals[slot] then
 		return
-	end
-	if carried[player] and carried[player][uid] then
-		return -- a thief is holding it; StealService respawns it if it comes home
 	end
 	local model = buildModel(player, uid, record, plot.pedestals[slot])
 	local primary = model.PrimaryPart :: BasePart
@@ -330,6 +379,15 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	nurseryPrompt.Triggered:Connect(function(who)
 		if who == player then
 			CreatureService.toggleNursery(player, uid)
+		end
+	end)
+
+	local walkPrompt = addPrompt(primary, "Walk", "Take for a Walk", name, 0, "owner")
+	walkPrompt.KeyboardKeyCode = Enum.KeyCode.R
+	walkPrompt.UIOffset = Vector2.new(0, 120)
+	walkPrompt.Triggered:Connect(function(who)
+		if who == player then
+			CreatureService.walk(player, uid)
 		end
 	end)
 
@@ -384,6 +442,58 @@ function CreatureService.buildCarryModel(owner: Player, uid: string, record: Cre
 	return model
 end
 
+-- Keeps a walked creature near its owner on the server (the client animates the
+-- actual following); respawns it if the owner respawned.
+local function followOwner(player: Player, uid: string)
+	local playerModels = models[player]
+	local model: Model? = if playerModels then playerModels[uid] else nil
+	local root = characterRoot(player)
+	if root == nil then
+		return
+	end
+	if model == nil or model.Parent == nil then
+		CreatureService.respawn(player, uid)
+		return
+	end
+	local offset = model:GetPivot().Position - root.Position
+	if offset.Magnitude > 14 then
+		model:PivotTo(CFrame.new((root.CFrame * CFrame.new(4, -3, 3)).Position))
+	end
+end
+
+-- Takes a creature out for a walk: it follows its owner, can't be stolen and grows
+-- faster. One at a time; walking another sends the first one home.
+function CreatureService.walk(player: Player, uid: string)
+	local data = DataService.get(player)
+	local record = data and data.creatures[uid]
+	if data == nil or record == nil or CreatureService.isCarried(player, uid) then
+		return
+	end
+	local previous = walking[player]
+	walking[player] = uid
+	if previous and previous ~= uid then
+		CreatureService.respawn(player, previous)
+	end
+	spawn(player, uid, record)
+	Net.notify(
+		player,
+		`{Config.CreaturesById[record.species].displayName} is following you! It grows {tunables.walkGrowthMultiplier}× faster on walks.`,
+		"good"
+	)
+end
+
+function CreatureService.stopWalking(player: Player)
+	local uid = walking[player]
+	if uid then
+		walking[player] = nil
+		CreatureService.respawn(player, uid)
+	end
+end
+
+function CreatureService.walkingUid(player: Player): string?
+	return walking[player]
+end
+
 local function freeSlot(data: PlayerData): number?
 	local used: { [number]: boolean } = {}
 	for _, record in data.creatures do
@@ -392,7 +502,7 @@ local function freeSlot(data: PlayerData): number?
 		end
 	end
 	-- Regular pedestals first; the nursery is filled only on request (or as a last resort)
-	for slot = nurserySlots + 1, Config.Economy.tunables.pedestalsBase do
+	for slot = nurserySlots + 1, pedestalCount(data) do
 		if not used[slot] then
 			return slot
 		end
@@ -453,7 +563,7 @@ function CreatureService.toggleNursery(player: Player, uid: string)
 	end
 	local target: number? = nil
 	if CreatureService.isNursery(record.slot) then
-		for slot = nurserySlots + 1, Config.Economy.tunables.pedestalsBase do
+		for slot = nurserySlots + 1, pedestalCount(data) do
 			local taken = false
 			for _, other in data.creatures do
 				if other.slot == slot then
@@ -492,6 +602,9 @@ function CreatureService.remove(player: Player, uid: string): CreatureRecord?
 		return nil
 	end
 	data.creatures[uid] = nil
+	if walking[player] == uid then
+		walking[player] = nil
+	end
 	if carried[player] then
 		carried[player][uid] = nil
 	end
@@ -509,7 +622,7 @@ function CreatureService.add(player: Player, record: CreatureRecord): string?
 	local uid = DataService.newUid(data)
 	record.slot = freeSlot(data)
 	data.creatures[uid] = record
-	recordInIndex(data, record)
+	recordInIndex(player, data, record)
 	spawn(player, uid, record)
 	DataService.markDirty(player)
 	return uid
@@ -519,8 +632,23 @@ local function tick()
 	local now = Timing.now()
 	for player, data in DataService.loadedPlayers() do
 		for uid, record in data.creatures do
+			if walking[player] == uid then
+				-- Walked creatures grow faster
+				record.stageStartedAt -= tunables.walkGrowthMultiplier - 1
+				ProgressionService.bump(player, "walkSeconds")
+				followOwner(player, uid)
+			end
 			if advance(record, now) then
-				recordInIndex(data, record)
+				recordInIndex(player, data, record)
+				ProgressionService.addXp(
+					player,
+					if record.stage == "Adult"
+						then Config.Progression.xp.growAdult
+						else Config.Progression.xp.growJuvenile
+				)
+				if record.stage == "Adult" then
+					ProgressionService.bump(player, "adults")
+				end
 				spawn(player, uid, record)
 				local name = Config.CreaturesById[record.species].displayName
 				Net.notify(player, `Your {name} grew into a {record.stage}!`, "good")
@@ -535,7 +663,7 @@ function CreatureService.start()
 		local now = Timing.now()
 		for uid, record in data.creatures do
 			advance(record, now) -- offline growth catch-up
-			recordInIndex(data, record) -- also backfills saves from before the index
+			recordInIndex(nil, data, record) -- also backfills saves from before the index
 			spawn(player, uid, record)
 		end
 	end)
@@ -548,6 +676,7 @@ function CreatureService.start()
 			models[player] = nil
 		end
 		carried[player] = nil
+		walking[player] = nil
 	end)
 	task.spawn(function()
 		while true do

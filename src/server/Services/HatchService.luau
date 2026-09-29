@@ -1,24 +1,45 @@
 --!strict
--- Incubators: an egg bought off the conveyor hatches after its rarity's hatch
--- time. The species is rolled at purchase (hidden); finish + mutation are rolled
--- at hatch so an active moon event / luck boost applies at the moment it cracks.
+-- Eggs and incubators (docs/GDD.md §3.1).
+--
+--  * Buying an egg off the belt puts it in the player's hands (held over their
+--    head). They carry it home and place it into a free incubator.
+--  * Players start with one incubator and buy more bays; each bay can be upgraded
+--    through tiers that hatch faster and accept eggs from later biomes.
+--  * The species is rolled at purchase. Past 40% of incubation the incubator
+--    starts showing the rarity's color, stronger the closer it gets.
+--  * A Luck Wheel spin on an incubating egg re-rolls it with luck; the better
+--    result is kept. Spins come from playtime and achievements.
+--  * Finish + mutation roll at hatch, then the client plays the hatch reveal.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Net = require(script.Parent.Parent.Net)
 local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
+local EconomyService = require(script.Parent.EconomyService)
 local EventService = require(script.Parent.EventService)
 local PlotService = require(script.Parent.PlotService)
+local ProgressionService = require(script.Parent.ProgressionService)
+local WorldService = require(script.Parent.WorldService)
 
 type PlayerData = DataService.PlayerData
+type IncubatorRecord = DataService.IncubatorRecord
 
+local Progression = Config.Progression
+local tunables = Config.Economy.tunables
 local rng = Random.new()
-local EMPTY_COLOR = Color3.fromRGB(200, 230, 255)
-local GLOW_MIN_ORDER = 4 -- Epic and up glow in their rarity color as they near hatching
+-- Rarities keyed by plain string (luau-lsp mis-infers the RarityId singleton union)
+local rarities: { [string]: Types.Rarity } = Config.Rarities :: any
+
+local INCUBATOR_EGG_HEIGHT = 2.4
+local HELD_EGG_HEIGHT = 2.2
+local HINT_START = 0.4 -- incubation progress where the rarity color starts to show
+local WHEEL_SPIN_SECONDS = 4.5 -- how long the client's wheel animation runs
+local LOCKED_PAD = Color3.fromRGB(90, 90, 100)
 
 local HatchService = {}
 
@@ -27,9 +48,36 @@ for _, finish in Config.Finishes do
 	finishById[finish.id] = finish
 end
 
-local INCUBATOR_EGG_HEIGHT = 2.4
+type BayPrompts = {
+	buy: ProximityPrompt,
+	place: ProximityPrompt,
+	spin: ProximityPrompt,
+	upgrade: ProximityPrompt,
+}
+local bayPrompts: { [BasePart]: BayPrompts } = {}
 
--- The egg sitting in an incubator: the biome's egg model when imported.
+local function eggInSlot(data: PlayerData, slot: number): IncubatorRecord?
+	for _, egg in data.incubators do
+		if egg.slot == slot then
+			return egg
+		end
+	end
+	return nil
+end
+
+local function biomeOrder(biomeId: string): number
+	return Config.Biomes[biomeId].order
+end
+
+-- Can this incubator tier hold an egg from `biomeId`?
+local function tierFits(tier: number, biomeId: string): boolean
+	return tier >= Progression.tierForBiome(biomeOrder(biomeId))
+end
+
+---------------------------------------------------------------------------
+-- Visuals + prompts
+---------------------------------------------------------------------------
+
 local function setEggVisual(part: BasePart, biomeId: string?)
 	local existing = part:FindFirstChild("EggVisual")
 	if existing then
@@ -45,66 +93,344 @@ local function setEggVisual(part: BasePart, biomeId: string?)
 	end
 end
 
-local function refreshIncubators(player: Player, data: PlayerData)
+local function prompt(
+	parent: Instance,
+	name: string,
+	key: Enum.KeyCode,
+	offset: number,
+	hold: number
+): ProximityPrompt
+	local p = Instance.new("ProximityPrompt")
+	p.Name = name
+	p.KeyboardKeyCode = key
+	p.HoldDuration = hold
+	p.MaxActivationDistance = 9
+	p.RequiresLineOfSight = false
+	p.UIOffset = Vector2.new(0, offset)
+	p.Enabled = false
+	p:SetAttribute("VisibleTo", "owner")
+	p.Parent = parent
+	return p
+end
+
+-- Brings one incubator bay in line with its owner's data (nil = free plot).
+local function refreshBay(data: PlayerData?, slot: number, part: BasePart, pad: BasePart)
+	local owned = data ~= nil and slot <= #data.incubatorTiers
+	local tier = if data and owned then data.incubatorTiers[slot] else 0
+	local egg = if data then eggInSlot(data, slot) else nil
+	local eggBiome = if egg then egg.biome else nil
+
+	part:SetAttribute("Owned", owned)
+	part:SetAttribute("Tier", tier)
+	part:SetAttribute("TierName", if owned then Progression.incubatorTiers[tier].name else nil)
+	part:SetAttribute("StartedAt", if egg then egg.startedAt else nil)
+	part:SetAttribute("HatchAt", if egg then egg.hatchAt else nil)
+	if part:GetAttribute("EggBiome") ~= eggBiome then
+		part:SetAttribute("EggBiome", eggBiome)
+		setEggVisual(part, eggBiome)
+	end
+
+	-- The imported incubator model only shows on owned bays
+	local prop = part.Parent and part.Parent:FindFirstChild(`IncubatorProp{slot}`)
+	if prop then
+		for _, descendant in prop:GetDescendants() do
+			if descendant:IsA("BasePart") then
+				descendant.Transparency = if owned then 0.45 else 1
+			end
+		end
+	else
+		part.Transparency = if owned then 0.4 else 1
+	end
+	pad.Color = if owned then Progression.incubatorTiers[tier].color else LOCKED_PAD
+	pad.Transparency = if owned then 0 else 0.3
+
+	local prompts = bayPrompts[part]
+	if prompts == nil then
+		return
+	end
+	local nextSlot = if data then #data.incubatorTiers + 1 else 0
+	local slotCost = Progression.incubatorSlotCosts[slot]
+	prompts.buy.Enabled = data ~= nil and slot == nextSlot and slotCost ~= nil
+	prompts.buy.ActionText = `Buy Incubator ({Format.cash(slotCost or 0)})`
+
+	local held = if data then data.heldEgg else nil
+	prompts.place.Enabled = owned and egg == nil and held ~= nil
+	if held and owned then
+		local need = Progression.tierForBiome(biomeOrder(held.biome))
+		prompts.place.ActionText = if tier >= need
+			then "Place Egg"
+			else `Needs a {Progression.incubatorTiers[need].name} incubator`
+	end
+
+	local spins = if data then data.spins else 0
+	prompts.spin.Enabled = egg ~= nil and not egg.spun
+	prompts.spin.ActionText = if spins > 0 then `Spin Luck Wheel ({spins} left)` else "No spins left"
+
+	local nextTier = Progression.incubatorTiers[tier + 1]
+	prompts.upgrade.Enabled = owned and nextTier ~= nil
+	if nextTier then
+		prompts.upgrade.ActionText = `Upgrade to {nextTier.name} ({Format.cash(nextTier.upgradeCost)})`
+		prompts.upgrade.ObjectText = `{nextTier.speed}× speed · takes biome {nextTier.maxBiomeOrder} eggs`
+	end
+end
+
+function HatchService.refresh(player: Player, data: PlayerData)
 	local plot = PlotService.get(player)
 	if plot == nil then
 		return
 	end
-	for i, part in plot.incubators do
-		local egg = data.incubators[i]
-		local biomeId = if egg then egg.biome else nil
-		local current = part:GetAttribute("EggBiome")
-		if current ~= biomeId then
-			part:SetAttribute("EggBiome", biomeId)
-			setEggVisual(part, biomeId)
-		end
-		local hasVisual = part:FindFirstChild("EggVisual") ~= nil
-		if part:GetAttribute("Dressed") and not hasVisual then
-			-- Imported incubator but no egg model: a tinted egg-shaped glow inside the glass
-			if part:IsA("Part") then
-				part.Shape = Enum.PartType.Ball
-			end
-			part.Size = Vector3.new(2, 2, 2)
-			part.Material = Enum.Material.Neon
-			part.Color = if egg then Config.Eggs.eggColors[egg.biome] or EMPTY_COLOR else EMPTY_COLOR
-			part.Transparency = if egg then 0.1 else 1
-		elseif part:GetAttribute("Dressed") then
-			part.Transparency = 1
-		elseif egg then
-			part.Color = Config.Eggs.eggColors[egg.biome] or EMPTY_COLOR
-			part.Transparency = if hasVisual then 0.75 else 0.1
-		else
-			part.Color = EMPTY_COLOR
-			part.Transparency = 0.4
-		end
+	for slot, part in plot.incubators do
+		refreshBay(data, slot, part, plot.incubatorPads[slot])
 	end
 end
+local refreshIncubators = HatchService.refresh
 
-function HatchService.hasFreeSlot(player: Player): boolean
-	local data = DataService.get(player)
-	return data ~= nil and #data.incubators < Config.Economy.tunables.incubatorSlots
+---------------------------------------------------------------------------
+-- Held eggs
+---------------------------------------------------------------------------
+
+local function attachHeldEgg(player: Player, biomeId: string?)
+	local character = player.Character
+	if character == nil then
+		return
+	end
+	local existing = character:FindFirstChild("HeldEgg")
+	if existing then
+		existing:Destroy()
+	end
+	if biomeId == nil then
+		return
+	end
+	local head = character:FindFirstChild("Head")
+	if head == nil or not head:IsA("BasePart") then
+		return
+	end
+	local anchor = Instance.new("Part")
+	anchor.Name = "HeldEgg"
+	anchor.Size = Vector3.new(1.6, 2, 1.6)
+	anchor.CanCollide = false
+	anchor.CanQuery = false
+	anchor.Massless = true
+	anchor.Color = Config.Eggs.eggColors[biomeId]
+	anchor.Material = Enum.Material.SmoothPlastic
+	anchor.CFrame = head.CFrame * CFrame.new(0, 2.4, 0)
+	local model = Props.egg(biomeId, HELD_EGG_HEIGHT)
+	if model then
+		anchor.Transparency = 1
+		Props.weldCentered(model, anchor)
+	else
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Parent = anchor
+	end
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = head
+	weld.Part1 = anchor
+	weld.Parent = anchor
+	anchor.Parent = character
 end
 
--- Puts a purchased egg into an incubator. Caller has already charged the player.
-function HatchService.incubate(player: Player, biomeId: string): boolean
+-- Some owned incubator that is free and can take this biome's eggs?
+function HatchService.freeIncubatorFor(data: PlayerData, biomeId: string): boolean
+	for slot, tier in data.incubatorTiers do
+		if eggInSlot(data, slot) == nil and tierFits(tier, biomeId) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Whether any owned incubator (busy or not) could ever take this biome's eggs.
+function HatchService.hasTierFor(data: PlayerData, biomeId: string): boolean
+	for _, tier in data.incubatorTiers do
+		if tierFits(tier, biomeId) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Name of the incubator tier a biome's eggs need.
+function HatchService.tierNameFor(biomeId: string): string
+	return Progression.incubatorTiers[Progression.tierForBiome(biomeOrder(biomeId))].name
+end
+
+-- Hands a just-bought egg to the player. Caller has already charged them.
+function HatchService.giveEgg(player: Player, biomeId: string)
 	local data = DataService.get(player)
-	if data == nil or #data.incubators >= Config.Economy.tunables.incubatorSlots then
-		return false
+	if data == nil then
+		return
 	end
 	local species = Config.Eggs.rollSpecies(biomeId, rng, EventService.activeId() ~= nil)
-	local rarity = Config.Rarities[Config.CreaturesById[species].rarity]
-	local now = Timing.now()
-	table.insert(data.incubators, {
-		biome = biomeId,
-		species = species,
-		startedAt = now,
-		hatchAt = now + Timing.scaled(rarity.hatchSeconds),
-	})
+	data.heldEgg = { biome = biomeId, species = species }
 	data.stats.eggsBought += 1
+	attachHeldEgg(player, biomeId)
 	refreshIncubators(player, data)
 	DataService.markDirty(player)
-	return true
 end
+
+local function place(player: Player, slot: number)
+	local data = DataService.get(player)
+	if data == nil or data.heldEgg == nil or slot > #data.incubatorTiers or eggInSlot(data, slot) then
+		return
+	end
+	local held = data.heldEgg :: DataService.HeldEgg
+	local tier = data.incubatorTiers[slot]
+	if not tierFits(tier, held.biome) then
+		Net.notify(
+			player,
+			`{Config.Biomes[held.biome].displayName} eggs need a {HatchService.tierNameFor(held.biome)} incubator.`,
+			"bad"
+		)
+		return
+	end
+	local rarity = Config.Rarities[Config.CreaturesById[held.species].rarity]
+	local now = Timing.now()
+	table.insert(data.incubators, {
+		biome = held.biome,
+		species = held.species,
+		startedAt = now,
+		hatchAt = now + Timing.scaled(rarity.hatchSeconds) / Progression.incubatorTiers[tier].speed,
+		slot = slot,
+	})
+	data.heldEgg = nil
+	attachHeldEgg(player, nil)
+	Net.notify(player, "Egg placed! Its glow shows the rarity as it gets close to hatching.", "good")
+	refreshIncubators(player, data)
+	DataService.markDirty(player)
+end
+
+---------------------------------------------------------------------------
+-- Buying + upgrading incubators
+---------------------------------------------------------------------------
+
+local function buyIncubator(player: Player, slot: number)
+	local data = DataService.get(player)
+	if data == nil or slot ~= #data.incubatorTiers + 1 then
+		return
+	end
+	local cost = Progression.incubatorSlotCosts[slot]
+	if cost == nil then
+		return
+	end
+	if not EconomyService.spend(player, cost) then
+		Net.notify(player, `You need {Format.cash(cost)} for another incubator.`, "bad")
+		return
+	end
+	table.insert(data.incubatorTiers, 1)
+	Net.notify(player, `Incubator {slot} built!`, "good")
+	ProgressionService.addXp(player, Progression.xp.incubatorBought)
+	ProgressionService.setStat(player, "incubators", #data.incubatorTiers)
+	refreshIncubators(player, data)
+	DataService.markDirty(player)
+end
+
+local function upgradeIncubator(player: Player, slot: number)
+	local data = DataService.get(player)
+	if data == nil or slot > #data.incubatorTiers then
+		return
+	end
+	local tier = data.incubatorTiers[slot]
+	local nextTier = Progression.incubatorTiers[tier + 1]
+	if nextTier == nil then
+		return
+	end
+	if not EconomyService.spend(player, nextTier.upgradeCost) then
+		Net.notify(
+			player,
+			`You need {Format.cash(nextTier.upgradeCost)} for a {nextTier.name} incubator.`,
+			"bad"
+		)
+		return
+	end
+	data.incubatorTiers[slot] = tier + 1
+	-- An egg already inside speeds up for the rest of its time, keeping its progress
+	local egg = eggInSlot(data, slot)
+	if egg then
+		local now = Timing.now()
+		local span = math.max(egg.hatchAt - egg.startedAt, 1)
+		local progress = math.clamp((now - egg.startedAt) / span, 0, 1)
+		local newSpan = span * Progression.incubatorTiers[tier].speed / nextTier.speed
+		egg.startedAt = now - newSpan * progress
+		egg.hatchAt = egg.startedAt + newSpan
+	end
+	Net.notify(player, `Incubator {slot} is now {nextTier.name}: {nextTier.speed}× speed!`, "rare")
+	ProgressionService.addXp(player, Progression.xp.incubatorUpgraded)
+	refreshIncubators(player, data)
+	DataService.markDirty(player)
+end
+
+---------------------------------------------------------------------------
+-- Luck Wheel
+---------------------------------------------------------------------------
+
+local function rollWheel(): number
+	local total = 0
+	for _, segment in tunables.luckWheel do
+		total += segment.weight
+	end
+	local roll = rng:NextNumber() * total
+	for index, segment in tunables.luckWheel do
+		roll -= segment.weight
+		if roll <= 0 then
+			return index
+		end
+	end
+	return 1
+end
+
+local function spin(player: Player, slot: number)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local egg = eggInSlot(data, slot)
+	if egg == nil or egg.spun then
+		return
+	end
+	if data.spins <= 0 then
+		Net.notify(player, "No Luck Wheel spins left. You earn one every 20 minutes you play.", "bad")
+		return
+	end
+	data.spins -= 1
+	egg.spun = true
+	local segmentIndex = rollWheel()
+	local segment = tunables.luckWheel[segmentIndex]
+	local before = Config.CreaturesById[egg.species].rarity
+	local candidate = Config.Eggs.rollSpecies(egg.biome, rng, EventService.activeId() ~= nil, segment.luck)
+	local after = Config.CreaturesById[candidate].rarity
+	local improved = rarities[after].order > rarities[before].order
+	-- The client only learns the new rarity if it improved (no early reveal otherwise)
+	Net.wheelResult(player, segmentIndex, "", if improved then after else "")
+	ProgressionService.bump(player, "spinsUsed")
+	refreshIncubators(player, data)
+	DataService.markDirty(player)
+
+	if improved then
+		-- Apply once the wheel stops, so the incubator glow doesn't spoil it
+		task.delay(WHEEL_SPIN_SECONDS, function()
+			local current = DataService.get(player)
+			if current == nil or eggInSlot(current, slot) ~= egg then
+				return
+			end
+			local now = Timing.now()
+			local span = math.max(egg.hatchAt - egg.startedAt, 1)
+			local progress = math.clamp((now - egg.startedAt) / span, 0, 1)
+			local tier = current.incubatorTiers[slot] or 1
+			local newSpan = Timing.scaled(rarities[after].hatchSeconds)
+				/ Progression.incubatorTiers[tier].speed
+			egg.species = candidate
+			egg.startedAt = now - newSpan * progress
+			egg.hatchAt = egg.startedAt + newSpan
+			refreshIncubators(player, current)
+			DataService.markDirty(player)
+		end)
+	end
+end
+
+---------------------------------------------------------------------------
+-- Hatching
+---------------------------------------------------------------------------
 
 local function hatch(player: Player, data: PlayerData, index: number)
 	local egg = table.remove(data.incubators, index)
@@ -121,10 +447,10 @@ local function hatch(player: Player, data: PlayerData, index: number)
 		mutation = mutation,
 		homegrown = true,
 	})
-	data.stats.hatched += 1
 
 	local creature = Config.CreaturesById[egg.species]
 	local finish = finishById[finishId]
+	local rarity = Config.Rarities[creature.rarity]
 	local parts = {}
 	if finishId ~= "Normal" then
 		table.insert(parts, finish.displayName)
@@ -134,36 +460,59 @@ local function hatch(player: Player, data: PlayerData, index: number)
 	end
 	table.insert(parts, creature.displayName)
 	local name = table.concat(parts, " ")
-	local rare = finishId ~= "Normal" or Config.Rarities[creature.rarity].order >= 4
-	Net.notify(player, `Hatched: {name} ({creature.rarity})!`, if rare then "rare" else "good")
+
+	Net.hatchReveal(player, {
+		species = egg.species,
+		biome = egg.biome,
+		finish = finishId,
+		mutation = mutation,
+	})
 	if uid and data.creatures[uid] and data.creatures[uid].slot == nil then
-		Net.notify(player, "Your pedestals are full, so it went to storage (Creatures menu).", "bad")
+		task.delay(5, function()
+			Net.notify(player, "Your pedestals are full, so it went to storage (Creatures menu).", "bad")
+		end)
 	end
-	local rarity = Config.Rarities[creature.rarity]
-	if rarity.announce then
-		Net.announce(`{player.DisplayName} hatched a {creature.rarity:upper()} {name}!`, rarity.color)
-	elseif finish.announce ~= "none" then
-		Net.announce(`{player.DisplayName} hatched a {name}!`, rarity.color)
+	-- Server-wide news waits for the reveal to finish on the hatcher's screen
+	task.delay(5, function()
+		if rarity.announce then
+			Net.announce(`{player.DisplayName} hatched a {creature.rarity:upper()} {name}!`, rarity.color)
+		elseif finish.announce ~= "none" then
+			Net.announce(`{player.DisplayName} hatched a {name}!`, rarity.color)
+		end
+	end)
+
+	local order = if Config.Biomes[egg.biome].order > 0 then Config.Biomes[egg.biome].order else 3
+	ProgressionService.addXp(player, Progression.xp.hatchPerBiomeOrder * order)
+	ProgressionService.bump(player, "hatched")
+	if finishId ~= "Normal" then
+		ProgressionService.bump(player, "finishes")
 	end
 end
 
--- The species is rolled at purchase, so the incubator can tease it: Epic+ eggs
--- glow in their rarity color, brighter and wider the closer they are to hatching.
-local function updateGlow(player: Player, data: PlayerData, now: number)
+-- Rarity hint + glow: nothing until HINT_START, then the rarity's color fades in.
+local function updateHints(player: Player, data: PlayerData, now: number)
 	local plot = PlotService.get(player)
 	if plot == nil then
 		return
 	end
-	for i, part in plot.incubators do
-		local egg = data.incubators[i]
+	for slot, part in plot.incubators do
+		local egg = eggInSlot(data, slot)
 		local light = part:FindFirstChild("RarityGlow") :: PointLight?
-		local rarity = egg and Config.Rarities[Config.CreaturesById[egg.species].rarity]
-		if egg == nil or rarity == nil or rarity.order < GLOW_MIN_ORDER then
+		local progress = 0
+		if egg then
+			progress = math.clamp((now - egg.startedAt) / math.max(egg.hatchAt - egg.startedAt, 1), 0, 1)
+		end
+		if egg == nil or progress < HINT_START then
+			part:SetAttribute("HintColor", nil)
 			if light then
 				light:Destroy()
 			end
 			continue
 		end
+		local rarity = Config.Rarities[Config.CreaturesById[(egg :: IncubatorRecord).species].rarity]
+		local strength = (progress - HINT_START) / (1 - HINT_START) -- 0..1
+		local color = Color3.new(1, 1, 1):Lerp(rarity.color, strength)
+		part:SetAttribute("HintColor", color)
 		if light == nil then
 			local newLight = Instance.new("PointLight")
 			newLight.Name = "RarityGlow"
@@ -172,37 +521,93 @@ local function updateGlow(player: Player, data: PlayerData, now: number)
 			light = newLight
 		end
 		local glow = light :: PointLight
-		local span = math.max(egg.hatchAt - egg.startedAt, 1)
-		local progress = math.clamp((now - egg.startedAt) / span, 0, 1)
-		local tier = rarity.order - GLOW_MIN_ORDER + 1 -- 1 (Epic) .. 6 (Secret)
-		local pulse = if progress > 0.9 then 0.75 + 0.25 * math.sin(os.clock() * 8) else 1
-		glow.Color = rarity.color
-		glow.Brightness = (0.3 + progress * progress * tier) * pulse
-		glow.Range = 6 + progress * (4 + tier * 2)
+		glow.Color = color
+		glow.Brightness = 0.4 + strength * strength * (1 + rarity.order * 0.5)
+		glow.Range = 5 + strength * (5 + rarity.order * 1.5)
 	end
 end
 
 local function tick()
 	local now = Timing.now()
 	for player, data in DataService.loadedPlayers() do
-		local hatchedAny = false
+		local changed = false
 		for i = #data.incubators, 1, -1 do
 			if now >= data.incubators[i].hatchAt then
 				hatch(player, data, i)
-				hatchedAny = true
+				changed = true
 			end
 		end
-		if hatchedAny then
+		-- Free Luck Wheel spins for time played
+		data.spinProgress += 1
+		if data.spinProgress >= tunables.freeSpinSeconds then
+			data.spinProgress = 0
+			if data.spins < tunables.maxBankedSpins then
+				data.spins += 1
+				Net.notify(player, `+1 Luck Wheel spin! ({data.spins} banked)`, "good")
+				changed = true
+			end
+		end
+		if changed then
 			refreshIncubators(player, data)
 			DataService.markDirty(player)
 		end
-		updateGlow(player, data, now)
+		updateHints(player, data, now)
 	end
 end
 
 function HatchService.start()
+	-- Prompts on every bay; each checks that the triggering player owns the plot
+	for _, plot in WorldService.plots do
+		for slot, part in plot.incubators do
+			local pad = plot.incubatorPads[slot]
+			local prompts: BayPrompts = {
+				buy = prompt(pad, "BuyIncubator", Enum.KeyCode.E, 0, 0.4),
+				place = prompt(part, "PlaceEgg", Enum.KeyCode.E, 0, 0),
+				spin = prompt(part, "SpinWheel", Enum.KeyCode.Q, 60, 0),
+				upgrade = prompt(part, "UpgradeIncubator", Enum.KeyCode.R, 120, 0.6),
+			}
+			prompts.buy.ObjectText = "Incubator bay"
+			prompts.place.ObjectText = "Incubator"
+			prompts.spin.ObjectText = "×1.5 to ×25 luck on this egg"
+			bayPrompts[part] = prompts
+			local actions: { [ProximityPrompt]: (Player, number) -> () } = {
+				[prompts.buy] = buyIncubator,
+				[prompts.place] = place,
+				[prompts.spin] = spin,
+				[prompts.upgrade] = upgradeIncubator,
+			}
+			for p, action in actions do
+				p.Triggered:Connect(function(who)
+					if PlotService.ownerOf(plot) == who then
+						action(who, slot)
+					end
+				end)
+			end
+			refreshBay(nil, slot, part, pad)
+		end
+	end
+
 	-- Runs after PlotService assigned the plot (connect order in init.server)
-	DataService.loaded:connect(refreshIncubators)
+	DataService.loaded:connect(function(player: Player, data: PlayerData)
+		refreshIncubators(player, data)
+		local function onCharacter()
+			task.wait(0.5) -- let the character finish loading
+			local current = DataService.get(player)
+			local held = current and current.heldEgg
+			if held then
+				attachHeldEgg(player, held.biome)
+			end
+		end
+		player.CharacterAdded:Connect(onCharacter)
+		if player.Character then
+			task.spawn(onCharacter)
+		end
+	end)
+	PlotService.released:connect(function(plot: WorldService.PlotLayout)
+		for slot, part in plot.incubators do
+			refreshBay(nil, slot, part, plot.incubatorPads[slot])
+		end
+	end)
 	task.spawn(function()
 		while true do
 			task.wait(1)

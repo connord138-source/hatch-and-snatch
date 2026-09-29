@@ -20,9 +20,13 @@ end
 local stateUpdate = makeEvent("StateUpdate")
 local notify = makeEvent("Notify")
 local announce = makeEvent("Announce")
+local wheelResult = makeEvent("WheelResult") -- (segment index, rarity before, rarity after)
+local hatchReveal = makeEvent("HatchReveal") -- (reveal table, see Net.hatchReveal)
 local requests: { [string]: RemoteEvent } = {
 	CreatureAction = makeEvent("CreatureAction"), -- (action: string, uid: string)
 	Rebirth = makeEvent("Rebirth"), -- ()
+	UpgradeBase = makeEvent("UpgradeBase"), -- ()
+	Theme = makeEvent("Theme"), -- (themeId: string) buy if needed, then apply
 }
 
 folder.Parent = ReplicatedStorage
@@ -48,6 +52,16 @@ end
 -- Big centered message for everyone (rare hatches, moon events).
 function Net.announce(text: string, color: Color3?)
 	announce:FireAllClients(text, color or Color3.fromRGB(255, 255, 255))
+end
+
+-- Plays the Luck Wheel on the player's screen; the result is already decided.
+function Net.wheelResult(player: Player, segment: number, rarityBefore: string, rarityAfter: string)
+	wheelResult:FireClient(player, segment, rarityBefore, rarityAfter)
+end
+
+-- Plays the hatch reveal reel for the player who hatched it.
+function Net.hatchReveal(player: Player, reveal: { [string]: any })
+	hatchReveal:FireClient(player, reveal)
 end
 
 -- Handles one kind of client request. The handler gets the raw, untrusted arguments.

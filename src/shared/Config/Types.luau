@@ -94,6 +94,7 @@ export type MoonEvent = {
 	lockDurationMultiplier: number,
 	stealCashBonus: number,
 	spawnsJunkEgg: boolean,
+	description: string, -- what it does, shown on the event banner
 }
 
 return {}

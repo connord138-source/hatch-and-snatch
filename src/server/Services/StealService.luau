@@ -23,6 +23,7 @@ local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local EventService = require(script.Parent.EventService)
 local PlotService = require(script.Parent.PlotService)
+local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
 
 type Outcome = "delivered" | "returned" | "brokeFree" | "takenBack" | "cancelled"
@@ -132,6 +133,8 @@ local function endCarry(carry: Carry, outcome: Outcome)
 			stolenFrom = owner.DisplayName,
 		})
 		Net.notify(thief, `You stole {owner.DisplayName}'s {name}!`, "rare")
+		ProgressionService.addXp(thief, Config.Progression.xp.steal)
+		ProgressionService.bump(thief, "steals")
 		Net.notify(owner, `{thief.DisplayName} stole your {name}!`, "bad")
 		local event = EventService.active()
 		if event and event.stealCashBonus > 0 then
@@ -295,7 +298,10 @@ local function tryLock(player: Player, plot: WorldService.PlotLayout)
 		return
 	end
 	local event = EventService.active()
-	local duration = tunables.lockDurationSeconds * (if event then event.lockDurationMultiplier else 1)
+	local data = DataService.get(player)
+	local bonus = if data then Config.Economy.baseLevel(data.baseLevel).lockBonusSeconds else 0
+	local duration = (tunables.lockDurationSeconds + bonus)
+		* (if event then event.lockDurationMultiplier else 1)
 	locks[plot.index] =
 		{ lockedUntil = now + duration, cooldownUntil = now + duration + tunables.lockCooldownSeconds }
 	Net.notify(player, `Base locked for {Format.duration(duration)}!`, "good")

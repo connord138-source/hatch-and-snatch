@@ -1,6 +1,7 @@
 --!strict
--- Placeholder HUD built from code: cash + rate, uncollected, incubator timers,
--- moon event banner, toasts and server announcements. Presentation only.
+-- Placeholder HUD built from code: cash + rate, uncollected, Hatcher Level + XP,
+-- Luck Wheel spins, incubator timers, carried-egg hint, moon event banner, toasts
+-- and server announcements. Presentation only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -41,7 +42,7 @@ function HudController.start()
 	overlay.Parent = gui.Parent
 
 	-- Cash panel (top-left)
-	local cashPanel = panel(gui, { Size = UDim2.fromOffset(250, 96), Position = UDim2.fromOffset(12, 12) })
+	local cashPanel = panel(gui, { Size = UDim2.fromOffset(250, 132), Position = UDim2.fromOffset(12, 12) })
 	local cashLabel = label(cashPanel, {
 		Size = UDim2.new(1, -20, 0, 40),
 		Position = UDim2.fromOffset(10, 6),
@@ -63,17 +64,45 @@ function HudController.start()
 		Text = "",
 	})
 
+	-- Hatcher Level + XP bar + Luck Wheel spins (bottom of the cash panel)
+	local levelLabel = label(cashPanel, {
+		Size = UDim2.new(0.62, -10, 0, 18),
+		Position = UDim2.fromOffset(10, 92),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = Color3.fromRGB(150, 220, 255),
+		Text = "Lv 1",
+	})
+	local spinsLabel = label(cashPanel, {
+		Size = UDim2.new(0.38, -10, 0, 18),
+		Position = UDim2.new(0.62, 0, 0, 92),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextColor3 = Color3.fromRGB(255, 215, 90),
+		Text = "",
+	})
+	local xpBar = Instance.new("Frame")
+	xpBar.BackgroundColor3 = Color3.fromRGB(40, 44, 60)
+	xpBar.BorderSizePixel = 0
+	xpBar.Position = UDim2.fromOffset(10, 114)
+	xpBar.Size = UDim2.new(1, -20, 0, 8)
+	xpBar.Parent = cashPanel
+	local xpFill = Instance.new("Frame")
+	xpFill.BackgroundColor3 = Color3.fromRGB(110, 200, 255)
+	xpFill.BorderSizePixel = 0
+	xpFill.Size = UDim2.fromScale(0, 1)
+	xpFill.Parent = xpBar
+
 	-- Incubators (left, under the lock status; the top-right belongs to Roblox's player list)
+	local maxIncubators = #Config.Progression.incubatorSlotCosts
 	local incubatorPanel = panel(gui, {
-		Size = UDim2.fromOffset(250, 40 + Config.Economy.tunables.incubatorSlots * 30),
-		Position = UDim2.fromOffset(12, 158),
+		Size = UDim2.fromOffset(250, 70),
+		Position = UDim2.fromOffset(12, 194),
 	})
 	label(
 		incubatorPanel,
 		{ Size = UDim2.new(1, -20, 0, 26), Position = UDim2.fromOffset(10, 6), Text = "Incubators" }
 	)
 	local incubatorRows: { TextLabel } = {}
-	for i = 1, Config.Economy.tunables.incubatorSlots do
+	for i = 1, maxIncubators do
 		incubatorRows[i] = label(incubatorPanel, {
 			Size = UDim2.new(1, -20, 0, 24),
 			Position = UDim2.fromOffset(10, 6 + i * 30),
@@ -85,14 +114,23 @@ function HudController.start()
 
 	-- Moon event banner (top-center)
 	local banner = panel(gui, {
-		Size = UDim2.fromOffset(320, 40),
-		Position = UDim2.new(0.5, -160, 0, 12),
+		Size = UDim2.fromOffset(460, 58),
+		Position = UDim2.new(0.5, -230, 0, 12),
 		Visible = false,
 	})
-	local bannerLabel = label(banner, { Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4) })
+	local bannerStroke = Instance.new("UIStroke")
+	bannerStroke.Thickness = 2
+	bannerStroke.Parent = banner
+	local bannerLabel = label(banner, { Size = UDim2.new(1, -16, 0, 30), Position = UDim2.fromOffset(8, 3) })
+	-- What the event does, so "Blood Moon" means something to new players
+	local bannerInfo = label(banner, {
+		Size = UDim2.new(1, -16, 0, 20),
+		Position = UDim2.fromOffset(8, 33),
+		TextColor3 = Color3.fromRGB(230, 230, 230),
+	})
 
 	-- Base lock status (under the cash panel)
-	local lockPanel = panel(gui, { Size = UDim2.fromOffset(250, 34), Position = UDim2.fromOffset(12, 116) })
+	local lockPanel = panel(gui, { Size = UDim2.fromOffset(250, 34), Position = UDim2.fromOffset(12, 152) })
 	local lockStatus = label(lockPanel, {
 		Size = UDim2.new(1, -20, 1, -8),
 		Position = UDim2.fromOffset(10, 4),
@@ -109,6 +147,15 @@ function HudController.start()
 	})
 	local carryLabel =
 		label(carryBanner, { Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4) })
+
+	-- Carried-egg hint (while holding an egg bought off the belt)
+	local eggBanner = panel(gui, {
+		Size = UDim2.fromOffset(460, 40),
+		Position = UDim2.new(0.5, -230, 0, 76),
+		BackgroundColor3 = Color3.fromRGB(40, 90, 140),
+		Visible = false,
+	})
+	local eggLabel = label(eggBanner, { Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4) })
 
 	-- Toasts (bottom-center)
 	local toastHolder = Instance.new("Frame")
@@ -198,8 +245,17 @@ function HudController.start()
 			else
 				carryBanner.Visible = false
 			end
+			local owned: number = current.incubatorSlots or 1
+			incubatorPanel.Size = UDim2.fromOffset(250, 40 + owned * 30)
 			for i, row in incubatorRows do
-				local egg = current.incubators[i]
+				row.Visible = i <= owned
+				local egg = nil
+				for _, candidate in current.incubators do
+					if candidate.slot == i then
+						egg = candidate
+					end
+				end
+				local tier = Config.Progression.incubatorTiers[(current.incubatorTiers or {})[i] or 1]
 				if egg then
 					local biome = Config.Biomes[egg.biome]
 					local remaining = egg.hatchAt - now
@@ -208,9 +264,24 @@ function HudController.start()
 						else `{i}. {biome.displayName} — hatching!`
 					row.TextColor3 = Color3.new(1, 1, 1)
 				else
-					row.Text = `{i}. empty`
+					row.Text = `{i}. {tier.name} — empty`
 					row.TextColor3 = Color3.fromRGB(160, 160, 160)
 				end
+			end
+
+			local progression = current.progression
+			if progression then
+				levelLabel.Text =
+					`Hatcher Lv {progression.level}  ·  {progression.xpInto}/{progression.xpNeeded} XP`
+				xpFill.Size = UDim2.fromScale(math.clamp(progression.xpInto / progression.xpNeeded, 0, 1), 1)
+			end
+			spinsLabel.Text = `🎡 {current.spins or 0} spin{if current.spins == 1 then "" else "s"}`
+			if current.heldEgg then
+				eggBanner.Visible = true
+				eggLabel.Text =
+					`Carrying a {Config.Biomes[current.heldEgg].displayName} egg — place it in an incubator (E)`
+			else
+				eggBanner.Visible = false
 			end
 		end
 
@@ -219,6 +290,11 @@ function HudController.start()
 		if typeof(eventName) == "string" and typeof(endsAt) == "number" then
 			banner.Visible = true
 			bannerLabel.Text = `🌕 {eventName} — {Format.duration(endsAt - now)}`
+			local info = Workspace:GetAttribute("MoonEventInfo")
+			bannerInfo.Text = if typeof(info) == "string" then info else ""
+			local color = Workspace:GetAttribute("MoonEventColor")
+			bannerStroke.Color = if typeof(color) == "Color3" then color else Color3.new(1, 1, 1)
+			bannerLabel.TextColor3 = bannerStroke.Color
 		else
 			banner.Visible = false
 		end

@@ -14,7 +14,7 @@ local PROPS = {
 	HatcheryReactor = true, Pedestal = true, NurseryNest = true, Incubator = true, Collector = true,
 	LockButton = true, PlotArch = true, LampPost = true, MossTree = true, RockCluster = true,
 	BerryBush = true, MushroomCluster = true, CrystalCluster = true, CoralCluster = true,
-	LavaRock = true, IceSpire = true,
+	LavaRock = true, IceSpire = true, FlowerPatch = true, WoodFence = true, FallenLog = true, PineTree = true,
 }
 local species = {}
 for _, creature in require(ReplicatedStorage.Shared.Config).Creatures do

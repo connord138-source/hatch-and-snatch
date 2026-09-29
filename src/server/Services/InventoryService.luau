@@ -41,7 +41,16 @@ local function onCreatureAction(player: Player, action: any, uid: any)
 	elseif action == "nursery" then
 		CreatureService.toggleNursery(player, uid)
 	elseif action == "sell" then
+		if CreatureService.walkingUid(player) == uid then
+			CreatureService.stopWalking(player)
+		end
 		sell(player, uid, record)
+	elseif action == "walk" then
+		if CreatureService.walkingUid(player) == uid then
+			CreatureService.stopWalking(player)
+		else
+			CreatureService.walk(player, uid)
+		end
 	end
 end
 

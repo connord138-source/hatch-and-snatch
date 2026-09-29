@@ -4,6 +4,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local DataService = require(script.Parent.DataService)
 local WorldService = require(script.Parent.WorldService)
@@ -15,6 +16,8 @@ local characterConnections: { [Player]: RBXScriptConnection } = {}
 local PlotService = {
 	-- (player) — owner stepped on their own collector pad
 	collectorTouched = Signal.new(),
+	-- (plot) — a plot was freed when its owner left
+	released = Signal.new(),
 }
 
 function PlotService.get(player: Player): WorldService.PlotLayout?
@@ -67,6 +70,10 @@ local function release(player: Player)
 	plot.label.Text = "Free plot"
 	plot.collectorLabel.Text = "$0"
 	plot.model:SetAttribute("OwnerUserId", nil)
+	-- Back to a starter plot for the next owner
+	WorldService.setLevel(plot, 1)
+	WorldService.applyTheme(plot, Config.Progression.themes[1])
+	PlotService.released:fire(plot)
 	local connection = characterConnections[player]
 	if connection then
 		connection:Disconnect()

@@ -15,7 +15,6 @@ local Tunables = {
 	} :: { [Types.StageId]: number },
 
 	startingCash = 300, -- two starter eggs
-	incubatorSlots = 3,
 	offlineCapSeconds = 8 * 60 * 60,
 	homegrownBonus = 0.25,
 	rebirthBonusPerLevel = 0.10,
@@ -28,7 +27,7 @@ local Tunables = {
 	nurserySlotsMax = 3,
 	pedestalsBase = 10,
 	pedestalsMax = 30,
-	basePlotsPerServer = 8,
+	basePlotsPerServer = 6, -- also set Max Players = 6 in Game Settings → Places
 
 	-- Creatures menu. A creature sells for this many seconds of its own earnings:
 	-- low enough that a fresh hatch sells for less than its egg on average, even in
@@ -43,6 +42,33 @@ local Tunables = {
 
 	-- Moon events
 	moonEventIntervalSeconds = 60 * 60,
+
+	-- Base upgrades: each level widens and deepens the plot (longer escape run for
+	-- thieves), adds a row of 5 pedestals and lengthens the laser lock.
+	baseLevels = {
+		{ cost = 0, pedestals = 10, lockBonusSeconds = 0 },
+		{ cost = 7_500, pedestals = 15, lockBonusSeconds = 15 },
+		{ cost = 90_000, pedestals = 20, lockBonusSeconds = 30 },
+		{ cost = 1_200_000, pedestals = 25, lockBonusSeconds = 45 },
+		{ cost = 15_000_000, pedestals = 30, lockBonusSeconds = 60 },
+	},
+
+	-- Walking a creature: it follows you around, can't be stolen, and grows faster
+	walkGrowthMultiplier = 2,
+
+	-- Luck Wheel: spend a spin on an incubating egg to re-roll it with luck
+	-- (Epic+ weights × multiplier). The better of the two rolls is kept.
+	freeSpinSeconds = 20 * 60, -- one free spin per 20 minutes played
+	startingSpins = 3,
+	maxBankedSpins = 10,
+	luckWheel = {
+		{ label = "×1.5", luck = 1.5, weight = 34, color = Color3.fromRGB(120, 200, 120) },
+		{ label = "×2", luck = 2, weight = 28, color = Color3.fromRGB(80, 160, 255) },
+		{ label = "×3", luck = 3, weight = 20, color = Color3.fromRGB(170, 90, 255) },
+		{ label = "×5", luck = 5, weight = 11, color = Color3.fromRGB(255, 170, 40) },
+		{ label = "×10", luck = 10, weight = 5, color = Color3.fromRGB(255, 70, 100) },
+		{ label = "×25 JACKPOT", luck = 25, weight = 2, color = Color3.fromRGB(255, 255, 255) },
+	},
 }
 
 export type CreatureInstanceStats = {
@@ -108,11 +134,6 @@ for _, biome in Biomes do
 	maxBiomeOrder = math.max(maxBiomeOrder, biome.order)
 end
 
--- Highest Biomes[].order whose eggs a player may buy: each rebirth unlocks the next.
-local function unlockedBiome(rebirthsDone: number): number
-	return math.min(maxBiomeOrder, rebirthsDone + 1)
-end
-
 -- Seconds to grow from `stage` to the next stage (nil when already Adult).
 local function secondsToNextStage(rarityId: Types.RarityId, stage: Types.StageId): number?
 	local base = Tunables.growthSeconds[stage]
@@ -152,13 +173,19 @@ local function rollMutation(rng: Random): string?
 	return nil
 end
 
+-- Base level config, clamped to the table.
+local function baseLevel(level: number): { cost: number, pedestals: number, lockBonusSeconds: number }
+	local levels = Tunables.baseLevels
+	return levels[math.clamp(level, 1, #levels)]
+end
+
 local Economy = table.freeze({
+	baseLevel = baseLevel,
 	tunables = Tunables,
 	maxBiomeOrder = maxBiomeOrder,
 	cashPerSecond = cashPerSecond,
 	sellValue = sellValue,
 	rebirthCost = rebirthCost,
-	unlockedBiome = unlockedBiome,
 	secondsToNextStage = secondsToNextStage,
 	rollFinish = rollFinish,
 	rollMutation = rollMutation,

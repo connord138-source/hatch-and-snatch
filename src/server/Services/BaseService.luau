@@ -1,0 +1,112 @@
+--!strict
+-- Base upgrades and themes (docs/GDD.md §6.1). Upgrading grows the plot (a longer
+-- run for thieves), adds a row of pedestals and lengthens the laser lock. Themes
+-- restyle the plot in a biome's look once that biome is unlocked.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local Format = require(ReplicatedStorage.Shared.Format)
+local Net = require(script.Parent.Parent.Net)
+local DataService = require(script.Parent.DataService)
+local EconomyService = require(script.Parent.EconomyService)
+local PlotService = require(script.Parent.PlotService)
+local ProgressionService = require(script.Parent.ProgressionService)
+local WorldService = require(script.Parent.WorldService)
+
+type PlayerData = DataService.PlayerData
+
+local BaseService = {}
+
+local function maxLevel(): number
+	return #Config.Economy.tunables.baseLevels
+end
+
+-- Pushes the player's level + theme onto their plot and its upgrade sign.
+local function apply(player: Player, data: PlayerData)
+	local plot = PlotService.get(player)
+	if plot == nil then
+		return
+	end
+	WorldService.setLevel(plot, data.baseLevel)
+	WorldService.applyTheme(
+		plot,
+		Config.Progression.themesById[data.baseTheme] or Config.Progression.themes[1]
+	)
+	local nextLevel = data.baseLevel + 1
+	if nextLevel <= maxLevel() then
+		local cost = Config.Economy.baseLevel(nextLevel).cost
+		plot.upgradePrompt.Enabled = true
+		plot.upgradePrompt.ActionText = `Upgrade Base ({Format.cash(cost)})`
+		plot.upgradeLabel.Text =
+			`Base Lv {data.baseLevel} → {nextLevel}\n+5 pedestals · bigger base · longer lock`
+	else
+		plot.upgradePrompt.Enabled = false
+		plot.upgradeLabel.Text = `Base Lv {data.baseLevel} (max)`
+	end
+end
+
+function BaseService.upgrade(player: Player)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local nextLevel = data.baseLevel + 1
+	if nextLevel > maxLevel() then
+		Net.notify(player, "Your base is fully upgraded!", "info")
+		return
+	end
+	local cost = Config.Economy.baseLevel(nextLevel).cost
+	if not EconomyService.spend(player, cost) then
+		Net.notify(player, `You need {Format.cash(cost)} to upgrade your base.`, "bad")
+		return
+	end
+	data.baseLevel = nextLevel
+	apply(player, data)
+	Net.notify(player, `Base upgraded to level {nextLevel}! +5 pedestals and a bigger plot.`, "rare")
+	ProgressionService.addXp(player, Config.Progression.xp.baseUpgradePerLevel * nextLevel)
+	ProgressionService.bump(player, "baseUpgrades")
+	ProgressionService.refresh(player) -- higher base levels open later biomes
+	DataService.markDirty(player)
+end
+
+-- Buys the theme if not owned (needs its biome unlocked), then applies it.
+function BaseService.setTheme(player: Player, themeId: any)
+	if typeof(themeId) ~= "string" then
+		return
+	end
+	local data = DataService.get(player)
+	local theme = Config.Progression.themesById[themeId]
+	if data == nil or theme == nil then
+		return
+	end
+	if not data.ownedThemes[themeId] then
+		if not ProgressionService.canBuyBiome(data, themeId) then
+			Net.notify(player, `Unlock {Config.Biomes[themeId].displayName} first.`, "bad")
+			return
+		end
+		if not EconomyService.spend(player, theme.cost) then
+			Net.notify(player, `You need {Format.cash(theme.cost)} for this theme.`, "bad")
+			return
+		end
+		data.ownedThemes[themeId] = true
+		Net.notify(player, `{Config.Biomes[themeId].displayName} base theme unlocked!`, "rare")
+	end
+	data.baseTheme = themeId
+	apply(player, data)
+	DataService.markDirty(player)
+end
+
+function BaseService.start()
+	DataService.loaded:connect(apply) -- after PlotService assigned the plot
+	for _, plot in WorldService.plots do
+		plot.upgradePrompt.Triggered:Connect(function(player)
+			if PlotService.ownerOf(plot) == player then
+				BaseService.upgrade(player)
+			end
+		end)
+	end
+	Net.onRequest("UpgradeBase", BaseService.upgrade)
+	Net.onRequest("Theme", BaseService.setTheme)
+end
+
+return BaseService

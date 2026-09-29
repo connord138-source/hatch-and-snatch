@@ -127,20 +127,30 @@ W, L, H = mx.x - mn.x, mx.y - mn.y, mx.z - mn.z
 print(f"[rig] size W={W:.2f} L={L:.2f} H={H:.2f}")
 
 # ---------- find feet ----------
-low = [v for v in vs if v.z < 0.18 * H]
+# Feet = vertices touching the ground. A low belly or hanging fur sits a little
+# higher, so start with a thin slice and only widen it if a quadrant comes up empty.
 quadrants = {"FL": [], "FR": [], "BL": [], "BR": []}
-for v in low:
-    fb = "F" if v.y < 0 else "B"
-    lr = "L" if v.x > 0 else "R"  # facing -Y, +X is the creature's left
-    quadrants[fb + lr].append(v)
+for band in (0.05, 0.1, 0.18):
+    quadrants = {"FL": [], "FR": [], "BL": [], "BR": []}
+    low = [v for v in vs if v.z < band * H]
+    for v in low:
+        # Facing -Y, +X is the creature's left
+        quadrants[("F" if v.y < 0 else "B") + ("L" if v.x > 0 else "R")].append(v)
+    if all(len(pts) >= 5 for pts in quadrants.values()):
+        break
 feet = {}
+leg_radius = {}
 for key, pts in quadrants.items():
     if len(pts) >= 5:
         feet[key] = Vector((sum(p.x for p in pts) / len(pts), sum(p.y for p in pts) / len(pts), 0))
+        # How thick this leg is at the bottom: 80th percentile distance from its center
+        dists = sorted(((p.x - feet[key].x) ** 2 + (p.y - feet[key].y) ** 2) ** 0.5 for p in pts)
+        leg_radius[key] = max(dists[int(len(dists) * 0.8)], 0.04 * min(W, L))
     else:
         fx = 0.25 * W * (1 if key[1] == "L" else -1)
         fy = 0.25 * L * (-1 if key[0] == "F" else 1)
         feet[key] = Vector((fx, fy, 0))
+        leg_radius[key] = 0.08 * min(W, L)
 print("[rig] feet", {k: tuple(round(c, 2) for c in v) for k, v in feet.items()})
 
 # ---------- armature ----------
@@ -194,14 +204,22 @@ def seg_dist(p, a, b):
 
 
 def allowed(name, p):
-    """Legs only skin their own quadrant, below the belly line, so a leg swing
-    never drags the head, chest or the opposite leg along."""
+    """Legs only skin their own column of vertices: below the belly line and within
+    the leg's thickness of its foot. Anything else (a low belly, fur or armor
+    hanging between the legs) stays on the body, so a leg swing can't stretch it
+    into strings or drag the head or the opposite leg along."""
     if not name.startswith("Leg"):
         return True
-    fb, lr = name[3], name[4]
+    key = name[3:5]
+    fb, lr = key[0], key[1]
     if (p.y < 0) != (fb == "F") or (p.x > 0) != (lr == "L"):
         return False
-    return p.z < hipZ * 0.85
+    if p.z >= hipZ * 0.85:
+        return False
+    foot = feet[key]
+    # The column widens a little toward the hip, where the leg meets the body
+    reach = leg_radius[key] * (1.6 + 0.8 * (p.z / max(hipZ, 1e-6)))
+    return ((p.x - foot.x) ** 2 + (p.y - foot.y) ** 2) ** 0.5 <= reach
 
 
 groups = {name: body.vertex_groups.new(name=name) for name in bone_segments}

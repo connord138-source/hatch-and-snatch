@@ -72,8 +72,11 @@ function EventService.run(event: Types.MoonEvent)
 	Workspace:SetAttribute("MoonEvent", event.id)
 	Workspace:SetAttribute("MoonEventName", event.displayName)
 	Workspace:SetAttribute("MoonEventEndsAt", endsAt)
+	Workspace:SetAttribute("MoonEventInfo", event.description)
 	local color = MOON_COLORS[event.id] or IDLE_MOON
+	Workspace:SetAttribute("MoonEventColor", color)
 	setMoon(color)
+	WorldService.setMoonTint(color)
 	Net.announce(`{event.displayName} is rising!`, color)
 	task.wait(event.durationSeconds)
 	if active == event then
@@ -81,7 +84,10 @@ function EventService.run(event: Types.MoonEvent)
 		Workspace:SetAttribute("MoonEvent", nil)
 		Workspace:SetAttribute("MoonEventName", nil)
 		Workspace:SetAttribute("MoonEventEndsAt", nil)
+		Workspace:SetAttribute("MoonEventInfo", nil)
+		Workspace:SetAttribute("MoonEventColor", nil)
 		setMoon(IDLE_MOON)
+		WorldService.setMoonTint(nil)
 	end
 end
 

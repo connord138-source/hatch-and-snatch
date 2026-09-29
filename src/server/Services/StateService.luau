@@ -9,6 +9,7 @@ local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local ProgressionService = require(script.Parent.ProgressionService)
 local StealService = require(script.Parent.StealService)
 
 local StateService = {}
@@ -20,7 +21,13 @@ local function snapshot(player: Player): { [string]: any }?
 	end
 	local incubators = {}
 	for _, egg in data.incubators do
-		table.insert(incubators, { biome = egg.biome, startedAt = egg.startedAt, hatchAt = egg.hatchAt })
+		table.insert(incubators, {
+			biome = egg.biome,
+			startedAt = egg.startedAt,
+			hatchAt = egg.hatchAt,
+			slot = egg.slot,
+			spun = egg.spun,
+		})
 	end
 	local creatures = {}
 	for uid, record in data.creatures do
@@ -43,7 +50,20 @@ local function snapshot(player: Player): { [string]: any }?
 	return {
 		rebirths = data.rebirths,
 		rebirthCost = Config.Economy.rebirthCost(data.rebirths),
-		pedestals = Config.Economy.tunables.pedestalsBase,
+		pedestals = CreatureService.pedestalCount(data),
+		baseLevel = data.baseLevel,
+		baseLevels = #Config.Economy.tunables.baseLevels,
+		nextBaseCost = if Config.Economy.tunables.baseLevels[data.baseLevel + 1]
+			then Config.Economy.tunables.baseLevels[data.baseLevel + 1].cost
+			else nil,
+		baseTheme = data.baseTheme,
+		ownedThemes = data.ownedThemes,
+		progression = ProgressionService.snapshot(data),
+		spins = data.spins,
+		spinProgress = data.spinProgress,
+		heldEgg = if data.heldEgg then data.heldEgg.biome else nil,
+		walking = CreatureService.walkingUid(player),
+		incubatorTiers = data.incubatorTiers,
 		storageSlots = Config.Economy.tunables.storageSlots,
 		index = data.index,
 		indexFinishes = data.indexFinishes,
@@ -58,7 +78,7 @@ local function snapshot(player: Player): { [string]: any }?
 		uncollected = data.uncollected,
 		rate = EconomyService.rate(player),
 		unlockedBiome = data.unlockedBiome,
-		incubatorSlots = Config.Economy.tunables.incubatorSlots,
+		incubatorSlots = #data.incubatorTiers,
 		incubators = incubators,
 		creatures = creatures,
 	}

@@ -34,11 +34,31 @@ doing so.
 ## 3. Core loop
 
 ```
-buy egg from conveyor → place in incubator → hatch (real-time timer)
-    → creature on a pedestal earns cash/sec → grows Baby → Juvenile → Adult (earns more)
-    → spend cash on better eggs, pedestals, base upgrades → rebirth to unlock the next biome
-    ↘ steal other players' creatures / defend your own ↙
+buy egg from the belt → carry it home → place it in an incubator (optional Luck Wheel spin)
+    → hatch reveal → creature sits on a pedestal earning cash/sec → grows Baby → Juvenile → Adult
+    → XP from all of it raises your Hatcher Level → new biome eggs unlock
+    → spend cash on more/better incubators, base upgrades, base themes, pricier eggs
+    ↘ steal other players' creatures / defend your own ↙        (rebirth = prestige)
 ```
+
+### 3.1 Eggs and incubators
+
+- **The belt:** eggs roll out of the hatchery tunnel, ride one lap of the conveyor and roll back in. Eggs never vanish in the open, and the belt can't clog. They can't be bought inside the tunnel.
+- **Carrying:** buying puts the egg over your head. You carry it home and place it in a free incubator (E). You can only carry one egg at a time.
+- **Incubators:** you start with 1 bay and can buy up to 6 ($0 / 2K / 30K / 400K / 6M / 90M). Each bay upgrades through tiers:
+
+| Tier | Speed | Takes eggs from | Upgrade cost |
+|---|---|---|---|
+| Basic | ×1 | Mossvale, Coral Coast | — |
+| Heated | ×1.5 | + Magma Rift | 25K |
+| Thermal | ×2 | + Frost Shelf | 500K |
+| Arcane | ×3 | + Storm Peaks | 8M |
+| Cosmic | ×4 | + Moonfall | 150M |
+
+  Upgrading while an egg is inside speeds up the rest of its time. Junk Eggs fit in any tier.
+- **Rarity tease:** each incubator shows a countdown and a progress bar. From 40% progress the bar, the timer and a glow take on the egg's rarity color, fading in from white; the egg wobbles harder and harder over the last 15%.
+- **Luck Wheel:** spend a spin on an incubating egg (Q) and the wheel lands on a luck multiplier (×1.5 34%, ×2 28%, ×3 20%, ×5 11%, ×10 5%, ×25 jackpot 2%). The egg is re-rolled with Epic+ weights multiplied by that luck, and the better result is kept (it can never get worse). One spin per egg. Spins come from playtime (1 per 20 minutes, up to 10 banked), achievements and rebirths; later they can also be sold as a Robux product.
+- **Hatch reveal:** a case-opening reel of creature cards from that egg's odds slows down and lands on what hatched, with rare cards teased right beside it. Then a big rarity-colored reveal shows the creature spinning; Mythic and rarer flash the whole screen, and the server announces it once the reveal ends.
 
 ## 4. Creatures
 
@@ -60,7 +80,9 @@ buy egg from conveyor → place in incubator → hatch (real-time timer)
 
 ### 4.2 Movement
 
-Creatures move with a **slow bounding run with a hop**: front paws reach together, back legs push off together, there's a short airborne arc, and a squash on landing.
+- **On a pedestal, creatures sit:** back legs folded, rear lowered, breathing, looking around and swishing their tail. They don't hop in place.
+- **Walks:** you can take one creature for a walk (R, or Walk in the Creatures menu). It follows you with the bounding run while you move and sits beside you when you stop. A walked creature can't be stolen and grows 2× faster; it still earns from its pedestal.
+- **The run itself is a slow bound with a hop:** front paws reach together, back legs push off together, there's a short airborne arc, and a squash on landing.
 
 - **By stage:** babies bounce too much and occasionally face-plant; adults land with heavy, powerful bounds, a thud, and a puff of their element (dust, embers, frost, sparks).
 - **By body shape:** hoppers hop, heavy creatures stomp, and low-slung creatures scurry.
@@ -103,6 +125,15 @@ Creatures move with a **slow bounding run with a hop**: front paws reach togethe
 
 All of this is checked on the server: grab range, carry state, drop-off at the thief's own base, and the lock state.
 
+### 6.1 Base upgrades and themes
+
+- **Base level 1 to 5:** upgrade at the gold-gem station by the lock (or in the Base menu) for 7.5K, 90K, 1.2M and 15M. Each level:
+  - widens and deepens the plot (44×44 up to 68×80 studs), so thieves have a longer run out;
+  - adds a row of 5 pedestals (10 up to 30);
+  - adds 15 s to the laser lock (+60 s at max).
+- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 20K, Magma 400K, Frost 6M, Storm 90M, Moonfall 1.5B). Owned themes can be switched freely.
+- **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.
+
 ## 7. Economy (first-pass draft; tune in playtests)
 
 | Rarity | Base cash/sec | Hatch time | Growth factor |
@@ -138,6 +169,21 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 - Every ultra-rare hatch is announced server-wide in its tier color.
 - **Incubator tease:** since the species is rolled at purchase, Epic+ eggs glow in their rarity color, brighter as they near hatching, and pulse in the last 10%. An ultra-rare incubator is visible across the base, which is both hype and a clip moment.
 - A Secret in the $150 starter egg is deliberate: any new player can hit the 1-in-50,000 and it spreads by word of mouth.
+
+### 7.2 Progression: Hatcher Level
+
+- **XP sources:** each hatch gives 12 × the biome's order (Junk counts as 3); +60 for a new species, +10 when a creature grows to Juvenile and +40 at Adult, +45 per steal, +150 × level for base upgrades, +60 per incubator bought and +40 per incubator upgrade.
+- **Level curve:** it takes 60 + 40 × level XP to reach the next level. That's 640 XP for level 5, 3,300 for level 12, 8,740 for 20, 19,140 for 30 and 33,540 for 40.
+- **Biome eggs unlock:** Mossvale at the start, Coral Coast at level 5, Magma Rift at level 12 + base level 2, Frost Shelf at 20 + base 3, Storm Peaks at 30 + base 4, and Moonfall at 40 + base 5. You also need an incubator tier that fits the egg.
+- **Achievements:** 18 goals (hatch counts, adults raised, steals, discoveries, rare finishes, upgrades, incubators, walking, spins, lifetime cash), each paying XP and Luck Wheel spins. Listed in the Progress menu.
+- **Rebirth** is now pure prestige: it resets cash, gives +10% earnings for good and 3 spins, and keeps everything else. It no longer unlocks biomes.
+
+### 7.3 World
+
+- **The island:** a round grass island with a sandy beach and the sea around it, and a cobblestone plaza under the hub and conveyor. Stone paths run from each plot to the plaza.
+- **Hub:** the hatchery tunnel over the belt, with 12 egg-lantern lamp posts around the loop.
+- **Biome zones:** one in each gap between plots (Mossvale, Coral Coast, Magma Rift, Frost Shelf, Storm Peaks, Moonfall). Each has a themed ground patch, a matching terrain hill, a name sign and biome decor, so every biome is visible from the start as something to work toward.
+- **Lighting:** atmosphere, bloom, sun rays, clouds and a slight color grade. During moon events the whole world is tinted in the moon's color, and the banner says what the event does.
 
 ## 8. Moon events (server-wide, hourly)
 

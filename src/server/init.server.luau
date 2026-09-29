@@ -60,6 +60,8 @@ local EconomyService = require(Services.EconomyService)
 local EggService = require(Services.EggService)
 local StealService = require(Services.StealService)
 local InventoryService = require(Services.InventoryService)
+local ProgressionService = require(Services.ProgressionService)
+local BaseService = require(Services.BaseService)
 local RebirthService = require(Services.RebirthService)
 local StateService = require(Services.StateService)
 local DataService = require(Services.DataService)
@@ -67,6 +69,8 @@ local DataService = require(Services.DataService)
 WorldService.start() -- builds plots before anyone is assigned one
 EventService.start()
 PlotService.start() -- loaded: assign plot + teleport
+ProgressionService.start() -- loaded: level → which biomes are unlocked
+BaseService.start() -- loaded: plot size + theme for the owner's base level
 CreatureService.start() -- loaded: offline growth, spawn models on pedestals
 HatchService.start() -- loaded: show incubator state (offline hatches happen on first tick)
 EconomyService.start() -- loaded: leaderstats + offline earnings

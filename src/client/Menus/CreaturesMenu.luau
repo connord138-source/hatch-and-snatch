@@ -1,6 +1,6 @@
 --!strict
 -- Creatures menu: everything you own, where it is, what it earns and what it sells
--- for. Place/Store, Nursery and Sell send requests; the server checks and applies them.
+-- for. Walk, Place/Store, Nursery and Sell send requests; the server checks and applies them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -15,6 +15,7 @@ type Row = {
 	strip: Frame,
 	name: TextLabel,
 	details: TextLabel,
+	walk: TextButton,
 	move: TextButton,
 	nursery: TextButton,
 	sell: TextButton,
@@ -33,6 +34,7 @@ local list: ScrollingFrame
 local emptyLabel: TextLabel
 local rows: { [string]: Row } = {}
 local latest: { [string]: Creature } = {} -- uid -> newest snapshot entry
+local walkingUid: string? = nil
 
 local CreaturesMenu = {}
 
@@ -94,6 +96,12 @@ local function updateRow(row: Row, creature: Creature)
 	row.details.TextColor3 = if creature.carried then Ui.colors.warn else Ui.colors.muted
 
 	local free = not creature.carried
+	local isWalking = walkingUid == creature.uid
+	row.walk.Text = if isWalking then "Home" else "Walk"
+	setButton(row.walk, free, if isWalking then Ui.colors.bad else Color3.fromRGB(150, 110, 40))
+	if isWalking then
+		row.details.Text = `On a walk (grows faster) · {row.details.Text}`
+	end
 	row.move.Text = if creature.slot == nil then "Place" else "Store"
 	setButton(row.move, free, Ui.colors.button)
 	row.nursery.Visible = creature.slot ~= nil
@@ -115,7 +123,7 @@ local function makeRow(uid: string): Row
 	strip.Parent = frame
 	local name = Ui.label(frame, {
 		Position = UDim2.fromOffset(20, 7),
-		Size = UDim2.new(1, -310, 0, 22),
+		Size = UDim2.new(1, -380, 0, 22),
 		TextScaled = false,
 		TextSize = 18,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -123,7 +131,7 @@ local function makeRow(uid: string): Row
 	})
 	local details = Ui.label(frame, {
 		Position = UDim2.fromOffset(20, 31),
-		Size = UDim2.new(1, -310, 0, 18),
+		Size = UDim2.new(1, -380, 0, 18),
 		TextScaled = false,
 		TextSize = 13,
 		TextStrokeTransparency = 1,
@@ -135,6 +143,7 @@ local function makeRow(uid: string): Row
 		strip = strip,
 		name = name,
 		details = details,
+		walk = Ui.button(frame, { Position = UDim2.new(1, -358, 0, 11), Size = UDim2.fromOffset(64, 36) }),
 		move = Ui.button(frame, { Position = UDim2.new(1, -288, 0, 11), Size = UDim2.fromOffset(78, 36) }),
 		nursery = Ui.button(frame, { Position = UDim2.new(1, -204, 0, 11), Size = UDim2.fromOffset(96, 36) }),
 		sell = Ui.button(frame, { Position = UDim2.new(1, -102, 0, 11), Size = UDim2.fromOffset(94, 36) }),
@@ -155,6 +164,9 @@ local function makeRow(uid: string): Row
 	end)
 	row.nursery.Activated:Connect(function()
 		request("nursery")
+	end)
+	row.walk.Activated:Connect(function()
+		request("walk")
 	end)
 	row.sell.Activated:Connect(function()
 		local creature = latest[uid]
@@ -205,6 +217,7 @@ function CreaturesMenu.build(content: Frame)
 end
 
 function CreaturesMenu.refresh(state: { [string]: any })
+	walkingUid = state.walking
 	-- Pedestals first (in slot order), then storage with the best earners on top
 	local sorted: { Creature } = table.clone(state.creatures)
 	table.sort(sorted, function(a, b)

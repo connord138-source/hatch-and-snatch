@@ -70,6 +70,9 @@ local conveyor = {
 	speed = 7, -- studs per second along the loop
 	radius = 46,
 	height = 3.4,
+	-- Eggs roll out of the hatchery tunnel, ride one lap and roll back into it
+	tunnelCenterDegrees = 30, -- between two plots
+	tunnelHalfDegrees = 14,
 }
 
 local function price(biomeId: string): number
@@ -77,7 +80,8 @@ local function price(biomeId: string): number
 end
 
 -- Normalized odds for one egg. `eventActive` unlocks event-only species (Celestial).
-local function speciesOdds(biomeId: string, eventActive: boolean): { SpeciesOdds }
+-- `luck` (default 1) multiplies the weight of Epic and rarer species (Luck Wheel).
+local function speciesOdds(biomeId: string, eventActive: boolean, luck: number?): { SpeciesOdds }
 	local weighted: { SpeciesOdds } = {}
 	local total = 0
 	for _, creature in Creatures do
@@ -90,6 +94,9 @@ local function speciesOdds(biomeId: string, eventActive: boolean): { SpeciesOdds
 			else
 				local override = biomeRarityWeights[biomeId]
 				weight = (override and override[creature.rarity]) or rarityWeights[creature.rarity]
+				if luck and Rarities[creature.rarity].order >= 4 then
+					weight *= luck
+				end
 			end
 			if weight > 0 then
 				table.insert(weighted, { id = creature.id, chance = weight })
@@ -103,8 +110,8 @@ local function speciesOdds(biomeId: string, eventActive: boolean): { SpeciesOdds
 	return weighted
 end
 
-local function rollSpecies(biomeId: string, rng: Random, eventActive: boolean): string
-	local odds = speciesOdds(biomeId, eventActive)
+local function rollSpecies(biomeId: string, rng: Random, eventActive: boolean, luck: number?): string
+	local odds = speciesOdds(biomeId, eventActive, luck)
 	local roll = rng:NextNumber()
 	local cumulative = 0
 	for _, entry in odds do

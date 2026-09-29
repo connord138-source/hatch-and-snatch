@@ -1,16 +1,16 @@
 --!strict
--- Menu buttons (left side, under the incubators) and the window they open, one
+-- Menu buttons (a bar along the bottom of the screen) and the window they open, one
 -- menu at a time. Each menu lives in Menus/ and only renders ClientState; its
 -- buttons send requests that the server validates.
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Config = require(ReplicatedStorage.Shared.Config)
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
 local CreaturesMenu = require(script.Parent.Parent.Menus.CreaturesMenu)
 local IndexMenu = require(script.Parent.Parent.Menus.IndexMenu)
 local RebirthMenu = require(script.Parent.Parent.Menus.RebirthMenu)
+local ProgressMenu = require(script.Parent.Parent.Menus.ProgressMenu)
+local BaseMenu = require(script.Parent.Parent.Menus.BaseMenu)
 
 type Menu = {
 	build: (content: Frame) -> (),
@@ -19,12 +19,13 @@ type Menu = {
 
 local MENUS: { { id: string, title: string, menu: Menu } } = {
 	{ id = "Creatures", title = "Your Creatures", menu = CreaturesMenu },
+	{ id = "Progress", title = "Hatcher Level & Achievements", menu = ProgressMenu },
+	{ id = "Base", title = "Your Base", menu = BaseMenu },
 	{ id = "Index", title = "Collection Index", menu = IndexMenu },
 	{ id = "Rebirth", title = "Rebirth", menu = RebirthMenu },
 }
 
--- Just under HudController's incubator panel (top 158, 40 + 30 per slot tall)
-local BUTTONS_TOP = 158 + 40 + Config.Economy.tunables.incubatorSlots * 30 + 8
+local BUTTON_W, BUTTON_GAP = 96, 8
 
 local MenuController = {}
 
@@ -95,9 +96,11 @@ function MenuController.start()
 		entry.menu.build(content)
 		contents[entry.id] = content
 
+		local barWidth = #MENUS * BUTTON_W + (#MENUS - 1) * BUTTON_GAP
 		local button = Ui.button(gui, {
-			Position = UDim2.fromOffset(12 + (i - 1) * 85, BUTTONS_TOP),
-			Size = UDim2.fromOffset(80, 34),
+			AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.new(0.5, -barWidth / 2 + (i - 1) * (BUTTON_W + BUTTON_GAP), 1, -12),
+			Size = UDim2.fromOffset(BUTTON_W, 38),
 			Text = entry.id,
 		})
 		button.Activated:Connect(function()

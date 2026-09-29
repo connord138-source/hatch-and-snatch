@@ -15,6 +15,7 @@ local EconomyService = require(script.Parent.EconomyService)
 local EventService = require(script.Parent.EventService)
 local HatchService = require(script.Parent.HatchService)
 local PlotService = require(script.Parent.PlotService)
+local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
 
 type Egg = {
@@ -27,6 +28,10 @@ type Egg = {
 }
 
 local conveyor = Config.Eggs.conveyor
+-- Eggs start in the middle of the hatchery tunnel, ride one lap and are removed
+-- back in the middle of it, so none ever vanishes in view
+local TUNNEL_CENTER = math.rad(conveyor.tunnelCenterDegrees)
+local TUNNEL_HALF = math.rad(conveyor.tunnelHalfDegrees)
 local EGG_HEIGHT = 3.4 -- studs, for imported egg meshes
 local rng = Random.new()
 local eggs: { Egg } = {}
@@ -65,12 +70,28 @@ local function tryBuy(egg: Egg, player: Player)
 		return
 	end
 	local biome = Config.Biomes[egg.biome]
-	if biome.order > data.unlockedBiome then
-		Net.notify(player, `Rebirth to unlock {biome.displayName} eggs.`, "bad")
+	if not ProgressionService.canBuyBiome(data, egg.biome) then
+		local need = Config.Progression.biomeRequirements[egg.biome]
+		local text = if need and need.baseLevel > data.baseLevel
+			then `Hatcher Level {need.level} and base level {need.baseLevel}`
+			else `Hatcher Level {if need then need.level else 1}`
+		Net.notify(player, `{biome.displayName} eggs unlock at {text}.`, "bad")
 		return
 	end
-	if not HatchService.hasFreeSlot(player) then
-		Net.notify(player, "Your incubators are full — wait for an egg to hatch.", "bad")
+	if data.heldEgg then
+		Net.notify(player, "You're already carrying an egg — put it in an incubator first.", "bad")
+		return
+	end
+	if not HatchService.hasTierFor(data, egg.biome) then
+		Net.notify(
+			player,
+			`{biome.displayName} eggs need a {HatchService.tierNameFor(egg.biome)} incubator. Upgrade one at your base (R).`,
+			"bad"
+		)
+		return
+	end
+	if not HatchService.freeIncubatorFor(data, egg.biome) then
+		Net.notify(player, "Your incubators are busy — wait for a hatch or buy another incubator.", "bad")
 		return
 	end
 	if not CreatureService.hasRoom(data) then
@@ -83,8 +104,8 @@ local function tryBuy(egg: Egg, player: Player)
 	end
 	egg.sold = true
 	egg.part:Destroy()
-	HatchService.incubate(player, egg.biome)
-	Net.notify(player, `Bought a {biome.displayName} egg! It's incubating at your base.`, "good")
+	HatchService.giveEgg(player, egg.biome)
+	Net.notify(player, `Got a {biome.displayName} egg! Carry it home and place it in an incubator.`, "good")
 end
 
 local function spawnEgg()
@@ -132,7 +153,7 @@ local function spawnEgg()
 		part = part,
 		biome = biomeId,
 		price = price,
-		angle = 0,
+		angle = TUNNEL_CENTER,
 		travelled = 0,
 		sold = false,
 	}
@@ -159,6 +180,12 @@ local function step(dt: number)
 			egg.part:Destroy()
 			table.remove(eggs, i)
 			continue
+		end
+		-- No buying while it's inside the tunnel
+		local fromCenter = math.abs(((egg.angle - TUNNEL_CENTER + math.pi) % (2 * math.pi)) - math.pi)
+		local prompt = egg.part:FindFirstChildOfClass("ProximityPrompt")
+		if prompt then
+			prompt.Enabled = fromCenter > TUNNEL_HALF
 		end
 		local bob = math.sin(egg.angle * 6) * 0.15
 		local position = center

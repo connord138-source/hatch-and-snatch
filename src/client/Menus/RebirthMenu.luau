@@ -1,5 +1,5 @@
 --!strict
--- Rebirth menu: what the next rebirth costs, what it unlocks and what it resets.
+-- Rebirth menu (prestige): what the next rebirth costs, what it gives and what it resets.
 -- The button needs a second press to confirm; the server re-checks the cost.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -25,15 +25,6 @@ local function percent(rebirths: number): number
 	return math.round(rebirths * PER_REBIRTH * 100)
 end
 
-local function biomeName(order: number): string?
-	for _, biome in Config.Biomes do
-		if biome.order == order then
-			return biome.displayName
-		end
-	end
-	return nil
-end
-
 local function line(parent: Instance, y: number, size: number, props: { [string]: any }): TextLabel
 	props.Position = UDim2.fromOffset(0, y)
 	props.Size = props.Size or UDim2.new(1, 0, 0, size + 8)
@@ -52,7 +43,7 @@ function RebirthMenu.build(content: Frame)
 		Size = UDim2.new(1, 0, 0, 44),
 		TextColor3 = Ui.colors.muted,
 		TextStrokeTransparency = 1,
-		Text = "Rebirthing resets your cash and uncollected cash.\nYou keep every creature, egg and index entry.",
+		Text = "Rebirthing resets your cash and uncollected cash.\nYou keep every creature, egg, level, upgrade and index entry.",
 	})
 
 	button = Ui.button(content, {
@@ -92,10 +83,7 @@ function RebirthMenu.refresh(state: { [string]: any })
 	status.Text = `Rebirths so far: {rebirths} (earnings +{percent(rebirths)}%)`
 	costLabel.Text = `Next rebirth costs {Format.cash(cost)}`
 	costLabel.TextColor3 = if affordable then Ui.colors.cash else Ui.colors.warn
-	local nextBiome = biomeName(state.unlockedBiome + 1)
-	unlock.Text = if nextBiome
-		then `Unlocks {nextBiome} eggs on the conveyor`
-		else "Every biome is unlocked. Rebirth for the earnings bonus!"
+	unlock.Text = "Also gives 3 Luck Wheel spins. Biomes unlock by Hatcher Level (Progress menu)."
 	bonus.Text = `Earnings bonus: +{percent(rebirths)}% now, +{percent(rebirths + 1)}% after`
 
 	if os.clock() >= armedUntil then

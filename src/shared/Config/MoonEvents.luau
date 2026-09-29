@@ -13,6 +13,7 @@ local MoonEvents: { Types.MoonEvent } = {
 		lockDurationMultiplier = 1,
 		stealCashBonus = 0,
 		spawnsJunkEgg = false,
+		description = "5× rare finish chance + Blood Moon finish · Celestials can hatch",
 	},
 	{
 		id = "GoldMoon",
@@ -24,6 +25,7 @@ local MoonEvents: { Types.MoonEvent } = {
 		lockDurationMultiplier = 1,
 		stealCashBonus = 0,
 		spawnsJunkEgg = false,
+		description = "2× cash from every creature · Celestials can hatch",
 	},
 	{
 		id = "VoidMoon",
@@ -35,6 +37,7 @@ local MoonEvents: { Types.MoonEvent } = {
 		lockDurationMultiplier = 0.5,
 		stealCashBonus = 0.25,
 		spawnsJunkEgg = false,
+		description = "Base locks last half as long · thieves grab bonus cash · Celestials can hatch",
 	},
 	{
 		id = "PrismMoon",
@@ -46,6 +49,7 @@ local MoonEvents: { Types.MoonEvent } = {
 		lockDurationMultiplier = 1,
 		stealCashBonus = 0,
 		spawnsJunkEgg = true,
+		description = "Junk Eggs on the belt · 2× rare finish chance · Celestials can hatch",
 	},
 }
 
