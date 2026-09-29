@@ -1,7 +1,17 @@
 --!strict
 -- Shared type definitions for all config tables.
 
-export type RarityId = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic" | "Junk"
+export type RarityId =
+	"Common"
+	| "Uncommon"
+	| "Rare"
+	| "Epic"
+	| "Legendary"
+	| "Mythic"
+	| "Celestial"
+	| "Cosmic"
+	| "Secret"
+	| "Junk"
 
 export type BiomeId = "Mossvale" | "CoralCoast" | "MagmaRift" | "FrostShelf" | "StormPeaks" | "Moonfall" | "Junk"
 
@@ -27,6 +37,7 @@ export type Rarity = {
 	growthFactor: number,
 	eventOnly: boolean,
 	color: Color3,
+	announce: boolean, -- server-wide announcement on hatch
 }
 
 export type Biome = {

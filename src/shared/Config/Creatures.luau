@@ -1,5 +1,5 @@
 --!strict
--- Launch roster (30). Visual reference + concept images: docs/ROSTER.md.
+-- Roster: 30 launch species + 11 ultra-rares (Mythic and above). Visual reference + concept images: docs/ROSTER.md.
 -- Adding a creature = add a row here + its model under ReplicatedStorage.Creatures/<id>.
 local Types = require(script.Parent.Types)
 
@@ -45,6 +45,26 @@ local Creatures: { Types.Creature } = {
 		gag = "Admires its own reflection",
 		conceptJob = "64226468",
 	},
+	{
+		id = "Sylvanox",
+		displayName = "Sylvanox",
+		biome = "Mossvale",
+		rarity = "Mythic",
+		bodyPlan = "heavy-tank",
+		element = "living oak",
+		gag = "Birds nest in its antler-trees and scold thieves",
+		conceptJob = "5b7089c9",
+	},
+	{
+		id = "Capybaron",
+		displayName = "Capybaron",
+		biome = "Mossvale",
+		rarity = "Secret",
+		bodyPlan = "small-round",
+		element = "solid gold + crown",
+		gag = "Unbothered. Absolutely nothing fazes it",
+		conceptJob = "e1838f3f",
+	},
 
 	-- Coral Coast
 	{
@@ -86,6 +106,16 @@ local Creatures: { Types.Creature } = {
 		element = "coral/bioluminescence",
 		gag = "Smiles at everything, including thieves",
 		conceptJob = "c9ac86c9",
+	},
+	{
+		id = "Lurehound",
+		displayName = "Lurehound",
+		biome = "CoralCoast",
+		rarity = "Mythic",
+		bodyPlan = "low-long",
+		element = "abyssal deep sea",
+		gag = "Its lure light hypnotizes nearby creatures",
+		conceptJob = "7952fe31",
 	},
 
 	-- Magma Rift
@@ -129,6 +159,26 @@ local Creatures: { Types.Creature } = {
 		gag = "Horns erupt when startled",
 		conceptJob = "7bab5434",
 	},
+	{
+		id = "Pyrodrake",
+		displayName = "Pyrodrake",
+		biome = "MagmaRift",
+		rarity = "Mythic",
+		bodyPlan = "low-long",
+		element = "obsidian + lava",
+		gag = "Sneezes sparks, then looks embarrassed",
+		conceptJob = "cd493bcd",
+	},
+	{
+		id = "Solarion",
+		displayName = "Solarion",
+		biome = "MagmaRift",
+		rarity = "Celestial",
+		bodyPlan = "lean-predator",
+		element = "sun corona",
+		gag = "Its mane is a small, polite sun",
+		conceptJob = "8f1a698f",
+	},
 
 	-- Frost Shelf
 	{
@@ -170,6 +220,16 @@ local Creatures: { Types.Creature } = {
 		element = "aurora",
 		gag = "Coat changes color with its mood",
 		conceptJob = "1eae36bb",
+	},
+	{
+		id = "Glacierion",
+		displayName = "Glacierion",
+		biome = "FrostShelf",
+		rarity = "Mythic",
+		bodyPlan = "lean-predator",
+		element = "glacier ice + aurora",
+		gag = "Icicle mane chimes when it shakes",
+		conceptJob = "79b6adcd",
 	},
 
 	-- Storm Peaks
@@ -213,6 +273,26 @@ local Creatures: { Types.Creature } = {
 		gag = "Plates spark when it's happy",
 		conceptJob = "7050a07a",
 	},
+	{
+		id = "Stormgriff",
+		displayName = "Stormgriff",
+		biome = "StormPeaks",
+		rarity = "Mythic",
+		bodyPlan = "tall-leggy",
+		element = "storm cloud + lightning",
+		gag = "Its feathers rain on your base",
+		conceptJob = "972abbb7",
+	},
+	{
+		id = "Halosaur",
+		displayName = "Halosaur",
+		biome = "StormPeaks",
+		rarity = "Celestial",
+		bodyPlan = "heavy-tank",
+		element = "white marble + gold halo",
+		gag = "The halo slips over one eye",
+		conceptJob = "cf9c787c",
+	},
 
 	-- Moonfall (endgame)
 	{
@@ -252,8 +332,28 @@ local Creatures: { Types.Creature } = {
 		rarity = "Mythic",
 		bodyPlan = "heavy-tank",
 		element = "moon eggshell",
-		gag = "Moon-event only",
+		gag = "Glows brighter during moon events",
 		conceptJob = "8bb5fa6f",
+	},
+	{
+		id = "Quasarfox",
+		displayName = "Quasarfox",
+		biome = "Moonfall",
+		rarity = "Cosmic",
+		bodyPlan = "lean-predator",
+		element = "plasma jets",
+		gag = "Twin plasma tails, chases them anyway",
+		conceptJob = "bb596547",
+	},
+	{
+		id = "Singularis",
+		displayName = "Singularis",
+		biome = "Moonfall",
+		rarity = "Cosmic",
+		bodyPlan = "shelled",
+		element = "black hole",
+		gag = "Small objects slowly orbit its shell",
+		conceptJob = "3cdb361c",
 	},
 
 	-- Junk Egg (event-only)
@@ -316,6 +416,16 @@ local Creatures: { Types.Creature } = {
 		element = "boombox",
 		gag = "Bass shakes nearby creatures",
 		conceptJob = "6bd7dff7",
+	},
+	{
+		id = "Nullcat",
+		displayName = "Nullcat",
+		biome = "Junk",
+		rarity = "Secret",
+		bodyPlan = "lean-predator",
+		element = "missing texture glitch",
+		gag = "Clips through the floor, then acts normal",
+		conceptJob = "6bbdcb76",
 	},
 }
 

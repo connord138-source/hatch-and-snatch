@@ -83,6 +83,24 @@ Image base URL: `https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3
 | Six biome eggs | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_195311_1488684e-a706-4222-9fc3-fe1dc318bde4.png) `1488684e` |
 | Finish sheet (Normal → Prismatic); the owner loved this | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_200158_556fc839-e362-4411-a245-965b54885316.png) `556fc839` |
 
+## Ultra-rares (draft concepts, low quality, awaiting owner approval)
+
+Odds and rules: docs/GDD.md §7.1. After approval, redo each at `quality: high`, then make a clean model sheet and 3D.
+
+| Creature | Tier | Biome | Body plan | Design | Gag | Concept |
+|---|---|---|---|---|---|---|
+| Sylvanox | Mythic | Mossvale | heavy-tank | Bark-hided ox whose antlers are living trees | Birds nest in the antlers and scold thieves | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_5b7089c9-d3ee-4b21-bd6b-eabb8fc50464.png) `5b7089c9` |
+| Lurehound | Mythic | Coral Coast | low-long | Abyssal deep-sea hound with an anglerfish lure | Its lure hypnotizes nearby creatures | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_7952fe31-371b-49e7-844b-71cd3768eb05.png) `7952fe31` |
+| Pyrodrake | Mythic | Magma Rift | low-long | Wingless obsidian drake with lava seams | Sneezes sparks, then looks embarrassed | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_cd493bcd-5bc8-46a1-b347-53331f508c60.png) `cd493bcd` |
+| Glacierion | Mythic | Frost Shelf | lean-predator | Glacier-ice lion with an icicle mane and aurora glow | The mane chimes when it shakes | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_79b6adcd-f5ac-4fe8-a229-a3c78f556a7c.png) `79b6adcd` |
+| Stormgriff | Mythic | Storm Peaks | tall-leggy | Griffin with storm-cloud wings | Rains on your base | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_972abbb7-0bed-4d70-b0fd-204277ad8794.png) `972abbb7` |
+| Solarion | Celestial | Magma Rift (events) | lean-predator | White-gold cat with a sun-corona mane | Its mane is a small, polite sun | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_8f1a698f-7079-4d69-a4f8-dd7cd5160f61.png) `8f1a698f` |
+| Halosaur | Celestial | Storm Peaks (events) | heavy-tank | Marble-and-gold armored dino with a halo | The halo slips over one eye | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030655_cf9c787c-139e-408b-bcea-182a816a5cf6.png) `cf9c787c` |
+| Quasarfox | Cosmic | Moonfall | lean-predator | Starfield fox with twin plasma-jet tails | Chases its own tails | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_bb596547-de6d-424d-afc4-747deaf265b8.png) `bb596547` |
+| Singularis | Cosmic | Moonfall | shelled | Tortoise with a black-hole shell and an accretion ring | Rocks and a lost sneaker orbit it | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_3cdb361c-4de5-400d-b1b4-eff13ecc01af.png) `3cdb361c` |
+| Capybaron | Secret | Mossvale | small-round | Solid-gold capybara with a crown and cape | Absolutely nothing fazes it | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_e1838f3f-aa84-41de-9020-28e623b8f896.png) `e1838f3f` |
+| Nullcat | Secret | Junk Egg | lean-predator | House cat with missing-texture glitches | Clips through the floor, then acts normal | [img](https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_6bbdcb76-9255-49d0-a1ca-6ca0696080a2.png) `6bbdcb76` |
+
 ## Cut or held back (don't reuse without asking)
 
 - **Rejected:** Kitefin, Puffleece and Crateroo (too cartoon), Cometoad, Galebat, Cindermander, and the lean-cat versions of Rimewolf, Staticat, Tempestiger, Leviathound and Voidfang.

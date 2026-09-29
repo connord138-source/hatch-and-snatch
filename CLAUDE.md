@@ -44,7 +44,9 @@ unrelated to the Polymarket worker.
 - **Rarity layers:** species rarity, then genetic mutations at hatch, then **finishes** (Gold → Chrome → Diamond → Molten → Galaxy → Prismatic, plus event-only Blood Moon), then color palettes.
   - The owner loved the finish-sheet look (the toaster tortoise in 7 finishes).
 - **Junk Egg:** rare and event-only, containing comic household-object creatures such as the Toaster Tortoise and Fridge Hedgehog.
-- **Roster:** 30 creatures are final. See `docs/ROSTER.md` and `src/shared/Config/Creatures.luau`.
+- **Roster:** 30 launch creatures are final. See `docs/ROSTER.md` and `src/shared/Config/Creatures.luau`.
+- **Ultra-rares above Legendary** (owner asked for them): Mythic (1 per biome, about 1/1,000), Celestial (moon events only), Cosmic (Moonfall only, about 1/10,000) and Secret (about 1/50,000, ??? in the Index). That adds 11 species; the concepts are low-quality drafts awaiting approval. See docs/GDD.md §7.1.
+- **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 
 ## Art direction lessons (learned the hard way)
 
@@ -66,7 +68,8 @@ How to prompt for concepts:
 ## 3D assets
 
 - Only the models in `docs/ASSETS.md` exist in 3D. Everything else is concept art until converted.
-- Import them in Studio into `ReplicatedStorage.CreatureModels.<SpeciesId>` and `ReplicatedStorage.EggModels.Egg`. The code handles scale, placement, tint and finishes.
+- Import them in Studio into `ReplicatedStorage.CreatureModels.<SpeciesId>` and `ReplicatedStorage.EggModels.<BiomeId>` (or `Egg`). The code handles scale, placement, tint and finishes.
+- **Rigging:** `tools/blender/rig_all.py` auto-rigs GLBs to FBX headless, and CreatureAnimator drives the bone names procedurally. The script was verified in this sandbox using `pip install bpy` (Blender 5.0 as a module) on a test quadruped.
 
 ## Tooling notes
 

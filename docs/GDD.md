@@ -43,7 +43,7 @@ buy egg from conveyor → place in incubator → hatch (real-time timer)
 ## 4. Creatures
 
 - **Roster:** 30 at launch (`docs/ROSTER.md`): 5 biomes × 4, plus 4 in Moonfall and 6 in the Junk Egg.
-- **Rarity tiers:** Common, Uncommon, Rare, Epic, Legendary, Mythic. Junk is its own event-only tier.
+- **Rarity tiers:** Common, Uncommon, Rare, Epic, Legendary, then the ultra-rares Mythic, Celestial, Cosmic and Secret (§7.1). Junk is its own event-only tier.
 - **Tone by rarity:** cute or funny at the low end, majestic at the top. The most valuable creatures should look the most worth stealing.
 - **Visual value:** rarer creatures glow more, so a player can read value from across the map before committing to a steal.
 
@@ -86,7 +86,7 @@ Creatures move with a **slow bounding run with a hop**: front paws reach togethe
 
 4. **Color palettes:** unlockable recolors of each species' color regions. Palettes are a collection track and something players can buy.
 
-**Collection size:** 30 species × 3 stages × 8 finishes = 720 versions before mutations and palettes are counted.
+**Collection size:** 41 species × 3 stages × 8 finishes = 984 versions before mutations and palettes are counted.
 
 ## 6. Stealing
 
@@ -113,6 +113,9 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 | Epic | 60 | 15 min | ×2 |
 | Legendary | 250 | 45 min | ×3 |
 | Mythic | 1500 | 3 h | ×4 |
+| Celestial | 6000 | 4 h | ×5 |
+| Cosmic | 20000 | 6 h | ×6 |
+| Secret | 50000 | 8 h | ×8 |
 | Junk | 100 | 20 min | ×1.5 |
 
 - **Growth times:** Baby → Juvenile takes 30 min × the growth factor; Juvenile → Adult takes 3 h × the growth factor.
@@ -121,6 +124,20 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 - **Resulting payback** for a Common baby: about 2 min in Mossvale, 4 min in Coral, 8 min in Magma, 17 min in Frost, 37 min in Storm. Expected value per egg pays back faster because of the rare rolls, and growing to Adult (×15) is the big payoff. All of this is a first pass to tune in playtests.
 - **Rebirth** resets cash and pedestals, keeps creatures, unlocks the next biome and gives +10% earnings for each rebirth.
 - **Offline earnings** are capped at 8 hours; the cap can be raised by a game pass.
+
+### 7.1 Ultra-rares (above Legendary)
+
+| Tier | Where it rolls | Odds per egg | Species |
+|---|---|---|---|
+| Mythic | Any biome egg, any time | about 1 in 1,000 | Sylvanox (Mossvale), Lurehound (Coral), Pyrodrake (Magma), Glacierion (Frost), Stormgriff (Storm), Lunaris (Moonfall) |
+| Celestial | Magma and Storm eggs, **only during a moon event** | about 1 in 3,000 | Solarion (Magma), Halosaur (Storm) |
+| Cosmic | Moonfall eggs only | about 1 in 10,000 each | Quasarfox, Singularis |
+| Secret | Hidden in ordinary eggs; shows as ??? in the Index | about 1 in 50,000 | Capybaron (Mossvale, the $150 starter egg), Nullcat (Junk Egg) |
+
+- Moonfall eggs start at Rare, so their Mythic/Cosmic weights are overridden (`Eggs.biomeRarityWeights`) to keep the odds in line with other biomes.
+- Every ultra-rare hatch is announced server-wide in its tier color.
+- **Incubator tease:** since the species is rolled at purchase, Epic+ eggs glow in their rarity color, brighter as they near hatching, and pulse in the last 10%. An ultra-rare incubator is visible across the base, which is both hype and a clip moment.
+- A Secret in the $150 starter egg is deliberate: any new player can hit the 1-in-50,000 and it spreads by word of mouth.
 
 ## 8. Moon events (server-wide, hourly)
 

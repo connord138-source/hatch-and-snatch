@@ -100,11 +100,14 @@ local function spawnEgg()
 	part.Material = if biomeId == "Moonfall" or biomeId == "Junk"
 		then Enum.Material.Neon
 		else Enum.Material.SmoothPlastic
+	-- Imported egg mesh: EggModels.<BiomeId> (its own design, untinted) or the
+	-- generic EggModels.Egg tinted per biome (SurfaceAppearance.Color multiplies the texture).
+	-- The anchor part goes invisible and the mesh is welded to it.
 	local eggModels = ReplicatedStorage:FindFirstChild("EggModels")
-	local template = eggModels and eggModels:FindFirstChild("Egg")
+	local biomeTemplate = eggModels and eggModels:FindFirstChild(biomeId)
+	local ownDesign = biomeTemplate ~= nil and biomeTemplate:IsA("Model")
+	local template = if ownDesign then biomeTemplate else eggModels and eggModels:FindFirstChild("Egg")
 	if template and template:IsA("Model") then
-		-- Imported egg mesh: the anchor part goes invisible and the mesh is welded to it,
-		-- tinted per biome (SurfaceAppearance.Color multiplies the texture)
 		part.Transparency = 1
 		local model = template:Clone()
 		local size = model:GetExtentsSize()
@@ -118,12 +121,14 @@ local function spawnEgg()
 				descendant.Anchored = false
 				descendant.CanCollide = false
 				descendant.Massless = true
-				descendant.Color = tint
+				if not ownDesign then
+					descendant.Color = tint
+				end
 				local weld = Instance.new("WeldConstraint")
 				weld.Part0 = part
 				weld.Part1 = descendant
 				weld.Parent = descendant
-			elseif descendant:IsA("SurfaceAppearance") then
+			elseif descendant:IsA("SurfaceAppearance") and not ownDesign then
 				(descendant :: any).Color = tint
 			end
 		end

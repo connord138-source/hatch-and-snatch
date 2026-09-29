@@ -1,0 +1,166 @@
+{
+  "Mossmunk": {
+    "bodyPlan": "small-round",
+    "front": "auto"
+  },
+  "Brambloar": {
+    "bodyPlan": "stocky",
+    "front": "auto"
+  },
+  "Hivebadger": {
+    "bodyPlan": "stocky",
+    "front": "auto"
+  },
+  "Geodeer": {
+    "bodyPlan": "tall-leggy",
+    "front": "auto"
+  },
+  "Kelpotter": {
+    "bodyPlan": "low-long",
+    "front": "auto"
+  },
+  "Clamodon": {
+    "bodyPlan": "shelled",
+    "front": "auto"
+  },
+  "Coralope": {
+    "bodyPlan": "tall-leggy",
+    "front": "auto"
+  },
+  "Tidalotl": {
+    "bodyPlan": "big-floppy",
+    "front": "auto"
+  },
+  "Coalby": {
+    "bodyPlan": "small-round",
+    "front": "auto"
+  },
+  "Slagodon": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Emberlynx": {
+    "bodyPlan": "lean-predator",
+    "front": "auto"
+  },
+  "Calderhorn": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Frostbun": {
+    "bodyPlan": "hopper",
+    "front": "auto"
+  },
+  "Iceadillo": {
+    "bodyPlan": "small-round",
+    "front": "auto"
+  },
+  "Glacibear": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Aurorox": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Zapybara": {
+    "bodyPlan": "small-round",
+    "front": "auto"
+  },
+  "Squallcoon": {
+    "bodyPlan": "upright-bandit",
+    "front": "auto"
+  },
+  "Thunderhoof": {
+    "bodyPlan": "tall-leggy",
+    "front": "auto"
+  },
+  "Stormback": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Novapanda": {
+    "bodyPlan": "small-round",
+    "front": "auto"
+  },
+  "Nebulion": {
+    "bodyPlan": "lean-predator",
+    "front": "auto"
+  },
+  "Eclipsaur": {
+    "bodyPlan": "low-long",
+    "front": "auto"
+  },
+  "Lunaris": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Toastoise": {
+    "bodyPlan": "shelled",
+    "front": "auto"
+  },
+  "Fridgehog": {
+    "bodyPlan": "small-round",
+    "front": "auto"
+  },
+  "Grillgator": {
+    "bodyPlan": "low-long",
+    "front": "auto"
+  },
+  "Laundrophant": {
+    "bodyPlan": "big-floppy",
+    "front": "auto"
+  },
+  "Lawnmoose": {
+    "bodyPlan": "tall-leggy",
+    "front": "auto"
+  },
+  "Bassdog": {
+    "bodyPlan": "stocky",
+    "front": "auto"
+  },
+  "Sylvanox": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Capybaron": {
+    "bodyPlan": "small-round",
+    "front": "auto"
+  },
+  "Lurehound": {
+    "bodyPlan": "low-long",
+    "front": "auto"
+  },
+  "Pyrodrake": {
+    "bodyPlan": "low-long",
+    "front": "auto"
+  },
+  "Solarion": {
+    "bodyPlan": "lean-predator",
+    "front": "auto"
+  },
+  "Glacierion": {
+    "bodyPlan": "lean-predator",
+    "front": "auto"
+  },
+  "Stormgriff": {
+    "bodyPlan": "tall-leggy",
+    "front": "auto"
+  },
+  "Halosaur": {
+    "bodyPlan": "heavy-tank",
+    "front": "auto"
+  },
+  "Quasarfox": {
+    "bodyPlan": "lean-predator",
+    "front": "auto"
+  },
+  "Singularis": {
+    "bodyPlan": "shelled",
+    "front": "auto"
+  },
+  "Nullcat": {
+    "bodyPlan": "lean-predator",
+    "front": "auto"
+  }
+}

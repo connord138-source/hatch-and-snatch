@@ -17,8 +17,20 @@ local rarityWeights: { [Types.RarityId]: number } = {
 	Rare = 11,
 	Epic = 3,
 	Legendary = 1,
-	Mythic = 0.2, -- only rollable while a moon event is active
+	Mythic = 0.1, -- ~1 in 1,000
+	Celestial = 0.03, -- ~1 in 3,300, moon events only
+	Cosmic = 0.01, -- ~1 in 10,000, Moonfall only
+	Secret = 0.002, -- ~1 in 50,000
 	Junk = 0,
+}
+
+-- Per-biome overrides. Moonfall eggs start at Rare, so the shared weights would
+-- make its ultra-rares ~7x more common than anywhere else.
+local biomeRarityWeights: { [string]: { [string]: number } } = {
+	Moonfall = {
+		Mythic = 0.015, -- ~1 in 1,000
+		Cosmic = 0.0015, -- ~1 in 10,000 each
+	},
 }
 
 -- Junk Egg uses per-species weights instead (comic creatures, rarest last).
@@ -29,6 +41,7 @@ local junkWeights: { [string]: number } = {
 	Laundrophant = 12,
 	Lawnmoose = 8,
 	Bassdog = 5,
+	Nullcat = 0.002, -- Secret
 }
 
 -- How often each biome's egg shows up on the shared conveyor.
@@ -63,7 +76,7 @@ local function price(biomeId: string): number
 	return basePrice * Biomes[biomeId].eggPriceMultiplier
 end
 
--- Normalized odds for one egg. `eventActive` unlocks event-only species (Mythic).
+-- Normalized odds for one egg. `eventActive` unlocks event-only species (Celestial).
 local function speciesOdds(biomeId: string, eventActive: boolean): { SpeciesOdds }
 	local weighted: { SpeciesOdds } = {}
 	local total = 0
@@ -75,7 +88,8 @@ local function speciesOdds(biomeId: string, eventActive: boolean): { SpeciesOdds
 			elseif Rarities[creature.rarity].eventOnly and not eventActive then
 				weight = 0
 			else
-				weight = rarityWeights[creature.rarity]
+				local override = biomeRarityWeights[biomeId]
+				weight = (override and override[creature.rarity]) or rarityWeights[creature.rarity]
 			end
 			if weight > 0 then
 				table.insert(weighted, { id = creature.id, chance = weight })
@@ -105,6 +119,7 @@ end
 return table.freeze({
 	basePrice = basePrice,
 	rarityWeights = rarityWeights,
+	biomeRarityWeights = biomeRarityWeights,
 	junkWeights = junkWeights,
 	conveyorWeights = conveyorWeights,
 	eggColors = eggColors,
