@@ -80,5 +80,6 @@ InventoryService.start() -- Creatures menu requests: store, place, nursery, sell
 RebirthService.start()
 StateService.start()
 DataService.start() -- last: fires loaded for players already in the server
+require(script.StudioDebug).start() -- Studio only: Command Bar test hook (see the module)
 
 print("[HatchAndSnatch] Server started")
