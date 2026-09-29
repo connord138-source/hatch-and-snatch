@@ -31,6 +31,8 @@ type Tracked = {
 	lookYaw: number,
 	lookTarget: number,
 	nextLook: number,
+	-- Galaxy finish: a tiny planet orbiting the creature
+	planet: BasePart?,
 }
 
 local STAGE_MOTION: { [string]: { stride: number, height: number, speed: number } } = {
@@ -165,6 +167,21 @@ local function track(instance: Instance)
 		local pivot = instance:GetPivot()
 		local boxCFrame, boxSize = instance:GetBoundingBox()
 		local seed = math.random() * 100
+		local planet = instance:FindFirstChild("GalaxyPlanet")
+		-- With StreamingEnabled a model's parts (and the bones inside them) can arrive
+		-- after the model itself: pick up late bones and the Galaxy planet as they land
+		instance.DescendantAdded:Connect(function(descendant)
+			local info = tracked[instance]
+			if info == nil then
+				return
+			end
+			if descendant:IsA("Bone") then
+				info.bones = collectBones(instance)
+				info.rigged = true
+			elseif descendant.Name == "GalaxyPlanet" and descendant:IsA("BasePart") then
+				info.planet = descendant
+			end
+		end)
 		tracked[instance] = {
 			model = instance,
 			base = pivot,
@@ -180,6 +197,7 @@ local function track(instance: Instance)
 			lookYaw = 0,
 			lookTarget = 0,
 			nextLook = os.clock() + seed % 4,
+			planet = if planet and planet:IsA("BasePart") then planet else nil,
 		}
 	end)
 end
@@ -290,6 +308,17 @@ function CreatureAnimator.start()
 			end
 			if info.rigged and distance <= BONE_DISTANCE then
 				poseBones(info, t)
+			end
+			local body = model.PrimaryPart
+			if info.planet and body then
+				-- Measured from the body each frame: the model may still have been
+				-- streaming in when it was tracked, so its first bounding box can be wrong
+				local size = body.Size
+				local radius = math.max(size.X, size.Z) * 0.55 + 0.6
+				local angle = t * 1.1 + info.seed
+				local lift = size.Y * 0.2 + math.sin(angle * 2) * 0.2
+				local offset = Vector3.new(math.cos(angle) * radius, lift, math.sin(angle) * radius)
+				info.planet.CFrame = CFrame.new(body.Position + offset)
 			end
 
 			if CollectionService:HasTag(model, "Prismatic") then

@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local FinishLooks = require(ReplicatedStorage.Shared.FinishLooks)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Signal = require(ReplicatedStorage.Shared.Signal)
@@ -22,26 +23,6 @@ type CreatureRecord = DataService.CreatureRecord
 type PlayerData = DataService.PlayerData
 
 local STAGE_ORDER: { Types.StageId } = { "Baby", "Juvenile", "Adult" }
-
-local FINISH_LOOKS: { [string]: { color: Color3?, material: Enum.Material?, transparency: number?, reflectance: number? } } =
-	{
-		Gold = { color = Color3.fromRGB(255, 196, 45), material = Enum.Material.Foil, reflectance = 0.25 },
-		Chrome = {
-			color = Color3.fromRGB(215, 220, 228),
-			material = Enum.Material.SmoothPlastic,
-			reflectance = 0.6,
-		},
-		Diamond = {
-			color = Color3.fromRGB(190, 240, 255),
-			material = Enum.Material.Glass,
-			transparency = 0.3,
-		},
-		Molten = { color = Color3.fromRGB(255, 110, 20), material = Enum.Material.CrackedLava },
-		-- ForceField renders an animated shimmer over the mesh: reads as moving nebula
-		Galaxy = { color = Color3.fromRGB(110, 60, 255), material = Enum.Material.ForceField },
-		Prismatic = { material = Enum.Material.Neon }, -- client cycles the color
-		BloodMoon = { color = Color3.fromRGB(120, 0, 10), material = Enum.Material.CrackedLava },
-	}
 
 local models: { [Player]: { [string]: Model } } = {}
 -- Creatures currently being carried by a thief (not shown on their pedestal)
@@ -363,32 +344,8 @@ local function addRarityAura(model: Model, rarity: string)
 end
 
 local function applyFinish(model: Model, finish: string)
-	local look = FINISH_LOOKS[finish]
-	if look == nil then
-		return
-	end
-	-- Imported meshes carry their texture in a SurfaceAppearance; a finish replaces it
-	-- with a solid material (the look of the approved finish sheet)
-	for _, descendant in model:GetDescendants() do
-		if descendant:IsA("SurfaceAppearance") then
-			descendant:Destroy()
-		end
-	end
-	for _, descendant in model:GetDescendants() do
-		if descendant:IsA("BasePart") and not descendant:GetAttribute("KeepMaterial") then
-			if look.color then
-				descendant.Color = look.color
-			end
-			if look.material then
-				descendant.Material = look.material
-			end
-			if look.transparency then
-				descendant.Transparency = look.transparency
-			end
-			if look.reflectance then
-				descendant.Reflectance = look.reflectance
-			end
-		end
+	if not FinishLooks.apply(model, finish) then
+		return -- Normal
 	end
 	local fx = FINISH_FX[finish]
 	if fx and model.PrimaryPart then
@@ -396,6 +353,25 @@ local function applyFinish(model: Model, finish: string)
 	end
 	if finish == "Prismatic" then
 		CollectionService:AddTag(model, "Prismatic")
+	end
+	if finish == "Galaxy" and model.PrimaryPart then
+		-- A tiny glowing planet; the client animator swings it around the creature.
+		-- It starts inside the body so it doesn't change the model's bounding box.
+		local extents = model:GetExtentsSize()
+		local diameter = math.max(extents.X, extents.Y, extents.Z) * 0.09
+		local planet = Instance.new("Part")
+		planet.Name = "GalaxyPlanet"
+		planet.Shape = Enum.PartType.Ball
+		planet.Size = Vector3.new(diameter, diameter, diameter)
+		planet.Material = Enum.Material.Neon
+		planet.Color = Color3.fromRGB(120, 220, 255)
+		planet.Anchored = true
+		planet.CanCollide = false
+		planet.CanQuery = false
+		planet.CastShadow = false
+		planet:SetAttribute("KeepMaterial", true)
+		planet.CFrame = model.PrimaryPart.CFrame
+		planet.Parent = model
 	end
 end
 
