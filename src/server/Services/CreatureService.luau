@@ -193,9 +193,10 @@ local BABY_MODEL_BOOST = 1.15
 local function buildModel(owner: Player, uid: string, record: CreatureRecord, at: CFrame): Model
 	local templates = ReplicatedStorage:FindFirstChild("CreatureModels")
 	local template = templates and templates:FindFirstChild(record.species)
-	local babyTemplate = templates
-		and record.stage == "Baby"
-		and templates:FindFirstChild(`{record.species}_Baby`)
+	-- `if` (not `and`): for Juveniles/Adults this must be nil, not false
+	local babyTemplate = if templates and record.stage == "Baby"
+		then templates:FindFirstChild(`{record.species}_Baby`)
+		else nil
 	local isBabyModel = babyTemplate ~= nil and babyTemplate:IsA("Model") and babyTemplate.PrimaryPart ~= nil
 	if isBabyModel then
 		template = babyTemplate
