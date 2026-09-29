@@ -1,5 +1,6 @@
 """
-Rig every creature GLB in assets/glb/ (named <SpeciesId>.glb) into assets/fbx/<SpeciesId>.fbx.
+Rig every creature GLB in assets/glb/ (named <SpeciesId>.glb or <SpeciesId>_Baby.glb)
+into assets/fbx/ with the same name.
 
     python tools/blender/rig_all.py            # uses `blender` on PATH
     python tools/blender/rig_all.py "C:\\Program Files\\Blender Foundation\\Blender 4.2\\blender.exe"
@@ -21,16 +22,16 @@ fbx_dir.mkdir(parents=True, exist_ok=True)
 
 failed = []
 for glb in sorted(glb_dir.glob("*.glb")):
-    species = glb.stem
+    species = glb.stem.removesuffix("_Baby")
     if species not in plans:
         print(f"skip {glb.name}: not a species id in bodyplans.json")
         continue
     entry = plans[species]
-    out = fbx_dir / f"{species}.fbx"
+    out = fbx_dir / f"{glb.stem}.fbx"
     cmd = [BLENDER, "--background", "--python", str(ROOT / "tools/blender/rig_creature.py"), "--",
            str(glb), str(out), entry["bodyPlan"], entry.get("front", "auto")]
-    print(">>", species)
+    print(">>", glb.stem)
     if subprocess.run(cmd).returncode != 0 or not out.exists():
-        failed.append(species)
+        failed.append(glb.stem)
 
 print("done." + (f" FAILED: {', '.join(failed)}" if failed else " all rigged."))

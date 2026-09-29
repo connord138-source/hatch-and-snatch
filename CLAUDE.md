@@ -67,9 +67,16 @@ How to prompt for concepts:
 
 ## 3D assets
 
-- Only the models in `docs/ASSETS.md` exist in 3D. Everything else is concept art until converted.
-- Import them in Studio into `ReplicatedStorage.CreatureModels.<SpeciesId>` and `ReplicatedStorage.EggModels.<BiomeId>` (or `Egg`). The code handles scale, placement, tint and finishes.
-- **Rigging:** `tools/blender/rig_all.py` auto-rigs GLBs to FBX headless, and CreatureAnimator drives the bone names procedurally. The script was verified in this sandbox using `pip install bpy` (Blender 5.0 as a module) on a test quadruped.
+- **Everything has a model now** (the Sept 2026 credit promo): 41 adults, babies, 8 eggs and 16 world props.
+  - The links are in `tools/assets_manifest.json`; the workflow is in `docs/ASSETS.md`.
+  - `fetch_assets.py` downloads them, `rig_all.py` rigs them, Studio imports them, and `tools/studio/organize_imports.luau` files them.
+- **Folders the code reads:**
+  - `ReplicatedStorage.CreatureModels.<SpeciesId>`, plus `<SpeciesId>_Baby` for the Baby stage.
+  - `EggModels.<BiomeId>` (or `Egg`).
+  - `WorldProps.<Name>`.
+  - `src/server/Props.luau` fits props over placeholder parts; code must keep working when a model is missing.
+- Clean model sheets (neutral pose) are the 3D inputs. Never convert an action-pose concept directly, because it rigs badly.
+- **Rigging:** `tools/blender/rig_all.py` auto-rigs GLBs to FBX headless, and CreatureAnimator drives the bone names procedurally. It was verified in the sandbox via `pip install bpy` on a test quadruped, but not yet on the real models.
 
 ## Tooling notes
 

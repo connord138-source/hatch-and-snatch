@@ -8,6 +8,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Net = require(script.Parent.Parent.Net)
+local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EventService = require(script.Parent.EventService)
@@ -26,6 +27,24 @@ for _, finish in Config.Finishes do
 	finishById[finish.id] = finish
 end
 
+local INCUBATOR_EGG_HEIGHT = 2.4
+
+-- The egg sitting in an incubator: the biome's egg model when imported.
+local function setEggVisual(part: BasePart, biomeId: string?)
+	local existing = part:FindFirstChild("EggVisual")
+	if existing then
+		existing:Destroy()
+	end
+	if biomeId == nil then
+		return
+	end
+	local model = Props.egg(biomeId, INCUBATOR_EGG_HEIGHT)
+	if model then
+		model.Name = "EggVisual"
+		Props.weldCentered(model, part)
+	end
+end
+
 local function refreshIncubators(player: Player, data: PlayerData)
 	local plot = PlotService.get(player)
 	if plot == nil then
@@ -33,9 +52,27 @@ local function refreshIncubators(player: Player, data: PlayerData)
 	end
 	for i, part in plot.incubators do
 		local egg = data.incubators[i]
-		if egg then
+		local biomeId = if egg then egg.biome else nil
+		local current = part:GetAttribute("EggBiome")
+		if current ~= biomeId then
+			part:SetAttribute("EggBiome", biomeId)
+			setEggVisual(part, biomeId)
+		end
+		local hasVisual = part:FindFirstChild("EggVisual") ~= nil
+		if part:GetAttribute("Dressed") and not hasVisual then
+			-- Imported incubator but no egg model: a tinted egg-shaped glow inside the glass
+			if part:IsA("Part") then
+				part.Shape = Enum.PartType.Ball
+			end
+			part.Size = Vector3.new(2, 2, 2)
+			part.Material = Enum.Material.Neon
+			part.Color = if egg then Config.Eggs.eggColors[egg.biome] or EMPTY_COLOR else EMPTY_COLOR
+			part.Transparency = if egg then 0.1 else 1
+		elseif part:GetAttribute("Dressed") then
+			part.Transparency = 1
+		elseif egg then
 			part.Color = Config.Eggs.eggColors[egg.biome] or EMPTY_COLOR
-			part.Transparency = 0.1
+			part.Transparency = if hasVisual then 0.75 else 0.1
 		else
 			part.Color = EMPTY_COLOR
 			part.Transparency = 0.4

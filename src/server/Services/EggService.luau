@@ -8,6 +8,7 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Net = require(script.Parent.Parent.Net)
+local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -100,46 +101,18 @@ local function spawnEgg()
 	part.Material = if biomeId == "Moonfall" or biomeId == "Junk"
 		then Enum.Material.Neon
 		else Enum.Material.SmoothPlastic
-	-- Imported egg mesh: EggModels.<BiomeId> (its own design, untinted) or the
-	-- generic EggModels.Egg tinted per biome (SurfaceAppearance.Color multiplies the texture).
-	-- The anchor part goes invisible and the mesh is welded to it.
-	local eggModels = ReplicatedStorage:FindFirstChild("EggModels")
-	local biomeTemplate = eggModels and eggModels:FindFirstChild(biomeId)
-	local ownDesign = biomeTemplate ~= nil and biomeTemplate:IsA("Model")
-	local template = if ownDesign then biomeTemplate else eggModels and eggModels:FindFirstChild("Egg")
-	if template and template:IsA("Model") then
+	-- Imported egg mesh (Props.egg): the anchor part goes invisible and the mesh is welded to it
+	local eggModel = Props.egg(biomeId, EGG_HEIGHT)
+	if eggModel then
 		part.Transparency = 1
-		local model = template:Clone()
-		local size = model:GetExtentsSize()
-		model:ScaleTo(model:GetScale() * (EGG_HEIGHT / math.max(size.Y, 0.01)))
-		model:PivotTo(CFrame.new())
-		local boxCFrame = model:GetBoundingBox()
-		model:PivotTo(part.CFrame * boxCFrame:Inverse()) -- center the mesh on the anchor part
-		local tint = Config.Eggs.eggColors[biomeId]
-		for _, descendant in model:GetDescendants() do
-			if descendant:IsA("BasePart") then
-				descendant.Anchored = false
-				descendant.CanCollide = false
-				descendant.Massless = true
-				if not ownDesign then
-					descendant.Color = tint
-				end
-				local weld = Instance.new("WeldConstraint")
-				weld.Part0 = part
-				weld.Part1 = descendant
-				weld.Parent = descendant
-			elseif descendant:IsA("SurfaceAppearance") and not ownDesign then
-				(descendant :: any).Color = tint
-			end
-		end
+		Props.weldCentered(eggModel, part)
 		if biomeId == "Moonfall" or biomeId == "Junk" then
 			local light = Instance.new("PointLight")
-			light.Color = tint
+			light.Color = Config.Eggs.eggColors[biomeId]
 			light.Range = 8
 			light.Brightness = 2
 			light.Parent = part
 		end
-		model.Parent = part
 	else
 		local mesh = Instance.new("SpecialMesh")
 		mesh.MeshType = Enum.MeshType.Sphere

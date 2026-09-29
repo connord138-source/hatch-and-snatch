@@ -1,64 +1,64 @@
 # 3D Assets: import guide
 
-The concept art in docs/ROSTER.md is **2D only**. These are the real 3D models (GLB files,
-converted with Tripo H3.1 at 8k faces or fewer, with textures). Anything without a model here
-still shows as a placeholder block in-game.
+Every model the game uses is listed in **`tools/assets_manifest.json`**, which maps each name to its GLB link:
 
-## Ready to import
+- **creatures:** all 41 species (adults), from clean neutral-pose model sheets.
+- **babies:** `<SpeciesId>_Baby` models with baby proportions: big head, big eyes, stubby legs.
+- **eggs:** one per biome, plus `Egg`, the generic fallback that gets tinted.
+- **props:** the reactor, pedestal, nursery nest, incubator, cash pad, lock button, entrance arch, lamp post and 8 kinds of decor.
 
-| Model | Import as | GLB |
-|---|---|---|
-| Emberlynx | `ReplicatedStorage.CreatureModels.Emberlynx` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_203854_d7458a22-a7fe-4158-af1c-e068152c61f6.glb |
-| Mossmunk | `ReplicatedStorage.CreatureModels.Mossmunk` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005715_d97e8ad1-5097-468d-bfef-eecd1671b579.glb |
-| Brambloar | `ReplicatedStorage.CreatureModels.Brambloar` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005717_bb14f3eb-1d21-4ae4-b224-d3e872969f64.glb |
-| Hivebadger | `ReplicatedStorage.CreatureModels.Hivebadger` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005719_2c8deaec-a60b-4234-bbae-7df80f441d72.glb |
-| Geodeer | `ReplicatedStorage.CreatureModels.Geodeer` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005722_14399bf9-3e49-465f-acc0-9adcbfb3d61f.glb |
-| Kelpotter | `ReplicatedStorage.CreatureModels.Kelpotter` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005725_55dcbe93-6324-493c-8f81-8a2e160a1f93.glb |
-| Clamodon | `ReplicatedStorage.CreatureModels.Clamodon` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005727_abb5c54c-ec0d-4a90-98f5-1d334538f1c4.glb |
-| Coralope | `ReplicatedStorage.CreatureModels.Coralope` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005729_dfb9cb94-59a5-40f1-9e4b-2a88b7f5783c.glb |
-| Tidalotl | `ReplicatedStorage.CreatureModels.Tidalotl` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005731_fda88a91-92e5-4239-9c68-e87c8551af39.glb |
-| Mossvale egg (bark and moss) | `ReplicatedStorage.EggModels.Mossvale` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030242_269e9439-fcc0-410b-a90f-275a33a46288.glb |
-| Coral Coast egg (seashell and coral) | `ReplicatedStorage.EggModels.CoralCoast` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030245_3202159f-8157-46a3-8b86-eb362b7ab1d7.glb |
-| Egg (generic fallback, tinted per biome in code) | `ReplicatedStorage.EggModels.Egg` | https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_005812_193e47b8-a68d-489c-9268-d7c7ec579c31.glb |
+The code runs without any of them: each piece falls back to a plain block until its model is imported.
 
-That covers the soft-launch biomes (Mossvale and Coral Coast) plus Emberlynx. The remaining 21
-creatures still need converting (about 9 Higgsfield credits each).
+## One-time setup (owner's PC)
 
-## How to import (Studio)
+Needs Python 3 and Blender 4.x (free from blender.org). You never have to open Blender.
 
-1. Download the GLB files, for example into `assets/glb/` in the repo. That folder is gitignored.
-2. In Studio, go to **File → Import 3D** and pick the GLB.
-   - In the importer, keep **textures** on.
-   - Make sure it imports as a **Model**.
-3. In **ReplicatedStorage**, create a Folder named `CreatureModels` (and one named `EggModels` for the egg).
-4. Move the imported Model into that folder and **rename it exactly** to the species id, e.g. `Mossmunk`. For eggs, use the biome id (`Mossvale`, `CoralCoast`) or `Egg` for the generic fallback.
-5. Set the Model's **PrimaryPart** to its main MeshPart.
-6. Check that it faces **-Z**, which is the model's front in Studio. If it's turned sideways, rotate the whole model 90° before saving.
-7. Don't scale or position anything; the code handles it:
-   - CreatureService scales each creature to 7 studs at its longest side, then applies the Baby, Juvenile or Adult size, and stands it on the pedestal.
-   - EggService scales the egg to 3.4 studs tall. It uses `EggModels.<BiomeId>` when one exists, untinted. Otherwise it falls back to the generic `Egg`, tinted per biome.
-8. **Save the place** (Ctrl+S). Rojo doesn't manage `CreatureModels` or `EggModels`, so the models live in the place file.
+```
+git pull
+python tools/fetch_assets.py
+python tools/blender/rig_all.py "C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"
+```
+
+1. `fetch_assets.py` downloads everything into `assets/`: `glb/` for creatures and babies, `eggs/` and `props/`. It skips files you already have.
+2. `rig_all.py` turns every creature GLB into a skinned FBX in `assets/fbx/`, with bones named for the procedural run animation.
+
+## Import into Studio
+
+1. **File → Import 3D**, select **all** files in `assets/fbx/` (creatures and babies, rigged), then **Import All**. Keep textures on and rig/skinning on.
+2. Do the same for all files in `assets/eggs/` and `assets/props/` (GLB, no rig).
+3. Open **View → Command Bar**, paste the contents of `tools/studio/organize_imports.luau` and press Enter. It moves every imported model into the folder the code reads and sets its PrimaryPart:
+   - `ReplicatedStorage.CreatureModels`
+   - `ReplicatedStorage.EggModels`
+   - `ReplicatedStorage.WorldProps`
+4. **Save the place** (Ctrl+S). Rojo doesn't manage these folders; they live in the place file.
+
+Don't scale or position anything; the code does it:
+
+| Model | What the code does |
+|---|---|
+| Creatures | Scaled to 7 studs at the longest side, then by stage. Babies use `<SpeciesId>_Baby` when it exists. Stands on the pedestal. |
+| Eggs | 3.4 studs tall on the conveyor, and 2.4 studs inside incubators. Biome models are untinted; the generic `Egg` is tinted per biome. |
+| Props | `Props.luau` fits each prop over its placeholder part, and that part keeps collision, prompts and labels. Decor is scattered deterministically around the island, keeping plots clear. |
+
+## Check in Studio
+
+- **Facing:** a creature that walks backwards needs its `"front"` set in `tools/blender/bodyplans.json` (`+x`, `-x`, `+y`, `-y`); then rerun `rig_all.py` and re-import that one. Re-running the organizer replaces the old copy.
+- **Legs:** if they bend the wrong way, flip `pitch` in `src/client/Controllers/CreatureAnimator.luau`.
+- **Props:** a prop that sits sideways was modeled lying down. Rotate the imported model once in WorldProps and save.
 
 ## What the code does with them
 
-- **Finishes** (Gold, Chrome, Diamond and so on) remove the texture and apply a solid material, giving the finish-sheet look. Normal creatures keep their texture.
-- **Glow:** Moonfall and Junk eggs get a point light.
-- **Movement:** every creature does the bounding hop. Rigged models (below) also get a procedural gait from CreatureAnimator: front legs together, back legs together, spine flex, head bob and tail sway. It drives the bone names the rig script creates, so no animation uploads are needed.
-- **Incubators** glow in the rarity color for Epic and up, brighter as the egg nears hatching.
+- **Finishes** (Gold, Chrome, Diamond and so on) remove the texture and apply a solid material. Normal creatures keep their texture.
+- **Movement:** every creature does the bounding hop. Rigged models also get a procedural gait on their bones: front legs together, back legs together, spine flex, head bob and tail sway.
+- **Incubators** show the actual biome egg inside and glow in the rarity color for Epic and up, brighter as the egg nears hatching.
+- **Lamp posts** ring the conveyor and cast warm light.
 
-## Rigging in Blender (automatic)
+## Source images (Higgsfield job ids, for redoing a model)
 
-Needs Blender 4.x (free, blender.org). Everything runs headless; you never need to open Blender.
+The clean model sheets are the inputs to 3D conversion; the concepts live in `docs/ROSTER.md`.
 
-1. Save each creature GLB as `assets/glb/<SpeciesId>.glb`, e.g. `assets/glb/Emberlynx.glb`.
-2. From the repo root, run:
-   ```
-   python tools/blender/rig_all.py "C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"
-   ```
-   It writes `assets/fbx/<SpeciesId>.fbx`, a skinned mesh with the skeleton Root > Hips > Spine > Chest > Neck > Head, Tail1-3 and a two-bone leg per foot.
-3. In Studio, import the **FBX** (File → Import 3D) instead of the GLB and follow the same steps as above. Keep "Rig" / skinned mesh import on.
-4. If a creature walks backwards, set its `"front"` in `tools/blender/bodyplans.json` to `+x`, `-x`, `+y` or `-y` and rerun that one:
-   ```
-   blender --background --python tools/blender/rig_creature.py -- assets/glb/X.glb assets/fbx/X.fbx <bodyPlan> <front>
-   ```
-5. The weights are automatic, so check each model in Studio. If legs bend in the wrong direction, the leg axis in `CreatureAnimator.luau` (`pitch`) can be flipped.
+Coalby `10b3feba` · Slagodon `5ee493de` · Calderhorn `60b03d4a` · Frostbun `beefdb56` · Iceadillo `3303a3df` · Glacibear `156595d1` · Thunderhoof `d2b538bf` · Stormback `0c32ad0d` · Zapybara `884081b3` · Squallcoon `2be71438` · Novapanda `895649ff` · Aurorox `391b8e5f` · Nebulion `3c60398c` · Eclipsaur `354c7dcd` · Lunaris `56bb5605` · Toastoise `ebca2a80` · Fridgehog `7b3d2abd` · Grillgator `601bc9ee` · Laundrophant `481c5dc5` · Lawnmoose `3ca7e661` · Bassdog `9037075f` · Sylvanox `f76b8118` · Capybaron `900b0601` · Lurehound `653e9600` · Pyrodrake `032bb7ca` · Glacierion `b66f0133` · Stormgriff `3c9f0e00` · Solarion `8a78bbea` · Halosaur `4f6e5272` · Quasarfox `97af6d05` · Singularis `17da7fed` · Nullcat `c42f59d0` · Mossmunk `b802fc40` · Brambloar `6f4a7dcd` · Hivebadger `85dfad83` · Geodeer `c895f9df` · Kelpotter `82e8804d` · Clamodon `80c50911` · Coralope `7a51097c` · Tidalotl `c06063d0` · Emberlynx `3532202e`
+
+Eggs: Mossvale `af112e5a` · CoralCoast `488cbccd` · MagmaRift `8a701ed4` · FrostShelf `0fd1769f` · StormPeaks `80ef524a` · Moonfall `2de9fcf5` · Junk `5e1e5007` · generic `4d87f13c`
+
+Props: HatcheryReactor `db53ee3f` · Pedestal `7b096c76` · NurseryNest `21cba2fc` · Incubator `1ebc1fa1` · Collector `3a4cc5c1` · LockButton `c60f5654` · MossTree `0b1bd165` · RockCluster `bd80a0a6` · BerryBush `11e81571` · MushroomCluster `eb6dca66` · CrystalCluster `e85b0179` · CoralCluster `0afaa00a` · LavaRock `fd86cb46` · IceSpire `ad45e3f7` · LampPost `b6587dec` · PlotArch `052389a8`

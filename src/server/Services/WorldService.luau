@@ -1,11 +1,13 @@
 --!strict
--- Builds the placeholder Crackpoint Island layout from code: hub reactor, egg
--- conveyor loop, Moon Egg and a ring of 8 base plots. Real art replaces these
--- parts later; everything else only depends on the named parts/CFrames here.
+-- Builds the Crackpoint Island layout from code: hub reactor, egg conveyor loop,
+-- Moon Egg and a ring of 8 base plots. Each piece starts as a plain part; when
+-- its 3D prop is imported (ReplicatedStorage.WorldProps, see Props.luau) the
+-- prop is fitted over it. Everything else only depends on the parts/CFrames here.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Props = require(script.Parent.Parent.Props)
 
 export type PlotLayout = {
 	index: number,
@@ -75,8 +77,8 @@ local function buildIsland()
 		Parent = worldFolder,
 	})
 
-	-- Hub reactor (placeholder): stone base + glowing glass dome
-	part({
+	-- Hub reactor: stone base + glowing glass dome, or the imported HatcheryReactor
+	local reactorBase = part({
 		Name = "ReactorBase",
 		Shape = Enum.PartType.Cylinder,
 		Size = Vector3.new(10, 26, 26),
@@ -85,7 +87,7 @@ local function buildIsland()
 		Color = Color3.fromRGB(60, 58, 62),
 		Parent = worldFolder,
 	})
-	part({
+	local reactorDome = part({
 		Name = "ReactorDome",
 		Shape = Enum.PartType.Ball,
 		Size = Vector3.new(22, 22, 22),
@@ -96,6 +98,11 @@ local function buildIsland()
 		CanCollide = false,
 		Parent = worldFolder,
 	})
+
+	if Props.spawn("HatcheryReactor", CFrame.new(0, GROUND_Y, 0), 24, worldFolder) then
+		reactorBase.Transparency = 1 -- keeps its collision
+		reactorDome.Transparency = 1
+	end
 
 	-- Conveyor loop: a ring of belt segments
 	local conveyor = Config.Eggs.conveyor
@@ -186,6 +193,11 @@ local function buildPlot(index: number): PlotLayout
 			nurseryLabel.Text = "Nursery"
 			nurseryLabel.TextColor3 = Color3.fromRGB(150, 200, 255)
 		end
+		local isNursery = i <= Config.Economy.tunables.nurserySlotsBase
+		Props.dress(pedestal, if isNursery then "NurseryNest" else "Pedestal", {
+			cframe = origin * CFrame.new(localPos),
+			size = Vector3.new(6.4, 1.4, 6.4),
+		})
 		table.insert(pedestals, origin * CFrame.new(localPos + Vector3.new(0, 0.7, 0)))
 	end
 
@@ -201,6 +213,11 @@ local function buildPlot(index: number): PlotLayout
 			Color = Color3.fromRGB(200, 230, 255),
 			Parent = model,
 		})
+		Props.dress(
+			incubator,
+			"Incubator",
+			{ size = Vector3.new(3.6, 4.4, 3.6), cframe = incubator.CFrame * CFrame.new(0, 0.2, 0) }
+		)
 		table.insert(incubators, incubator)
 	end
 
@@ -213,6 +230,11 @@ local function buildPlot(index: number): PlotLayout
 		Color = Color3.fromRGB(80, 230, 120),
 		Parent = model,
 	})
+	Props.dress(
+		collector,
+		"Collector",
+		{ size = Vector3.new(7.5, 1.2, 7.5), cframe = collector.CFrame * CFrame.new(0, 0.4, 0) }
+	)
 	local collectorLabel = billboard(collector, Vector3.new(0, 4, 0), UDim2.fromOffset(160, 50), 60)
 	collectorLabel.Text = "$0"
 
@@ -225,6 +247,11 @@ local function buildPlot(index: number): PlotLayout
 		Color = Color3.fromRGB(255, 80, 80),
 		Parent = model,
 	})
+	Props.dress(
+		lockButton,
+		"LockButton",
+		{ size = Vector3.new(3.4, 3, 3.4), cframe = lockButton.CFrame * CFrame.new(0, 0.9, 0) }
+	)
 	local lockPrompt = Instance.new("ProximityPrompt")
 	lockPrompt.Name = "Lock"
 	lockPrompt.ActionText = "Lock Base"
@@ -274,6 +301,9 @@ local function buildPlot(index: number): PlotLayout
 	local label = billboard(sign, Vector3.zero, UDim2.fromScale(18, 4), 300)
 	label.Text = "Free plot"
 
+	-- Entrance arch over the front edge (decor only)
+	Props.spawn("PlotArch", origin * CFrame.new(0, top, -PLOT_SIZE / 2 + 0.5), 13, model)
+
 	model.Parent = worldFolder
 
 	return {
@@ -290,6 +320,97 @@ local function buildPlot(index: number): PlotLayout
 		lockLabel = lockLabel,
 		lasers = lasers,
 	}
+end
+
+-- Decor between and around the plots. Deterministic, so every server matches.
+local DECOR: { { name: string, height: number, weight: number } } = {
+	{ name = "MossTree", height = 22, weight = 5 },
+	{ name = "RockCluster", height = 5, weight = 4 },
+	{ name = "BerryBush", height = 4, weight = 4 },
+	{ name = "MushroomCluster", height = 3, weight = 3 },
+	{ name = "CrystalCluster", height = 6, weight = 2 },
+	{ name = "CoralCluster", height = 6, weight = 1 },
+	{ name = "LavaRock", height = 5, weight = 1 },
+	{ name = "IceSpire", height = 10, weight = 1 },
+}
+
+local function scatterDecor()
+	local folder = Instance.new("Folder")
+	folder.Name = "Decor"
+	folder.Parent = worldFolder
+	local available: { { name: string, height: number, weight: number } } = {}
+	local total = 0
+	for _, entry in DECOR do
+		if Props.template("WorldProps", entry.name) then
+			table.insert(available, entry)
+			total += entry.weight
+		end
+	end
+
+	-- Lamp posts ring the conveyor so the egg loop reads at night
+	local lampRadius = Config.Eggs.conveyor.radius + 6
+	for i = 0, 11 do
+		local angle = i / 12 * 2 * math.pi
+		local position = Vector3.new(math.cos(angle) * lampRadius, GROUND_Y, math.sin(angle) * lampRadius)
+		local lamp = Props.spawn("LampPost", CFrame.lookAt(position, Vector3.new(0, GROUND_Y, 0)), 9, folder)
+		if lamp then
+			local light = Instance.new("PointLight")
+			light.Color = Color3.fromRGB(255, 210, 150)
+			light.Range = 18
+			light.Brightness = 1.5
+			light.Parent = lamp.PrimaryPart or lamp:FindFirstChildWhichIsA("BasePart", true)
+		end
+	end
+
+	if total == 0 then
+		return
+	end
+	local rng = Random.new(20260929)
+	local plotCount = Config.Economy.tunables.basePlotsPerServer
+	local placed = 0
+	local attempts = 0
+	while placed < 90 and attempts < 1000 do
+		attempts += 1
+		local angle = rng:NextNumber() * 2 * math.pi
+		local radius = rng:NextNumber(Config.Eggs.conveyor.radius + 12, 235)
+		local position = Vector3.new(math.cos(angle) * radius, GROUND_Y, math.sin(angle) * radius)
+		-- Keep plots, their fronts and the walkways clear
+		local blocked = false
+		for i = 1, plotCount do
+			local plotAngle = (i - 1) / plotCount * 2 * math.pi
+			local plotCenter =
+				Vector3.new(math.cos(plotAngle) * PLOT_RADIUS, GROUND_Y, math.sin(plotAngle) * PLOT_RADIUS)
+			if (position - plotCenter).Magnitude < PLOT_SIZE * 0.85 then
+				blocked = true
+				break
+			end
+			-- Walkway from the plot's front edge in to the conveyor
+			local radial = plotCenter.Unit
+			local along = position:Dot(radial)
+			local sideways = (position - radial * along).Magnitude
+			if along > 0 and along < PLOT_RADIUS and sideways < 14 then
+				blocked = true
+				break
+			end
+		end
+		if blocked then
+			continue
+		end
+		local roll = rng:NextNumber() * total
+		local pick = available[1]
+		for _, entry in available do
+			roll -= entry.weight
+			if roll <= 0 then
+				pick = entry
+				break
+			end
+		end
+		local scale = rng:NextNumber(0.75, 1.3)
+		local cframe = CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0)
+		if Props.spawn(pick.name, cframe, pick.height * scale, folder) then
+			placed += 1
+		end
+	end
 end
 
 -- True when a world position is inside the plot's footprint (any height).
@@ -317,6 +438,7 @@ function WorldService.start()
 	for i = 1, Config.Economy.tunables.basePlotsPerServer do
 		table.insert(WorldService.plots, buildPlot(i))
 	end
+	scatterDecor()
 end
 
 return WorldService

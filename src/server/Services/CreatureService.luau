@@ -3,7 +3,8 @@
 -- real time (including offline catch-up) and the in-world models.
 --
 -- Models: if ReplicatedStorage.CreatureModels.<SpeciesId> exists it is cloned
--- (drop the imported Emberlynx there); otherwise a placeholder is built.
+-- (Babies use <SpeciesId>_Baby when imported, a separate big-headed model);
+-- otherwise a placeholder is built.
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -187,10 +188,18 @@ end
 
 -- Longest side (studs) of an imported adult model; babies/juveniles scale down from this.
 local TEMPLATE_ADULT_SIZE = 7
+local BABY_MODEL_BOOST = 1.15
 
 local function buildModel(owner: Player, uid: string, record: CreatureRecord, at: CFrame): Model
 	local templates = ReplicatedStorage:FindFirstChild("CreatureModels")
 	local template = templates and templates:FindFirstChild(record.species)
+	local babyTemplate = templates
+		and record.stage == "Baby"
+		and templates:FindFirstChild(`{record.species}_Baby`)
+	local isBabyModel = babyTemplate ~= nil and babyTemplate:IsA("Model") and babyTemplate.PrimaryPart ~= nil
+	if isBabyModel then
+		template = babyTemplate
+	end
 	local model: Model
 	local fromTemplate = template ~= nil and template:IsA("Model") and template.PrimaryPart ~= nil
 	if fromTemplate then
@@ -212,7 +221,9 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 		-- Imported meshes come in at arbitrary sizes: normalize the longest side, then apply the stage
 		local size = model:GetExtentsSize()
 		local longest = math.max(size.X, size.Y, size.Z, 0.01)
-		model:ScaleTo(model:GetScale() * (TEMPLATE_ADULT_SIZE / longest) * stage.scale)
+		-- Baby models already have baby proportions; they read small enough a bit larger
+		local stageScale = if isBabyModel then stage.scale * BABY_MODEL_BOOST else stage.scale
+		model:ScaleTo(model:GetScale() * (TEMPLATE_ADULT_SIZE / longest) * stageScale)
 	else
 		model:ScaleTo(stage.scale)
 	end

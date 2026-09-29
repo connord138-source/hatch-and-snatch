@@ -10,8 +10,10 @@ sourcemap.json
 
 # Downloaded GLB source models (large; links live in docs/ASSETS.md)
 assets/glb/
-# Rigged output of tools/blender/rig_all.py
+# Rigged output of tools/blender/rig_all.py, and downloaded eggs/props
 assets/fbx/
+assets/eggs/
+assets/props/
 
 # Python
 __pycache__/
