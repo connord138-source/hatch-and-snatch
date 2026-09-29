@@ -50,13 +50,18 @@ docs/              design, roster, art bible
 
 1. `rojo serve`, connect the plugin, press **Play**.
 2. You spawn on your own plot. Walk to the conveyor ring and press **E** on an egg to buy it.
-3. It incubates at your base (timers are shown top-right), hatches, and the creature appears on a pedestal.
+3. It incubates at your base (timers are shown on the left), hatches, and the creature appears on a pedestal.
 4. Cash builds up on your green pad; step on it to collect.
+5. The buttons under the incubators open three menus:
+   - **Creatures:** every creature you own. **Store** takes one off its pedestal (it stops earning), **Place** puts it back, **To Nursery** protects it, and **Sell** (press twice) sells it for 15 seconds of its earnings.
+   - **Index:** all 30 species by biome. The ones you've owned show their gag, the dots are rare finishes you've collected, and ADULT means you've raised one.
+   - **Rebirth:** costs $25K for the first (see `rebirthCosts` in `Economy.luau`). It resets your cash, keeps your creatures, unlocks the next biome's eggs and adds +10% earnings.
 
 **Studio test mode** (`src/shared/Config/Debug.luau`, ignored in live servers):
 - Hatching and growth run 20× faster.
-- You start with $1M and every biome unlocked.
+- Your cash is topped up to $1M every time you press Play. Only Mossvale eggs are unlocked at first: rebirth to unlock the next biome, then Stop and Play again for another $1M. Set `studioUnlockAllBiomes = true` to skip that.
 - A moon event fires every 2 minutes.
+- Studio saves go to their own DataStore (`PlayerData_Studio_v1`), so test cash never reaches live saves.
 
 Drop a real model into `ReplicatedStorage.CreatureModels` named after the species id
 (for example `Emberlynx`, with its PrimaryPart set) and it replaces the placeholder block creature.
@@ -65,12 +70,13 @@ Set **Game Settings → Places → Max Players = 8**: there are 8 base plots per
 
 ## Testing stealing (needs 2 players)
 
-In Studio, go to **Test → Clients and Servers**, set **2 players**, then **Start**. Two client windows open.
+In Studio, pick **Server & Clients** in the mode dropdown next to Play, set the player count beside it to **2**, then press Play. (Or start the server and use **Test → Add Clients** in its window, once per player.) A server window and two client windows open; they stack on top of each other, so drag them apart. Switch the dropdown back to **Test** for normal Play.
 
 1. **Player 1:** buy and hatch a creature.
 2. **Player 2:** walk into Player 1's base and hold **E** on the creature (Steal).
    - It lifts over your head.
    - Carry speed drops with growth stage, and you can't jump while carrying an adult.
+   - While it's being carried it earns nothing for Player 1.
 3. **Player 2:** run back into your own plot to deliver it. It arrives tagged "stolen from Player1".
 4. **Player 1** can instead hold **E** on the thief to take it back (fastest for adults), or try:
    - pressing **F** on their own creature to move it into the blue Nursery pedestal, where it can't be stolen;
