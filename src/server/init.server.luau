@@ -59,6 +59,8 @@ local HatchService = require(Services.HatchService)
 local EconomyService = require(Services.EconomyService)
 local EggService = require(Services.EggService)
 local StealService = require(Services.StealService)
+local InventoryService = require(Services.InventoryService)
+local RebirthService = require(Services.RebirthService)
 local StateService = require(Services.StateService)
 local DataService = require(Services.DataService)
 
@@ -70,6 +72,8 @@ HatchService.start() -- loaded: show incubator state (offline hatches happen on 
 EconomyService.start() -- loaded: leaderstats + offline earnings
 EggService.start()
 StealService.start()
+InventoryService.start() -- Creatures menu requests: store, place, nursery, sell
+RebirthService.start()
 StateService.start()
 DataService.start() -- last: fires loaded for players already in the server
 

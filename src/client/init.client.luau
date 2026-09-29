@@ -4,11 +4,15 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local ClientState = require(script.ClientState)
 local CreatureAnimator = require(script.Controllers.CreatureAnimator)
 local HudController = require(script.Controllers.HudController)
+local MenuController = require(script.Controllers.MenuController)
 local PromptFilter = require(script.Controllers.PromptFilter)
 
+ClientState.start()
 HudController.start()
+MenuController.start()
 CreatureAnimator.start()
 PromptFilter.start()
 

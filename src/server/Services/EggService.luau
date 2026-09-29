@@ -8,6 +8,7 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Net = require(script.Parent.Parent.Net)
+local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local EventService = require(script.Parent.EventService)
@@ -68,6 +69,10 @@ local function tryBuy(egg: Egg, player: Player)
 	end
 	if not HatchService.hasFreeSlot(player) then
 		Net.notify(player, "Your incubators are full — wait for an egg to hatch.", "bad")
+		return
+	end
+	if not CreatureService.hasRoom(data) then
+		Net.notify(player, "Your pedestals and storage are full. Sell a creature first.", "bad")
 		return
 	end
 	if not EconomyService.spend(player, egg.price) then

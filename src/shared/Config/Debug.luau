@@ -3,8 +3,8 @@
 -- (gated by RunService:IsStudio() at the call sites via shared/Timing).
 return table.freeze({
 	studioSpeed = 20, -- hatch + growth run this many times faster in Studio
-	studioStartingCash = 1_000_000,
-	studioUnlockAllBiomes = true,
+	studioStartingCash = 1_000_000, -- topped up to this on every join
+	studioUnlockAllBiomes = false, -- true skips rebirths and unlocks every biome's eggs
 	studioMoonEventIntervalSeconds = 120,
 	studioSkipNewPlayerProtection = true, -- so two Studio test players can steal right away
 })

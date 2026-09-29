@@ -1,7 +1,10 @@
 --!strict
--- Server-side remotes. All are server -> client for now: every player action
--- (buying eggs, collecting cash) goes through ProximityPrompts / touch pads that
--- the server validates, so there is no client -> server remote to exploit yet.
+-- Remotes. Server -> client: state snapshots, toasts and announcements.
+-- Client -> server: menu requests (the Creatures menu, rebirth). Their arguments
+-- are untrusted, so every handler validates them; requests are also rate limited
+-- per player. World actions (buying eggs, stealing, collecting cash) still go
+-- through ProximityPrompts / touch pads that the server checks.
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local folder = Instance.new("Folder")
@@ -17,8 +20,18 @@ end
 local stateUpdate = makeEvent("StateUpdate")
 local notify = makeEvent("Notify")
 local announce = makeEvent("Announce")
+local requests: { [string]: RemoteEvent } = {
+	CreatureAction = makeEvent("CreatureAction"), -- (action: string, uid: string)
+	Rebirth = makeEvent("Rebirth"), -- ()
+}
 
 folder.Parent = ReplicatedStorage
+
+local REQUEST_INTERVAL = 0.15 -- minimum seconds between one player's requests
+local lastRequest: { [Player]: number } = {}
+Players.PlayerRemoving:Connect(function(player)
+	lastRequest[player] = nil
+end)
 
 export type NotifyKind = "info" | "good" | "bad" | "rare"
 
@@ -35,6 +48,18 @@ end
 -- Big centered message for everyone (rare hatches, moon events).
 function Net.announce(text: string, color: Color3?)
 	announce:FireAllClients(text, color or Color3.fromRGB(255, 255, 255))
+end
+
+-- Handles one kind of client request. The handler gets the raw, untrusted arguments.
+function Net.onRequest(name: string, handler: (Player, ...any) -> ())
+	requests[name].OnServerEvent:Connect(function(player: Player, ...: any)
+		local now = os.clock()
+		if now - (lastRequest[player] or 0) < REQUEST_INTERVAL then
+			return
+		end
+		lastRequest[player] = now
+		handler(player, ...)
+	end)
 end
 
 return Net

@@ -9,9 +9,13 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local ClientState = require(script.Parent.Parent.ClientState)
+local Ui = require(script.Parent.Parent.Ui)
 
 local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local label = Ui.label
+local panel = Ui.panel
 
 local TOAST_COLORS: { [string]: Color3 } = {
 	info = Color3.fromRGB(40, 44, 56),
@@ -22,42 +26,19 @@ local TOAST_COLORS: { [string]: Color3 } = {
 
 local HudController = {}
 
-local state: { [string]: any }? = nil
-
-local function label(parent: Instance, props: { [string]: any }): TextLabel
-	local l = Instance.new("TextLabel")
-	l.BackgroundTransparency = 1
-	l.Font = Enum.Font.GothamBold
-	l.TextColor3 = Color3.new(1, 1, 1)
-	l.TextStrokeTransparency = 0.5
-	l.TextScaled = true
-	for key, value in props do
-		(l :: any)[key] = value
-	end
-	l.Parent = parent
-	return l
-end
-
-local function panel(parent: Instance, props: { [string]: any }): Frame
-	local f = Instance.new("Frame")
-	f.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
-	f.BackgroundTransparency = 0.25
-	for key, value in props do
-		(f :: any)[key] = value
-	end
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
-	corner.Parent = f
-	f.Parent = parent
-	return f
-end
-
 function HudController.start()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "HatchHud"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = false
 	gui.Parent = player:WaitForChild("PlayerGui")
+
+	-- Toasts and announcements go on their own layer so they show over open menus
+	local overlay = Instance.new("ScreenGui")
+	overlay.Name = "HatchOverlay"
+	overlay.ResetOnSpawn = false
+	overlay.DisplayOrder = 10
+	overlay.Parent = gui.Parent
 
 	-- Cash panel (top-left)
 	local cashPanel = panel(gui, { Size = UDim2.fromOffset(250, 96), Position = UDim2.fromOffset(12, 12) })
@@ -134,7 +115,7 @@ function HudController.start()
 	toastHolder.BackgroundTransparency = 1
 	toastHolder.Size = UDim2.fromOffset(460, 200)
 	toastHolder.Position = UDim2.new(0.5, -230, 1, -260)
-	toastHolder.Parent = gui
+	toastHolder.Parent = overlay
 	local layout = Instance.new("UIListLayout")
 	layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	layout.Padding = UDim.new(0, 6)
@@ -152,7 +133,7 @@ function HudController.start()
 	end
 
 	-- Announcements (center)
-	local announceLabel = label(gui, {
+	local announceLabel = label(overlay, {
 		Size = UDim2.new(0.8, 0, 0, 60),
 		Position = UDim2.new(0.1, 0, 0.3, 0),
 		TextTransparency = 1,
@@ -176,12 +157,8 @@ function HudController.start()
 		end)
 	end
 
-	local stateUpdate = remotes:WaitForChild("StateUpdate") :: RemoteEvent
 	local notify = remotes:WaitForChild("Notify") :: RemoteEvent
 	local announceRemote = remotes:WaitForChild("Announce") :: RemoteEvent
-	stateUpdate.OnClientEvent:Connect(function(newState)
-		state = newState
-	end)
 	notify.OnClientEvent:Connect(toast)
 	announceRemote.OnClientEvent:Connect(announce)
 
@@ -195,7 +172,7 @@ function HudController.start()
 		accumulator = 0
 		local now = Workspace:GetServerTimeNow()
 
-		local current = state
+		local current = ClientState.current
 		if current then
 			cashLabel.Text = Format.cash(current.cash)
 			rateLabel.Text = `+{Format.cash(current.rate)}/s`

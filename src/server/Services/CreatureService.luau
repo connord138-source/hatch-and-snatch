@@ -43,7 +43,8 @@ local models: { [Player]: { [string]: Model } } = {}
 -- Creatures currently being carried by a thief (not shown on their pedestal)
 local carried: { [Player]: { [string]: boolean? } } = {}
 
-local nurserySlots = Config.Economy.tunables.nurserySlotsBase
+local tunables = Config.Economy.tunables
+local nurserySlots = tunables.nurserySlotsBase
 local STEAL_HOLD: { [string]: number } = { Baby = 1.2, Juvenile = 1.6, Adult = 2.0 }
 
 local CreatureService = {
@@ -57,6 +58,40 @@ end
 
 local function stageIndex(stage: string): number
 	return table.find(STAGE_ORDER, stage :: Types.StageId) or 1
+end
+
+-- The numbers Config.Economy needs to price a creature (earnings, sell value).
+function CreatureService.stats(record: CreatureRecord)
+	local creature = Config.CreaturesById[record.species]
+	return {
+		biome = creature.biome :: string,
+		rarity = creature.rarity,
+		stage = record.stage :: Types.StageId,
+		finish = record.finish,
+		mutation = record.mutation,
+		homegrown = record.homegrown,
+	}
+end
+
+-- Collection index: every species, finish and Adult the player has ever owned.
+local function recordInIndex(data: PlayerData, record: CreatureRecord)
+	data.index[record.species] = true
+	local finishes = data.indexFinishes[record.species] or {}
+	finishes[record.finish] = true
+	data.indexFinishes[record.species] = finishes
+	if record.stage == "Adult" then
+		data.indexAdults[record.species] = true
+	end
+end
+
+-- Whether the player can take one more creature: owned creatures plus eggs still
+-- incubating must fit on pedestals + storage. Buying and stealing check this.
+function CreatureService.hasRoom(data: PlayerData): boolean
+	local owned = #data.incubators
+	for _ in data.creatures do
+		owned += 1
+	end
+	return owned < tunables.pedestalsBase + tunables.storageSlots
 end
 
 -- Absolute unix time the creature reaches its next stage (nil when Adult).
@@ -336,11 +371,50 @@ local function freeSlot(data: PlayerData): number?
 	return nil
 end
 
+-- Moves a creature off its pedestal into storage (it stops earning).
+function CreatureService.store(player: Player, uid: string)
+	local data = DataService.get(player)
+	local record = data and data.creatures[uid]
+	if data == nil or record == nil or record.slot == nil or CreatureService.isCarried(player, uid) then
+		return
+	end
+	local stored = 0
+	for _, other in data.creatures do
+		if other.slot == nil then
+			stored += 1
+		end
+	end
+	if stored >= tunables.storageSlots then
+		Net.notify(player, "Your storage is full. Sell a creature first.", "bad")
+		return
+	end
+	record.slot = nil
+	despawn(player, uid)
+	DataService.markDirty(player)
+end
+
+-- Puts a stored creature on the first free pedestal.
+function CreatureService.place(player: Player, uid: string)
+	local data = DataService.get(player)
+	local record = data and data.creatures[uid]
+	if data == nil or record == nil or record.slot ~= nil then
+		return
+	end
+	local slot = freeSlot(data)
+	if slot == nil then
+		Net.notify(player, "Every pedestal is taken. Store or sell a creature first.", "bad")
+		return
+	end
+	record.slot = slot
+	spawn(player, uid, record)
+	DataService.markDirty(player)
+end
+
 -- Swaps a creature into the nursery (or back out to a regular pedestal).
 function CreatureService.toggleNursery(player: Player, uid: string)
 	local data = DataService.get(player)
 	local record = data and data.creatures[uid]
-	if data == nil or record == nil or CreatureService.isCarried(player, uid) then
+	if data == nil or record == nil or record.slot == nil or CreatureService.isCarried(player, uid) then
 		return
 	end
 	local target: number? = nil
@@ -401,7 +475,7 @@ function CreatureService.add(player: Player, record: CreatureRecord): string?
 	local uid = DataService.newUid(data)
 	record.slot = freeSlot(data)
 	data.creatures[uid] = record
-	data.index[record.species] = true
+	recordInIndex(data, record)
 	spawn(player, uid, record)
 	DataService.markDirty(player)
 	return uid
@@ -412,6 +486,7 @@ local function tick()
 	for player, data in DataService.loadedPlayers() do
 		for uid, record in data.creatures do
 			if advance(record, now) then
+				recordInIndex(data, record)
 				spawn(player, uid, record)
 				local name = Config.CreaturesById[record.species].displayName
 				Net.notify(player, `Your {name} grew into a {record.stage}!`, "good")
@@ -426,9 +501,7 @@ function CreatureService.start()
 		local now = Timing.now()
 		for uid, record in data.creatures do
 			advance(record, now) -- offline growth catch-up
-			if record.slot == nil then
-				record.slot = freeSlot(data)
-			end
+			recordInIndex(data, record) -- also backfills saves from before the index
 			spawn(player, uid, record)
 		end
 	end)

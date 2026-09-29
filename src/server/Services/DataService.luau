@@ -38,7 +38,10 @@ export type PlayerData = {
 	nextUid: number,
 	creatures: { [string]: CreatureRecord },
 	incubators: { IncubatorRecord },
-	index: { [string]: boolean }, -- species ever owned (collection book)
+	-- Collection index: species ever owned, their finishes, and ones raised to Adult
+	index: { [string]: boolean },
+	indexFinishes: { [string]: { [string]: boolean } },
+	indexAdults: { [string]: boolean },
 	stats: { hatched: number, eggsBought: number },
 }
 
@@ -54,6 +57,8 @@ local TEMPLATE: PlayerData = {
 	creatures = {},
 	incubators = {},
 	index = {},
+	indexFinishes = {},
+	indexAdults = {},
 	stats = { hatched = 0, eggsBought = 0 },
 }
 
@@ -136,10 +141,11 @@ local function onPlayerAdded(player: Player)
 	end
 	if Timing.isStudio() then
 		data.cash = math.max(data.cash, Config.Debug.studioStartingCash)
-		if Config.Debug.studioUnlockAllBiomes then
-			data.unlockedBiome = 6
-		end
 	end
+	-- Each rebirth unlocks the next biome's eggs (Studio can unlock them all for testing)
+	data.unlockedBiome = if Timing.isStudio() and Config.Debug.studioUnlockAllBiomes
+		then Config.Economy.maxBiomeOrder
+		else Config.Economy.unlockedBiome(data.rebirths)
 
 	profiles[player] = profile
 	DataService.loaded:fire(player, data)

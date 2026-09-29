@@ -34,10 +34,20 @@ local function snapshot(player: Player): { [string]: any }?
 			homegrown = record.homegrown,
 			stolenFrom = record.stolenFrom,
 			nextStageAt = CreatureService.nextStageAt(record),
+			carried = CreatureService.isCarried(player, uid),
+			rate = EconomyService.creatureRate(data, record),
+			value = Config.Economy.sellValue(CreatureService.stats(record)),
 		})
 	end
 	local lock = StealService.lockState(player)
 	return {
+		rebirths = data.rebirths,
+		rebirthCost = Config.Economy.rebirthCost(data.rebirths),
+		pedestals = Config.Economy.tunables.pedestalsBase,
+		storageSlots = Config.Economy.tunables.storageSlots,
+		index = data.index,
+		indexFinishes = data.indexFinishes,
+		indexAdults = data.indexAdults,
 		lockedUntil = if lock then lock.lockedUntil else 0,
 		lockCooldownUntil = if lock then lock.cooldownUntil else 0,
 		carrying = StealService.carryingName(player),

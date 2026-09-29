@@ -182,6 +182,10 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 		Net.notify(thief, "Creatures in a nursery can't be stolen.", "bad")
 		return
 	end
+	if not CreatureService.hasRoom(thiefData) then
+		Net.notify(thief, "You have no room for it. Sell a creature first.", "bad")
+		return
+	end
 	if isLocked(ownerPlot) then
 		Net.notify(thief, "That base is locked!", "bad")
 		return

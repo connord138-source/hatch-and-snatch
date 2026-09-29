@@ -6,18 +6,24 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
-local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EventService = require(script.Parent.EventService)
 local PlotService = require(script.Parent.PlotService)
 
+type CreatureRecord = DataService.CreatureRecord
 type PlayerData = DataService.PlayerData
 
 local tunables = Config.Economy.tunables
 
 local EconomyService = {}
+
+-- Cash per second one creature earns on a pedestal (rebirth bonus included, moon events not).
+function EconomyService.creatureRate(data: PlayerData, record: CreatureRecord): number
+	return Config.Economy.cashPerSecond(CreatureService.stats(record))
+		* (1 + data.rebirths * tunables.rebirthBonusPerLevel)
+end
 
 -- Cash per second for a player's placed creatures, excluding the moon event bonus.
 -- A creature a thief is carrying off earns nothing until it's back on its pedestal.
@@ -25,18 +31,10 @@ local function baseRate(player: Player, data: PlayerData): number
 	local total = 0
 	for uid, record in data.creatures do
 		if record.slot ~= nil and not CreatureService.isCarried(player, uid) then
-			local creature = Config.CreaturesById[record.species]
-			total += Config.Economy.cashPerSecond({
-				biome = creature.biome,
-				rarity = creature.rarity,
-				stage = record.stage :: Types.StageId,
-				finish = record.finish,
-				mutation = record.mutation,
-				homegrown = record.homegrown,
-			})
+			total += EconomyService.creatureRate(data, record)
 		end
 	end
-	return total * (1 + data.rebirths * tunables.rebirthBonusPerLevel)
+	return total
 end
 
 function EconomyService.rate(player: Player): number
@@ -49,9 +47,25 @@ end
 
 local function updateLeaderstats(player: Player, data: PlayerData)
 	local leaderstats = player:FindFirstChild("leaderstats")
-	local cash = leaderstats and leaderstats:FindFirstChild("Cash")
+	if leaderstats == nil then
+		return
+	end
+	local cash = leaderstats:FindFirstChild("Cash")
 	if cash and cash:IsA("StringValue") then
 		cash.Value = Format.cash(data.cash)
+	end
+	local rebirths = leaderstats:FindFirstChild("Rebirths")
+	if rebirths and rebirths:IsA("IntValue") then
+		rebirths.Value = data.rebirths
+	end
+end
+
+-- Re-syncs the player list and HUD after cash or rebirths change outside spend/grant.
+function EconomyService.refresh(player: Player)
+	local data = DataService.get(player)
+	if data then
+		updateLeaderstats(player, data)
+		DataService.markDirty(player)
 	end
 end
 
@@ -113,6 +127,9 @@ function EconomyService.start()
 		local cash = Instance.new("StringValue")
 		cash.Name = "Cash"
 		cash.Parent = leaderstats
+		local rebirths = Instance.new("IntValue")
+		rebirths.Name = "Rebirths"
+		rebirths.Parent = leaderstats
 		leaderstats.Parent = player
 		updateLeaderstats(player, data)
 

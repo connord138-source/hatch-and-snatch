@@ -30,6 +30,17 @@ local Tunables = {
 	pedestalsMax = 30,
 	basePlotsPerServer = 8,
 
+	-- Creatures menu. A creature sells for this many seconds of its own earnings:
+	-- low enough that a fresh hatch sells for less than its egg on average, even in
+	-- a Blood Moon, so buying eggs just to sell them never pays.
+	sellValueSeconds = 15,
+	storageSlots = 40, -- off-pedestal creatures; buying and stealing stop when full
+
+	-- Rebirth N costs rebirthCosts[N]; after the list each one costs 10× the last.
+	-- ×10 per step (eggs cost ×8 per biome, earnings grow ×4), so every rebirth
+	-- takes a little longer than the one before. First pass; tune in playtests.
+	rebirthCosts = { 25_000, 250_000, 2_500_000, 25_000_000, 250_000_000 },
+
 	-- Moon events
 	moonEventIntervalSeconds = 60 * 60,
 }
@@ -77,6 +88,31 @@ local function cashPerSecond(stats: CreatureInstanceStats): number
 		* bonus
 end
 
+-- Cash a creature sells for in the Creatures menu.
+local function sellValue(stats: CreatureInstanceStats): number
+	return math.floor(cashPerSecond(stats) * Tunables.sellValueSeconds)
+end
+
+-- Cash needed for the next rebirth, given how many the player has done.
+local function rebirthCost(rebirthsDone: number): number
+	local costs = Tunables.rebirthCosts
+	local nth = rebirthsDone + 1
+	if nth <= #costs then
+		return costs[nth]
+	end
+	return costs[#costs] * 10 ^ (nth - #costs)
+end
+
+local maxBiomeOrder = 0
+for _, biome in Biomes do
+	maxBiomeOrder = math.max(maxBiomeOrder, biome.order)
+end
+
+-- Highest Biomes[].order whose eggs a player may buy: each rebirth unlocks the next.
+local function unlockedBiome(rebirthsDone: number): number
+	return math.min(maxBiomeOrder, rebirthsDone + 1)
+end
+
 -- Seconds to grow from `stage` to the next stage (nil when already Adult).
 local function secondsToNextStage(rarityId: Types.RarityId, stage: Types.StageId): number?
 	local base = Tunables.growthSeconds[stage]
@@ -118,7 +154,11 @@ end
 
 local Economy = table.freeze({
 	tunables = Tunables,
+	maxBiomeOrder = maxBiomeOrder,
 	cashPerSecond = cashPerSecond,
+	sellValue = sellValue,
+	rebirthCost = rebirthCost,
+	unlockedBiome = unlockedBiome,
 	secondsToNextStage = secondsToNextStage,
 	rollFinish = rollFinish,
 	rollMutation = rollMutation,

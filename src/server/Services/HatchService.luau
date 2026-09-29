@@ -99,7 +99,7 @@ local function hatch(player: Player, data: PlayerData, index: number)
 	local rare = finishId ~= "Normal" or Config.Rarities[creature.rarity].order >= 4
 	Net.notify(player, `Hatched: {name} ({creature.rarity})!`, if rare then "rare" else "good")
 	if uid and data.creatures[uid] and data.creatures[uid].slot == nil then
-		Net.notify(player, "Your pedestals are full — it went to storage.", "bad")
+		Net.notify(player, "Your pedestals are full, so it went to storage (Creatures menu).", "bad")
 	end
 	if finish.announce ~= "none" or creature.rarity == "Mythic" then
 		Net.announce(`{player.DisplayName} hatched a {name}!`, Config.Rarities[creature.rarity].color)
