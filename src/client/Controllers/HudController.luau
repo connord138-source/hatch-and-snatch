@@ -275,7 +275,9 @@ function HudController.start()
 					`Hatcher Lv {progression.level}  ·  {progression.xpInto}/{progression.xpNeeded} XP`
 				xpFill.Size = UDim2.fromScale(math.clamp(progression.xpInto / progression.xpNeeded, 0, 1), 1)
 			end
-			spinsLabel.Text = `🎡 {current.spins or 0} spin{if current.spins == 1 then "" else "s"}`
+			local charge: number = current.luckCharge or 1
+			spinsLabel.Text = `🎡 {current.spins or 0}`
+				.. (if charge > 1 then `  ·  next egg ×{charge}` else "")
 			if current.heldEgg then
 				eggBanner.Visible = true
 				eggLabel.Text =

@@ -194,8 +194,8 @@ local function addParticles(part: BasePart, spec: ParticleSpec)
 		local light = Instance.new("PointLight")
 		light.Name = "LookLight"
 		light.Color = spec.light
-		light.Brightness = 1.2
-		light.Range = 12
+		light.Brightness = 0.45 -- subtle: brighter lights washed out neighbouring creatures
+		light.Range = 6
 		light.Parent = part
 	end
 end
@@ -475,8 +475,8 @@ local function addStageEffects(model: Model, creature: Types.Creature, stage: st
 	if stage == "Adult" and fx.light then
 		local glow = Instance.new("PointLight")
 		glow.Color = fx.color
-		glow.Brightness = 0.8
-		glow.Range = math.max(size.X, size.Z) + 4
+		glow.Brightness = 0.35
+		glow.Range = math.max(size.X, size.Z) * 0.6 + 2
 		glow.Parent = attachment
 	end
 end
@@ -539,9 +539,11 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 
 	local creature = Config.CreaturesById[record.species]
 	local tag = Instance.new("BillboardGui")
-	tag.Size = UDim2.fromOffset(220, 44)
-	tag.StudsOffsetWorldSpace = Vector3.new(0, extents.Y / 2 + 1.5, 0)
-	tag.MaxDistance = 80
+	-- Sized in studs (shrinks with distance) and only shown up close, so a full
+	-- base doesn't turn into a wall of overlapping names
+	tag.Size = UDim2.fromScale(7, 1.4)
+	tag.StudsOffsetWorldSpace = Vector3.new(0, extents.Y / 2 + 1.2, 0)
+	tag.MaxDistance = 32
 	tag.Parent = model.PrimaryPart
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)

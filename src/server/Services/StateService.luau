@@ -60,6 +60,7 @@ local function snapshot(player: Player): { [string]: any }?
 		ownedThemes = data.ownedThemes,
 		progression = ProgressionService.snapshot(data),
 		spins = data.spins,
+		luckCharge = data.luckCharge,
 		spinProgress = data.spinProgress,
 		heldEgg = if data.heldEgg then data.heldEgg.biome else nil,
 		walking = CreatureService.walkingUid(player),

@@ -1,7 +1,6 @@
 --!strict
--- The two "wow" moments (client, presentation only; the server already decided):
---  * Luck Wheel: a spinning wheel of luck multipliers that lands on the server's
---    segment, then says whether the egg was upgraded.
+-- The hatch "wow" moment (client, presentation only; the server already decided).
+-- (The Luck Wheel is a physical wheel in the world: LuckWheelController.)
 --  * Hatch reveal: a case-opening reel of creature cards from that egg's odds that
 --    slows down and lands on what actually hatched, then a big rarity-colored
 --    reveal with the creature spinning in a viewport. Mythic and rarer flash the
@@ -21,7 +20,6 @@ local CARD_W, CARD_H, CARD_GAP = 118, 150, 10
 local REEL_CARDS = 44
 local WINNER_INDEX = 38
 local REEL_SECONDS = 4.6
-local WHEEL_SECONDS = 4.2
 
 local gui: ScreenGui
 local queue: { () -> () } = {}
@@ -90,185 +88,6 @@ local function flash(color: Color3, strength: number)
 		frame:Destroy()
 	end)
 end
-
----------------------------------------------------------------------------
--- Luck Wheel
----------------------------------------------------------------------------
-
-local function playWheel(segmentIndex: number, rarityAfter: string)
-	local segments = Config.Economy.tunables.luckWheel
-	local count = #segments
-	local slice = 360 / count
-
-	local overlay = Instance.new("Frame")
-	overlay.Size = UDim2.fromScale(1, 1)
-	overlay.BackgroundColor3 = Color3.new(0, 0, 0)
-	overlay.BackgroundTransparency = 0.45
-	overlay.ZIndex = 10
-	overlay.Parent = gui
-
-	local size = 340
-	local wheel = Instance.new("Frame")
-	wheel.AnchorPoint = Vector2.new(0.5, 0.5)
-	wheel.Position = UDim2.fromScale(0.5, 0.47)
-	wheel.Size = UDim2.fromOffset(size, size)
-	wheel.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-	wheel.ZIndex = 11
-	wheel.Parent = overlay
-	corner(wheel, size)
-	local ring = Instance.new("UIStroke")
-	ring.Thickness = 6
-	ring.Color = Color3.fromRGB(255, 215, 90)
-	ring.Parent = wheel
-
-	-- Pie slices. GUI has no wedge shape, and a frame rotates around its own center,
-	-- so each slice is a fan of thin spokes: full-diameter bars centered on the wheel
-	-- (rotating one swings it around the hub) with the lower half faded out. Segment
-	-- i covers (i - 1) * slice .. i * slice degrees clockwise from the top.
-	local radius = size / 2 - 3
-	local step = 3
-	local spokesPer = math.max(1, math.floor(slice / step))
-	local spokeWidth = math.ceil(2 * radius * math.sin(math.rad(slice / spokesPer) / 2)) + 1
-	local upperHalf = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0),
-		NumberSequenceKeypoint.new(0.5, 0),
-		NumberSequenceKeypoint.new(0.501, 1),
-		NumberSequenceKeypoint.new(1, 1),
-	})
-	local function spoke(angle: number, width: number, color: Color3, zIndex: number)
-		local bar = Instance.new("Frame")
-		bar.AnchorPoint = Vector2.new(0.5, 0.5)
-		bar.Position = UDim2.fromScale(0.5, 0.5)
-		bar.Size = UDim2.fromOffset(width, radius * 2)
-		bar.BackgroundColor3 = color
-		bar.BorderSizePixel = 0
-		bar.Rotation = angle
-		bar.ZIndex = zIndex
-		local fade = Instance.new("UIGradient")
-		fade.Rotation = 90 -- top to bottom
-		fade.Transparency = upperHalf
-		fade.Parent = bar
-		bar.Parent = wheel
-	end
-	for i, segment in segments do
-		local start = (i - 1) * slice
-		for k = 0, spokesPer - 1 do
-			spoke(start + (k + 0.5) * slice / spokesPer, spokeWidth, segment.color, 12)
-		end
-		-- Divider on the slice's leading edge (also hides where neighbors' spokes overlap)
-		spoke(start, 5, Color3.fromRGB(25, 25, 35), 13)
-		-- Label on the slice's middle line, near the rim, reading outward
-		local holder = Instance.new("Frame")
-		holder.AnchorPoint = Vector2.new(0.5, 0.5)
-		holder.Position = UDim2.fromScale(0.5, 0.5)
-		holder.Size = UDim2.fromOffset(size, size)
-		holder.BackgroundTransparency = 1
-		holder.Rotation = start + slice / 2
-		holder.ZIndex = 13
-		holder.Parent = wheel
-		label(holder, {
-			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.fromOffset(size / 2, 22),
-			Size = UDim2.fromOffset(96, 30),
-			Text = segment.label,
-			TextColor3 = if segment.luck >= 25 then Color3.fromRGB(40, 30, 10) else Color3.new(1, 1, 1),
-			TextStrokeTransparency = if segment.luck >= 25 then 1 else 0.2,
-			ZIndex = 14,
-		})
-	end
-	local hub = Instance.new("Frame")
-	hub.AnchorPoint = Vector2.new(0.5, 0.5)
-	hub.Position = UDim2.fromScale(0.5, 0.5)
-	hub.Size = UDim2.fromOffset(84, 84)
-	hub.BackgroundColor3 = Color3.fromRGB(255, 215, 90)
-	hub.ZIndex = 15
-	hub.Parent = wheel
-	corner(hub, 84)
-	label(hub, {
-		Size = UDim2.fromScale(0.8, 0.5),
-		Position = UDim2.fromScale(0.1, 0.25),
-		Text = "LUCK",
-		TextColor3 = Color3.fromRGB(60, 40, 0),
-		ZIndex = 16,
-	})
-
-	local pointer = label(overlay, {
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 0.47, -size / 2 + 14),
-		Size = UDim2.fromOffset(44, 44),
-		Text = "▼",
-		TextColor3 = Color3.fromRGB(255, 80, 80),
-		ZIndex = 20,
-	})
-	local result = label(overlay, {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0.47, size / 2 + 16),
-		Size = UDim2.fromOffset(520, 44),
-		Text = "",
-		ZIndex = 20,
-	})
-	-- Odds shown under the wheel: every segment's real chance
-	local total = 0
-	for _, segment in segments do
-		total += segment.weight
-	end
-	local odds = {}
-	for _, segment in segments do
-		table.insert(odds, `{segment.label} {math.floor(segment.weight / total * 1000 + 0.5) / 10}%`)
-	end
-	label(overlay, {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0.47, size / 2 + 64),
-		Size = UDim2.fromOffset(620, 20),
-		Font = Enum.Font.Gotham,
-		Text = table.concat(odds, "  ·  "),
-		TextColor3 = Color3.fromRGB(200, 200, 210),
-		ZIndex = 20,
-	})
-
-	-- Land the chosen segment under the pointer (top), with a little jitter
-	local center = (segmentIndex - 1) * slice + slice / 2
-	local jitter = (math.random() - 0.5) * slice * 0.6
-	local final = 360 * 6 - center + jitter
-	local tween = TweenService:Create(
-		wheel,
-		TweenInfo.new(WHEEL_SECONDS, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-		{ Rotation = final }
-	)
-	local lastSlice = 0
-	local tickConnection = RunService.RenderStepped:Connect(function()
-		local current = math.floor(wheel.Rotation / slice)
-		if current ~= lastSlice then
-			lastSlice = current
-			play(TICK_SOUND, 0.25, 1.6)
-			pointer.Rotation = -12
-			task.delay(0.05, function()
-				pointer.Rotation = 0
-			end)
-		end
-	end)
-	tween:Play()
-	tween.Completed:Wait()
-	tickConnection:Disconnect()
-
-	local segment = segments[segmentIndex]
-	if rarityAfter ~= "" then
-		local rarity = Config.Rarities[rarityAfter :: Config.RarityId]
-		result.Text = `{segment.label} luck — upgraded to {rarityAfter:upper()}!`
-		result.TextColor3 = rarity.color
-		flash(rarity.color, 0.5)
-		play(TICK_SOUND, 0.8, 0.8)
-	else
-		result.Text = `{segment.label} luck — no upgrade this time`
-		result.TextColor3 = Color3.fromRGB(220, 220, 230)
-	end
-	task.wait(2.6)
-	overlay:Destroy()
-end
-
----------------------------------------------------------------------------
--- Hatch reveal
----------------------------------------------------------------------------
 
 local function pickWeighted(odds: { { id: string, chance: number } }): string
 	local roll = math.random()
@@ -515,13 +334,7 @@ function RevealController.start()
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
-	local wheelRemote = remotes:WaitForChild("WheelResult") :: RemoteEvent
 	local revealRemote = remotes:WaitForChild("HatchReveal") :: RemoteEvent
-	wheelRemote.OnClientEvent:Connect(function(segmentIndex: number, _before: string, rarityAfter: string)
-		enqueue(function()
-			playWheel(segmentIndex, rarityAfter)
-		end)
-	end)
 	revealRemote.OnClientEvent:Connect(function(reveal: { [string]: any })
 		enqueue(function()
 			playReveal(reveal)

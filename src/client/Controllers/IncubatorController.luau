@@ -23,13 +23,14 @@ local displays: { [BasePart]: Display } = {}
 
 local IncubatorController = {}
 
-local function text(parent: Instance, y: number, height: number, size: number): TextLabel
+-- Positions are fractions of the (stud-sized) billboard
+local function text(parent: Instance, y: number, height: number): TextLabel
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0, 0, 0, y)
-	label.Size = UDim2.new(1, 0, 0, height)
+	label.Position = UDim2.fromScale(0, y)
+	label.Size = UDim2.fromScale(1, height)
 	label.Font = Enum.Font.GothamBold
-	label.TextSize = size
+	label.TextScaled = true
 	label.TextColor3 = Color3.new(1, 1, 1)
 	label.TextStrokeTransparency = 0.3
 	label.Parent = parent
@@ -39,19 +40,22 @@ end
 local function build(part: BasePart): Display
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "IncubatorInfo"
-	gui.Size = UDim2.fromOffset(150, 64)
-	gui.StudsOffset = Vector3.new(0, 3.6, 0)
-	gui.MaxDistance = 70
+	-- In studs, so neighbouring bays' tags don't overlap; staggered by column
+	local slot = part:GetAttribute("Slot")
+	local lift = if typeof(slot) == "number" and slot % 2 == 0 then 1.3 else 0
+	gui.Size = UDim2.fromScale(4.2, 1.8)
+	gui.StudsOffset = Vector3.new(0, 3.4 + lift, 0)
+	gui.MaxDistance = 40
 	gui.AlwaysOnTop = false
 	gui.Parent = part
-	local title = text(gui, 0, 18, 14)
-	local timer = text(gui, 18, 24, 20)
+	local title = text(gui, 0, 0.27)
+	local timer = text(gui, 0.28, 0.38)
 	local bar = Instance.new("Frame")
 	bar.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
 	bar.BackgroundTransparency = 0.2
 	bar.BorderSizePixel = 0
-	bar.Position = UDim2.new(0.1, 0, 0, 46)
-	bar.Size = UDim2.new(0.8, 0, 0, 10)
+	bar.Position = UDim2.fromScale(0.1, 0.72)
+	bar.Size = UDim2.fromScale(0.8, 0.15)
 	bar.Parent = gui
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(1, 0)

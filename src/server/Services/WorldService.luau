@@ -47,8 +47,16 @@ local ISLAND_RADIUS = 262
 local INCUBATOR_GLASS = 0.45 -- transparency of the imported incubator model
 local TOP = 1 -- plot floor top, relative to the plot origin
 
+export type LuckWheel = {
+	disc: Model, -- the spinning part; rotate with base * CFrame.Angles(0, 0, angle)
+	base: CFrame, -- wheel center, -Z facing the hub
+	prompt: ProximityPrompt,
+	sign: TextLabel,
+}
+
 local WorldService = {
 	plots = {} :: { PlotLayout },
+	luckWheel = nil :: LuckWheel?,
 	moon = nil :: BasePart?,
 	conveyorCenter = Vector3.new(0, GROUND_Y, 0),
 }
@@ -193,7 +201,8 @@ function WorldService.setMoonTint(color: Color3?)
 	if moonTint == nil then
 		return
 	end
-	local target = if color then color:Lerp(Color3.new(1, 1, 1), 0.65) else Color3.new(1, 1, 1)
+	-- A hint of the moon's color, not a wash over everything
+	local target = if color then color:Lerp(Color3.new(1, 1, 1), 0.85) else Color3.new(1, 1, 1)
 	TweenService:Create(moonTint, TweenInfo.new(4), { TintColor = target }):Play()
 end
 
@@ -375,6 +384,162 @@ local function buildHub()
 			descendant.CFrame = CFrame.new(0, GROUND_Y + 0.5, 30)
 		end
 	end
+end
+
+-- The Luck Wheel: a big upright wheel on a stone stand beside the plaza, facing
+-- the hub. Its slices match Config.Economy.tunables.luckWheel (slice i is centered
+-- (i - 1) × 60° clockwise from the top); WheelService spins it.
+local WHEEL_RADIUS = 9
+local WHEEL_HEIGHT = 12.5
+
+local function buildLuckWheel()
+	local angle = math.rad(210)
+	local ground = Vector3.new(math.cos(angle), 0, math.sin(angle)) * 76 + Vector3.new(0, GROUND_Y, 0)
+	local base =
+		CFrame.lookAt(ground + Vector3.new(0, WHEEL_HEIGHT, 0), Vector3.new(0, GROUND_Y + WHEEL_HEIGHT, 0))
+	local folder = Instance.new("Model")
+	folder.Name = "LuckWheel"
+	folder.Parent = worldFolder
+
+	-- Stand
+	local plinth = part({
+		Name = "WheelPlinth",
+		Size = Vector3.new(20, 1.4, 10),
+		CFrame = CFrame.lookAt(ground + Vector3.new(0, 0.7, 0), Vector3.new(0, GROUND_Y + 0.7, 0)),
+		Material = Enum.Material.Cobblestone,
+		Color = Color3.fromRGB(140, 130, 120),
+		Parent = folder,
+	})
+	part({
+		Name = "WheelPost",
+		Size = Vector3.new(2.2, WHEEL_HEIGHT, 2.2),
+		CFrame = base * CFrame.new(0, -WHEEL_HEIGHT / 2 + 0.7, 1.6),
+		Material = Enum.Material.Wood,
+		Color = Color3.fromRGB(110, 75, 45),
+		Parent = folder,
+	})
+	part({
+		Name = "WheelPointer",
+		Size = Vector3.new(1.4, 2.4, 0.8),
+		CFrame = base * CFrame.new(0, WHEEL_RADIUS + 1.1, -0.9),
+		Material = Enum.Material.Neon,
+		Color = Color3.fromRGB(255, 60, 60),
+		Parent = folder,
+	})
+
+	-- The disc (everything that spins)
+	local disc = Instance.new("Model")
+	disc.Name = "WheelDisc"
+	local hub = part({
+		Name = "Hub",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(1.4, 3.4, 3.4),
+		CFrame = base * CFrame.new(0, 0, -0.5) * CFrame.Angles(0, math.pi / 2, 0),
+		Material = Enum.Material.Foil,
+		Color = Color3.fromRGB(255, 200, 70),
+		Parent = disc,
+	})
+	part({
+		Name = "Backing",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.6, WHEEL_RADIUS * 2 + 1.2, WHEEL_RADIUS * 2 + 1.2),
+		CFrame = base * CFrame.new(0, 0, 0.3) * CFrame.Angles(0, math.pi / 2, 0),
+		Material = Enum.Material.SmoothPlastic,
+		Color = Color3.fromRGB(35, 30, 40),
+		Parent = disc,
+	})
+	local segments = Config.Economy.tunables.luckWheel
+	local slice = 2 * math.pi / #segments
+	local spokeLength = WHEEL_RADIUS - 1.6
+	for i, segment in segments do
+		local center = (i - 1) * slice
+		-- Each slice is a fan of spokes; a spoke's +Y points out from the hub
+		for k = -2, 2 do
+			local theta = center + k * slice / 5.5
+			part({
+				Name = "Slice",
+				Size = Vector3.new(2.1, spokeLength, 0.4),
+				CFrame = base * CFrame.Angles(0, 0, -theta) * CFrame.new(0, 1.6 + spokeLength / 2, -0.1),
+				Material = Enum.Material.SmoothPlastic,
+				Color = segment.color,
+				CanCollide = false,
+				Parent = disc,
+			})
+		end
+		local labelPart = part({
+			Name = "SliceLabel",
+			Size = Vector3.new(5, 1.6, 0.2),
+			CFrame = base * CFrame.Angles(0, 0, -center) * CFrame.new(0, WHEEL_RADIUS * 0.62, -0.45),
+			Transparency = 1,
+			CanCollide = false,
+			Parent = disc,
+		})
+		local gui = Instance.new("SurfaceGui")
+		gui.Face = Enum.NormalId.Front
+		gui.CanvasSize = Vector2.new(250, 80)
+		gui.Parent = labelPart
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.fromScale(1, 1)
+		text.BackgroundTransparency = 1
+		text.Font = Enum.Font.GothamBlack
+		text.TextScaled = true
+		text.TextColor3 = Color3.new(1, 1, 1)
+		text.TextStrokeTransparency = 0.2
+		text.Text = segment.label
+		text.Parent = gui
+	end
+	-- Bulbs around the rim
+	for i = 0, 23 do
+		local theta = i / 24 * 2 * math.pi
+		part({
+			Name = "Bulb",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(0.7, 0.7, 0.7),
+			CFrame = base * CFrame.Angles(0, 0, -theta) * CFrame.new(0, WHEEL_RADIUS + 0.3, -0.2),
+			Material = Enum.Material.Neon,
+			Color = if i % 2 == 0 then Color3.fromRGB(255, 230, 150) else Color3.fromRGB(255, 120, 80),
+			CanCollide = false,
+			Parent = disc,
+		})
+	end
+	disc.PrimaryPart = hub
+	disc.WorldPivot = base
+	disc:SetAttribute("BaseCFrame", base)
+	disc:SetAttribute("Angle", 0)
+	disc.Parent = folder
+
+	-- Sign with the real odds (slices are drawn equal)
+	local total = 0
+	for _, segment in segments do
+		total += segment.weight
+	end
+	local odds = {}
+	for _, segment in segments do
+		table.insert(odds, `{segment.label} {math.floor(segment.weight / total * 100 + 0.5)}%`)
+	end
+	local signPart = part({
+		Name = "WheelSign",
+		Size = Vector3.new(1, 1, 1),
+		CFrame = base * CFrame.new(0, WHEEL_RADIUS + 4.5, 0),
+		Transparency = 1,
+		CanCollide = false,
+		Parent = folder,
+	})
+	local sign = billboard(signPart, Vector3.zero, UDim2.fromOffset(320, 70), 140)
+	sign.RichText = true
+	sign.Text = `🎡 LUCK WHEEL\n<font size="14">{table.concat(odds, " · ")}</font>`
+	sign.TextColor3 = Color3.fromRGB(255, 225, 120)
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "SpinWheel"
+	prompt.ActionText = "Spin (1 spin)"
+	prompt.ObjectText = "Luck Wheel"
+	prompt.HoldDuration = 0.3
+	prompt.MaxActivationDistance = 14
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = plinth
+
+	WorldService.luckWheel = { disc = disc, base = base, prompt = prompt, sign = sign }
 end
 
 ---------------------------------------------------------------------------
@@ -871,6 +1036,13 @@ end
 
 -- True when a spot would sit on a (max-size) plot or its walkway.
 local function onPlotOrWalkway(position: Vector3): boolean
+	local wheel = WorldService.luckWheel
+	if wheel then
+		local offset = position - wheel.base.Position
+		if Vector3.new(offset.X, 0, offset.Z).Magnitude < 18 then
+			return true -- keep the Luck Wheel's stand clear
+		end
+	end
 	local maxWidth, maxDepth = plotSize(#Config.Economy.tunables.baseLevels)
 	for _, plot in WorldService.plots do
 		local localPos = plot.origin:PointToObjectSpace(position)
@@ -1070,6 +1242,7 @@ function WorldService.start()
 	setupLighting()
 	buildSeaAndIsland()
 	buildHub()
+	buildLuckWheel()
 	for i = 1, Config.Economy.tunables.basePlotsPerServer do
 		local plot = buildPlot(i)
 		table.insert(WorldService.plots, plot)

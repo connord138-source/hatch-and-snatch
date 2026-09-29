@@ -7,8 +7,8 @@
 --    through tiers that hatch faster and accept eggs from later biomes.
 --  * The species is rolled at purchase. Past 40% of incubation the incubator
 --    starts showing the rarity's color, stronger the closer it gets.
---  * A Luck Wheel spin on an incubating egg re-rolls it with luck; the better
---    result is kept. Spins come from playtime and achievements.
+--  * Luck: a luck charge won on the Luck Wheel (WheelService) is spent on the
+--    next egg bought: its species roll uses Epic+ weights × the luck.
 --  * Finish + mutation roll at hatch, then the client plays the hatch reveal.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -32,13 +32,10 @@ type IncubatorRecord = DataService.IncubatorRecord
 local Progression = Config.Progression
 local tunables = Config.Economy.tunables
 local rng = Random.new()
--- Rarities keyed by plain string (luau-lsp mis-infers the RarityId singleton union)
-local rarities: { [string]: Types.Rarity } = Config.Rarities :: any
 
 local INCUBATOR_EGG_HEIGHT = 2.4
 local HELD_EGG_HEIGHT = 2.2
 local HINT_START = 0.4 -- incubation progress where the rarity color starts to show
-local WHEEL_SPIN_SECONDS = 4.5 -- how long the client's wheel animation runs
 local LOCKED_PAD = Color3.fromRGB(90, 90, 100)
 
 local HatchService = {}
@@ -51,7 +48,6 @@ end
 type BayPrompts = {
 	buy: ProximityPrompt,
 	place: ProximityPrompt,
-	spin: ProximityPrompt,
 	upgrade: ProximityPrompt,
 }
 local bayPrompts: { [BasePart]: BayPrompts } = {}
@@ -166,10 +162,6 @@ local function refreshBay(data: PlayerData?, slot: number, part: BasePart, pad: 
 			else `Needs a {Progression.incubatorTiers[need].name} incubator`
 	end
 
-	local spins = if data then data.spins else 0
-	prompts.spin:SetAttribute("Active", egg ~= nil and not egg.spun)
-	prompts.spin.ActionText = if spins > 0 then `Spin Luck Wheel ({spins} left)` else "No spins left"
-
 	local nextTier = Progression.incubatorTiers[tier + 1]
 	prompts.upgrade:SetAttribute("Active", owned and nextTier ~= nil)
 	if nextTier then
@@ -265,7 +257,13 @@ function HatchService.giveEgg(player: Player, biomeId: string)
 	if data == nil then
 		return
 	end
-	local species = Config.Eggs.rollSpecies(biomeId, rng, EventService.activeId() ~= nil)
+	-- A luck charge from the Luck Wheel is spent on this egg (Junk eggs ignore luck)
+	local luck = if data.luckCharge > 1 and biomeId ~= "Junk" then data.luckCharge else nil
+	local species = Config.Eggs.rollSpecies(biomeId, rng, EventService.activeId() ~= nil, luck)
+	if luck then
+		data.luckCharge = 1
+		Net.notify(player, `Your ×{luck} Luck Wheel charge was used on this egg!`, "rare")
+	end
 	data.heldEgg = { biome = biomeId, species = species }
 	data.stats.eggsBought += 1
 	attachHeldEgg(player, biomeId)
@@ -362,74 +360,6 @@ local function upgradeIncubator(player: Player, slot: number)
 	ProgressionService.addXp(player, Progression.xp.incubatorUpgraded)
 	refreshIncubators(player, data)
 	DataService.markDirty(player)
-end
-
----------------------------------------------------------------------------
--- Luck Wheel
----------------------------------------------------------------------------
-
-local function rollWheel(): number
-	local total = 0
-	for _, segment in tunables.luckWheel do
-		total += segment.weight
-	end
-	local roll = rng:NextNumber() * total
-	for index, segment in tunables.luckWheel do
-		roll -= segment.weight
-		if roll <= 0 then
-			return index
-		end
-	end
-	return 1
-end
-
-local function spin(player: Player, slot: number)
-	local data = DataService.get(player)
-	if data == nil then
-		return
-	end
-	local egg = eggInSlot(data, slot)
-	if egg == nil or egg.spun then
-		return
-	end
-	if data.spins <= 0 then
-		Net.notify(player, "No Luck Wheel spins left. You earn one every 20 minutes you play.", "bad")
-		return
-	end
-	data.spins -= 1
-	egg.spun = true
-	local segmentIndex = rollWheel()
-	local segment = tunables.luckWheel[segmentIndex]
-	local before = Config.CreaturesById[egg.species].rarity
-	local candidate = Config.Eggs.rollSpecies(egg.biome, rng, EventService.activeId() ~= nil, segment.luck)
-	local after = Config.CreaturesById[candidate].rarity
-	local improved = rarities[after].order > rarities[before].order
-	-- The client only learns the new rarity if it improved (no early reveal otherwise)
-	Net.wheelResult(player, segmentIndex, "", if improved then after else "")
-	ProgressionService.bump(player, "spinsUsed")
-	refreshIncubators(player, data)
-	DataService.markDirty(player)
-
-	if improved then
-		-- Apply once the wheel stops, so the incubator glow doesn't spoil it
-		task.delay(WHEEL_SPIN_SECONDS, function()
-			local current = DataService.get(player)
-			if current == nil or eggInSlot(current, slot) ~= egg then
-				return
-			end
-			local now = Timing.now()
-			local span = math.max(egg.hatchAt - egg.startedAt, 1)
-			local progress = math.clamp((now - egg.startedAt) / span, 0, 1)
-			local tier = current.incubatorTiers[slot] or 1
-			local newSpan = Timing.scaled(rarities[after].hatchSeconds)
-				/ Progression.incubatorTiers[tier].speed
-			egg.species = candidate
-			egg.startedAt = now - newSpan * progress
-			egg.hatchAt = egg.startedAt + newSpan
-			refreshIncubators(player, current)
-			DataService.markDirty(player)
-		end)
-	end
 end
 
 ---------------------------------------------------------------------------
@@ -567,17 +497,14 @@ function HatchService.start()
 			local prompts: BayPrompts = {
 				buy = prompt(pad, "BuyIncubator", Enum.KeyCode.E, 0, 0.4),
 				place = prompt(part, "PlaceEgg", Enum.KeyCode.E, 0, 0),
-				spin = prompt(part, "SpinWheel", Enum.KeyCode.Q, 60, 0),
 				upgrade = prompt(part, "UpgradeIncubator", Enum.KeyCode.R, 120, 0.6),
 			}
 			prompts.buy.ObjectText = "Incubator bay"
 			prompts.place.ObjectText = "Incubator"
-			prompts.spin.ObjectText = "×1.5 to ×25 luck on this egg"
 			bayPrompts[part] = prompts
 			local actions: { [ProximityPrompt]: (Player, number) -> () } = {
 				[prompts.buy] = buyIncubator,
 				[prompts.place] = place,
-				[prompts.spin] = spin,
 				[prompts.upgrade] = upgradeIncubator,
 			}
 			for p, action in actions do

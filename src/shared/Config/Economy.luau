@@ -56,18 +56,27 @@ local Tunables = {
 	-- Walking a creature: it follows you around, can't be stolen, and grows faster
 	walkGrowthMultiplier = 2,
 
-	-- Luck Wheel: spend a spin on an incubating egg to re-roll it with luck
-	-- (Epic+ weights × multiplier). The better of the two rolls is kept.
+	-- Luck Wheel: a physical wheel by the hub. Spending a spin lands on a prize.
+	-- "luck" charges the player's NEXT egg (Epic+ weights × value; the best unspent
+	-- charge is kept); "cash" pays `value` minutes of the player's current income
+	-- (at least $500); "spin" gives spins back. Slices are drawn equal, so the real
+	-- odds are printed on the wheel's sign.
 	freeSpinSeconds = 20 * 60, -- one free spin per 20 minutes played
 	startingSpins = 3,
 	maxBankedSpins = 10,
 	luckWheel = {
-		{ label = "×1.5", luck = 1.5, weight = 34, color = Color3.fromRGB(120, 200, 120) },
-		{ label = "×2", luck = 2, weight = 28, color = Color3.fromRGB(80, 160, 255) },
-		{ label = "×3", luck = 3, weight = 20, color = Color3.fromRGB(170, 90, 255) },
-		{ label = "×5", luck = 5, weight = 11, color = Color3.fromRGB(255, 170, 40) },
-		{ label = "×10", luck = 10, weight = 5, color = Color3.fromRGB(255, 70, 100) },
-		{ label = "×25 JACKPOT", luck = 25, weight = 2, color = Color3.fromRGB(255, 255, 255) },
+		{ label = "×2 LUCK", kind = "luck", value = 2, weight = 30, color = Color3.fromRGB(80, 160, 255) },
+		{ label = "CASH", kind = "cash", value = 5, weight = 24, color = Color3.fromRGB(80, 200, 110) },
+		{ label = "×3 LUCK", kind = "luck", value = 3, weight = 18, color = Color3.fromRGB(170, 90, 255) },
+		{ label = "+2 SPINS", kind = "spin", value = 2, weight = 12, color = Color3.fromRGB(255, 170, 40) },
+		{ label = "×10 LUCK", kind = "luck", value = 10, weight = 12, color = Color3.fromRGB(255, 70, 100) },
+		{
+			label = "×25 JACKPOT",
+			kind = "luck",
+			value = 25,
+			weight = 4,
+			color = Color3.fromRGB(255, 235, 120),
+		},
 	},
 }
 
