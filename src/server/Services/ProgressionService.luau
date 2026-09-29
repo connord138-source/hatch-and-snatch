@@ -51,12 +51,13 @@ local function checkAchievements(player: Player, data: PlayerData)
 			if typeof(value) == "number" and value >= achievement.goal then
 				data.achievements[achievement.id] = true
 				data.spins += achievement.spins
+				-- Some names already end in "!" ("It's Alive!", "Shiny!"): don't double it
+				local name = achievement.name
+				local title = if string.sub(name, -1) == "!" then name else `{name}!`
+				local plural = if achievement.spins == 1 then "" else "s"
 				Net.notify(
 					player,
-					`Achievement: {achievement.name}! +{achievement.xp} XP, +{achievement.spins} Luck Wheel spin{if achievement.spins
-							== 1
-						then ""
-						else "s"}`,
+					`Achievement: {title} +{achievement.xp} XP, +{achievement.spins} Luck Wheel spin{plural}`,
 					"rare"
 				)
 				ProgressionService.addXp(player, achievement.xp)
