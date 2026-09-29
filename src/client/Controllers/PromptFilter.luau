@@ -3,12 +3,15 @@
 --   VisibleTo = "owner"  -> only the owner (Steal targets' owners, lock button, nursery, take back)
 --   VisibleTo = "others" -> everyone except the owner (Steal)
 --   Protected = true     -> hidden from everyone (creature is in a nursery)
--- The owner is the nearest ancestor with an OwnerUserId attribute. This is
--- cosmetic only: the server re-validates every trigger.
+-- Steal prompts also hide while you're already carrying a creature (the server
+-- sets a "Carrying" attribute on your Player). The owner is the nearest ancestor
+-- with an OwnerUserId attribute. This is cosmetic only: the server re-validates
+-- every trigger.
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 
-local localUserId = Players.LocalPlayer.UserId
+local localPlayer = Players.LocalPlayer
+local localUserId = localPlayer.UserId
 local prompts: { [ProximityPrompt]: boolean } = {}
 
 local PromptFilter = {}
@@ -36,7 +39,16 @@ local function evaluate(prompt: ProximityPrompt)
 	if prompt:GetAttribute("Protected") == true then
 		visible = false
 	end
+	if visibleTo == "others" and localPlayer:GetAttribute("Carrying") == true then
+		visible = false
+	end
 	prompt.Enabled = visible
+end
+
+local function evaluateAll()
+	for prompt in prompts do
+		evaluate(prompt)
+	end
 end
 
 local function track(instance: Instance)
@@ -56,13 +68,12 @@ function PromptFilter.start()
 			prompts[instance] = nil
 		end
 	end)
+	localPlayer:GetAttributeChangedSignal("Carrying"):Connect(evaluateAll)
 	-- Ownership changes (plot assigned, creature carried) are rare; re-check twice a second
 	task.spawn(function()
 		while true do
 			task.wait(0.5)
-			for prompt in prompts do
-				evaluate(prompt)
-			end
+			evaluateAll()
 		end
 	end)
 end

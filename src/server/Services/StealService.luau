@@ -101,6 +101,7 @@ local function endCarry(carry: Carry, outcome: Outcome)
 		return
 	end
 	carries[carry.thief] = nil
+	carry.thief:SetAttribute("Carrying", nil)
 	for _, connection in carry.connections do
 		connection:Disconnect()
 	end
@@ -247,6 +248,7 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 		connections = {},
 	}
 	carries[thief] = carry
+	thief:SetAttribute("Carrying", true) -- clients hide Steal prompts while you carry one
 
 	local speed = stage.carrySpeed * (if record.homegrown then HOMEGROWN_STRUGGLE else 1)
 	humanoid.WalkSpeed = carry.walkSpeed * speed
