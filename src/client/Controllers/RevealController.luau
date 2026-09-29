@@ -14,6 +14,7 @@ local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local FinishLooks = require(ReplicatedStorage.Shared.FinishLooks)
 
 local TICK_SOUND = "rbxasset://sounds/electronicpingshort.wav"
 local CARD_W, CARD_H, CARD_GAP = 118, 150, 10
@@ -120,41 +121,75 @@ local function playWheel(segmentIndex: number, rarityAfter: string)
 	ring.Color = Color3.fromRGB(255, 215, 90)
 	ring.Parent = wheel
 
-	-- Each segment is a colored petal from the hub to the rim, with its label
+	-- Pie slices. GUI has no wedge shape, and a frame rotates around its own center,
+	-- so each slice is a fan of thin spokes: full-diameter bars centered on the wheel
+	-- (rotating one swings it around the hub) with the lower half faded out. Segment
+	-- i covers (i - 1) * slice .. i * slice degrees clockwise from the top.
+	local radius = size / 2 - 3
+	local step = 3
+	local spokesPer = math.max(1, math.floor(slice / step))
+	local spokeWidth = math.ceil(2 * radius * math.sin(math.rad(slice / spokesPer) / 2)) + 1
+	local upperHalf = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.5, 0),
+		NumberSequenceKeypoint.new(0.501, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	local function spoke(angle: number, width: number, color: Color3, zIndex: number)
+		local bar = Instance.new("Frame")
+		bar.AnchorPoint = Vector2.new(0.5, 0.5)
+		bar.Position = UDim2.fromScale(0.5, 0.5)
+		bar.Size = UDim2.fromOffset(width, radius * 2)
+		bar.BackgroundColor3 = color
+		bar.BorderSizePixel = 0
+		bar.Rotation = angle
+		bar.ZIndex = zIndex
+		local fade = Instance.new("UIGradient")
+		fade.Rotation = 90 -- top to bottom
+		fade.Transparency = upperHalf
+		fade.Parent = bar
+		bar.Parent = wheel
+	end
 	for i, segment in segments do
-		local angle = (i - 1) * slice + slice / 2
-		local petal = Instance.new("Frame")
-		petal.AnchorPoint = Vector2.new(0.5, 1)
-		petal.Position = UDim2.fromScale(0.5, 0.5)
-		petal.Size = UDim2.fromOffset(math.floor(size * math.pi / count * 0.9), size / 2 - 6)
-		petal.BackgroundColor3 = segment.color
-		petal.BorderSizePixel = 0
-		petal.Rotation = angle
-		petal.ZIndex = 12
-		petal.Parent = wheel
-		corner(petal, 16)
-		label(petal, {
-			Size = UDim2.new(1, -8, 0, 34),
-			Position = UDim2.fromOffset(4, 8),
+		local start = (i - 1) * slice
+		for k = 0, spokesPer - 1 do
+			spoke(start + (k + 0.5) * slice / spokesPer, spokeWidth, segment.color, 12)
+		end
+		-- Divider on the slice's leading edge (also hides where neighbors' spokes overlap)
+		spoke(start, 5, Color3.fromRGB(25, 25, 35), 13)
+		-- Label on the slice's middle line, near the rim, reading outward
+		local holder = Instance.new("Frame")
+		holder.AnchorPoint = Vector2.new(0.5, 0.5)
+		holder.Position = UDim2.fromScale(0.5, 0.5)
+		holder.Size = UDim2.fromOffset(size, size)
+		holder.BackgroundTransparency = 1
+		holder.Rotation = start + slice / 2
+		holder.ZIndex = 13
+		holder.Parent = wheel
+		label(holder, {
+			AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.fromOffset(size / 2, 22),
+			Size = UDim2.fromOffset(96, 30),
 			Text = segment.label,
 			TextColor3 = if segment.luck >= 25 then Color3.fromRGB(40, 30, 10) else Color3.new(1, 1, 1),
-			ZIndex = 13,
+			TextStrokeTransparency = if segment.luck >= 25 then 1 else 0.2,
+			ZIndex = 14,
 		})
 	end
 	local hub = Instance.new("Frame")
 	hub.AnchorPoint = Vector2.new(0.5, 0.5)
 	hub.Position = UDim2.fromScale(0.5, 0.5)
-	hub.Size = UDim2.fromOffset(70, 70)
+	hub.Size = UDim2.fromOffset(84, 84)
 	hub.BackgroundColor3 = Color3.fromRGB(255, 215, 90)
-	hub.ZIndex = 14
+	hub.ZIndex = 15
 	hub.Parent = wheel
-	corner(hub, 70)
+	corner(hub, 84)
 	label(hub, {
 		Size = UDim2.fromScale(0.8, 0.5),
 		Position = UDim2.fromScale(0.1, 0.25),
 		Text = "LUCK",
 		TextColor3 = Color3.fromRGB(60, 40, 0),
-		ZIndex = 15,
+		ZIndex = 16,
 	})
 
 	local pointer = label(overlay, {
@@ -286,7 +321,7 @@ local function card(parent: Instance, speciesId: string, x: number): Frame
 	return frame
 end
 
-local function viewport(parent: Instance, speciesId: string): ViewportFrame?
+local function viewport(parent: Instance, speciesId: string, finish: string): ViewportFrame?
 	local templates = ReplicatedStorage:FindFirstChild("CreatureModels")
 	local template = templates
 		and (templates:FindFirstChild(`{speciesId}_Baby`) or templates:FindFirstChild(speciesId))
@@ -295,25 +330,40 @@ local function viewport(parent: Instance, speciesId: string): ViewportFrame?
 	end
 	local frame = Instance.new("ViewportFrame")
 	frame.BackgroundTransparency = 1
-	frame.Size = UDim2.fromOffset(260, 220)
+	-- Height follows the screen so it stays clear of the title (at 60%) on short screens
+	frame.Size = UDim2.new(0, 360, 0.38, 0)
 	frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	frame.Position = UDim2.fromScale(0.5, 0.36)
+	frame.Position = UDim2.fromScale(0.5, 0.32)
 	frame.ZIndex = 21
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(360, 300)
+	limit.Parent = frame
 	frame.Parent = parent
 	local model = template:Clone()
+	FinishLooks.apply(model, finish) -- show the finish that actually hatched
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			-- A viewport has nothing to reflect, so reflectance only washes colors out
+			descendant.Reflectance = 0
+		end
+	end
 	model:PivotTo(CFrame.new())
 	model.Parent = frame
-	local _, size = model:GetBoundingBox()
+	-- Spin around the model's own middle (its pivot can sit at its feet or off to one
+	-- side), and put the camera just far enough back for it to fill the frame
+	local boxCFrame, size = model:GetBoundingBox()
+	local toCenter = CFrame.new(-boxCFrame.Position)
 	local camera = Instance.new("Camera")
-	local distance = math.max(size.X, size.Y, size.Z) * 1.6
-	camera.CFrame = CFrame.lookAt(Vector3.new(0, size.Y * 0.25, -distance), Vector3.zero)
+	camera.FieldOfView = 40
+	local fit = math.max(size.X, size.Z, size.Y * 1.3) / 2 / math.tan(math.rad(camera.FieldOfView / 2))
+	camera.CFrame = CFrame.lookAt(Vector3.new(0, size.Y * 0.35, -fit * 1.15), Vector3.zero)
 	camera.Parent = frame
 	frame.CurrentCamera = camera
 	task.spawn(function()
 		local angle = 0
 		while frame.Parent do
 			angle += 0.03
-			model:PivotTo(CFrame.Angles(0, angle, 0))
+			model:PivotTo(CFrame.Angles(0, angle, 0) * toCenter)
 			task.wait()
 		end
 	end)
@@ -439,7 +489,7 @@ local function playReveal(reveal: { [string]: any })
 		TextColor3 = Color3.fromRGB(210, 210, 220),
 		ZIndex = 21,
 	})
-	viewport(overlay, speciesId)
+	viewport(overlay, speciesId, if typeof(reveal.finish) == "string" then reveal.finish else "Normal")
 	title.Size = UDim2.fromOffset(200, 20)
 	TweenService:Create(
 		title,
