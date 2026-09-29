@@ -833,7 +833,7 @@ local function buildZones(folder: Folder)
 			end
 		end
 		if #available > 0 then
-			for _ = 1, 9 do
+			for _ = 1, 14 do
 				local angle = rng:NextNumber() * 2 * math.pi
 				local distance = rng:NextNumber(6, ZONE_SIZE / 2 - 4)
 				local position = center
@@ -925,15 +925,6 @@ local function scatterDecor()
 		local angle = rng:NextNumber() * 2 * math.pi
 		local radius = rng:NextNumber(Config.Eggs.conveyor.radius + 14, ISLAND_RADIUS - 8)
 		local position = Vector3.new(math.cos(angle) * radius, GROUND_Y, math.sin(angle) * radius)
-		local blocked = onPlotOrWalkway(position)
-		for _, zoneCenter in zones do
-			if (position - zoneCenter).Magnitude < ZONE_SIZE / 2 + 2 then
-				blocked = true
-			end
-		end
-		if blocked then
-			continue
-		end
 		local roll = rng:NextNumber() * total
 		local pick = available[1]
 		for _, entry in available do
@@ -943,9 +934,21 @@ local function scatterDecor()
 				break
 			end
 		end
-		local scale = rng:NextNumber(0.75, 1.3)
+		local height = pick.height * rng:NextNumber(0.75, 1.3)
+		local blocked = onPlotOrWalkway(position)
+		-- Keep the biome zones clear, including a big tree's canopy hanging over the
+		-- patch edge (green forest trees were shading the Coral and Magma patches)
+		local margin = 2 + height * 0.45
+		for _, zoneCenter in zones do
+			if (position - zoneCenter).Magnitude < ZONE_SIZE / 2 + margin then
+				blocked = true
+			end
+		end
+		if blocked then
+			continue
+		end
 		local cframe = CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0)
-		if Props.spawn(pick.name, cframe, pick.height * scale, folder) then
+		if Props.spawn(pick.name, cframe, height, folder) then
 			placed += 1
 		end
 	end
