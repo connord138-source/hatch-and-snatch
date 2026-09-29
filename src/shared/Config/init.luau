@@ -30,5 +30,6 @@ return {
 	Economy = require(script.Economy),
 	Eggs = require(script.Eggs),
 	Progression = Progression,
+	Zones = require(script.Zones),
 	Debug = require(script.Debug),
 }

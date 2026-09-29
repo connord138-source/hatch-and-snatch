@@ -1,7 +1,8 @@
 --!strict
 -- Builds Crackpoint Island from code: a round grass island with a beach and sea,
 -- the hub reactor, the egg conveyor (eggs roll out of and back into the hatchery
--- tunnel), the Moon Egg, a biome zone between each pair of plots, lighting, and
+-- tunnel), the Moon Egg, a walled biome zone between each pair of plots (gate,
+-- harvest nodes, shrine — ZoneService runs them), lighting, and
 -- the ring of base plots. Plots grow with the owner's base level (setLevel) and
 -- take a biome look (applyTheme). Each piece starts as a plain part; when its 3D
 -- prop is imported (ReplicatedStorage.WorldProps, see Props.luau) the prop is
@@ -973,6 +974,8 @@ type Zone = {
 	material: Enum.Material,
 	color: Color3,
 	terrain: Enum.Material,
+	wall: Enum.Material,
+	wallColor: Color3,
 	decor: { string },
 }
 -- One zone in each gap between plots, in biome unlock order
@@ -982,6 +985,8 @@ local ZONES: { Zone } = {
 		material = Enum.Material.LeafyGrass,
 		color = Color3.fromRGB(96, 150, 70),
 		terrain = Enum.Material.LeafyGrass,
+		wall = Enum.Material.WoodPlanks,
+		wallColor = Color3.fromRGB(120, 85, 55),
 		decor = { "MossTree", "BerryBush", "MushroomCluster", "FlowerPatch", "FallenLog" },
 	},
 	{
@@ -989,6 +994,8 @@ local ZONES: { Zone } = {
 		material = Enum.Material.Sand,
 		color = Color3.fromRGB(232, 212, 165),
 		terrain = Enum.Material.Sand,
+		wall = Enum.Material.Sandstone,
+		wallColor = Color3.fromRGB(215, 190, 150),
 		decor = { "CoralCluster", "RockCluster", "CoralCluster" },
 	},
 	{
@@ -996,6 +1003,8 @@ local ZONES: { Zone } = {
 		material = Enum.Material.CrackedLava,
 		color = Color3.fromRGB(70, 50, 45),
 		terrain = Enum.Material.Basalt,
+		wall = Enum.Material.Basalt,
+		wallColor = Color3.fromRGB(55, 45, 45),
 		decor = { "LavaRock", "LavaRock", "RockCluster" },
 	},
 	{
@@ -1003,6 +1012,8 @@ local ZONES: { Zone } = {
 		material = Enum.Material.Snow,
 		color = Color3.fromRGB(235, 245, 255),
 		terrain = Enum.Material.Snow,
+		wall = Enum.Material.Ice,
+		wallColor = Color3.fromRGB(175, 215, 240),
 		decor = { "IceSpire", "PineTree", "IceSpire" },
 	},
 	{
@@ -1010,6 +1021,8 @@ local ZONES: { Zone } = {
 		material = Enum.Material.Slate,
 		color = Color3.fromRGB(100, 105, 125),
 		terrain = Enum.Material.Rock,
+		wall = Enum.Material.Slate,
+		wallColor = Color3.fromRGB(80, 85, 100),
 		decor = { "RockCluster", "PineTree", "RockCluster" },
 	},
 	{
@@ -1017,12 +1030,33 @@ local ZONES: { Zone } = {
 		material = Enum.Material.Pebble,
 		color = Color3.fromRGB(110, 95, 145),
 		terrain = Enum.Material.Salt,
+		wall = Enum.Material.Marble,
+		wallColor = Color3.fromRGB(90, 80, 125),
 		decor = { "CrystalCluster", "CrystalCluster", "RockCluster" },
 	},
 }
 
-local ZONE_RADIUS = 175 -- distance from the hub
-local ZONE_SIZE = 64 -- diameter of each zone's ground patch
+-- What ZoneService needs: the walled area, where to bounce locked-out players,
+-- the gate (its label shows the requirement), harvest nodes and the shrine.
+export type ZoneLayout = {
+	biome: string,
+	center: Vector3,
+	radius: number, -- inside the wall
+	outside: CFrame, -- just outside the gate, facing away from it
+	gate: BasePart,
+	gateLabel: TextLabel,
+	nodes: { Model }, -- PrimaryPart is the rock the prompt sits on; "Crystal" parts hide when picked
+	shrine: BasePart,
+	shrineLabel: TextLabel,
+}
+WorldService.zones = {} :: { ZoneLayout }
+
+local ZONE_RADIUS = 195 -- distance from the hub
+local ZONE_SIZE = 88 -- diameter of each zone's ground patch
+local WALL_RADIUS = ZONE_SIZE / 2 + 2
+local WALL_HEIGHT = 11
+local WALL_SEGMENTS = 24
+local GATE_WIDTH = 12
 
 local function zoneCenters(): { Vector3 }
 	local centers = {}
@@ -1061,33 +1095,177 @@ local function onPlotOrWalkway(position: Vector3): boolean
 	return false
 end
 
+-- A harvest node: a rock with glowing crystals on top. Picking it hides the crystals.
+local function buildNode(cframe: CFrame, color: Color3, rng: Random, folder: Instance): Model
+	local model = Instance.new("Model")
+	model.Name = "HarvestNode"
+	local rock = part({
+		Name = "Rock",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(4.5, 4.5, 4.5),
+		CFrame = cframe * CFrame.new(0, -0.6, 0),
+		Material = Enum.Material.Slate,
+		Color = Color3.fromRGB(85, 85, 95),
+		Parent = model,
+	})
+	for i = 1, 3 do
+		local lean = CFrame.Angles(rng:NextNumber(-0.45, 0.45), i * 2.1, rng:NextNumber(-0.45, 0.45))
+		part({
+			Name = "Crystal",
+			Size = Vector3.new(0.9, rng:NextNumber(2.6, 4), 0.9),
+			CFrame = cframe * CFrame.new(0, 1.8, 0) * lean * CFrame.new(0.5, 0.8, 0),
+			Material = Enum.Material.Neon,
+			Color = color,
+			CanCollide = false,
+			Parent = model,
+		})
+	end
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Brightness = 0.6
+	light.Range = 8
+	light.Parent = rock
+	model.PrimaryPart = rock
+	model.Parent = folder
+	return model
+end
+
 local function buildZones(folder: Folder)
 	local terrain = Workspace.Terrain
 	local rng = Random.new(6061)
 	for i, center in zoneCenters() do
 		local zone = ZONES[(i - 1) % #ZONES + 1]
-		disc(`{zone.biome}Zone`, center + Vector3.new(0, -0.1, 0), ZONE_SIZE, 0.5, {
+		local biomeColor = Config.Eggs.eggColors[zone.biome]
+		local zoneFolder = Instance.new("Folder")
+		zoneFolder.Name = `{zone.biome}Zone`
+		zoneFolder.Parent = folder
+		disc("Ground", center + Vector3.new(0, -0.1, 0), ZONE_SIZE, 0.5, {
 			Material = zone.material,
 			Color = zone.color,
 			CanCollide = false,
-			Parent = folder,
+			Parent = zoneFolder,
 		})
-		-- A hill behind the zone, out toward the beach
+		-- A hill behind the zone, out toward the beach (clear of the wall)
 		local outward = Vector3.new(center.X, 0, center.Z).Unit
-		terrain:FillBall(center + outward * 52 + Vector3.new(0, -16, 0), 30, zone.terrain)
+		local inward = -outward
+		terrain:FillBall(center + outward * 72 + Vector3.new(0, -18, 0), 26, zone.terrain)
 
-		local signPart = part({
-			Name = "ZoneSign",
-			Size = Vector3.new(1, 1, 1),
-			CFrame = CFrame.new(center + Vector3.new(0, 10, 0)),
-			Transparency = 1,
-			CanCollide = false,
-			Parent = folder,
+		-- Wall ring with a gap for the gate on the side facing the hub
+		local inwardAngle = math.atan2(inward.Z, inward.X)
+		local step = 2 * math.pi / WALL_SEGMENTS
+		local length = 2 * WALL_RADIUS * math.sin(step / 2) + 0.6
+		for s = 1, WALL_SEGMENTS - 1 do
+			local angle = inwardAngle + s * step
+			local position = center
+				+ Vector3.new(math.cos(angle) * WALL_RADIUS, WALL_HEIGHT / 2, math.sin(angle) * WALL_RADIUS)
+			part({
+				Name = "Wall",
+				Size = Vector3.new(length, WALL_HEIGHT, 2.5),
+				CFrame = CFrame.lookAt(position, Vector3.new(center.X, position.Y, center.Z)),
+				Material = zone.wall,
+				Color = zone.wallColor,
+				Parent = zoneFolder,
+			})
+		end
+
+		-- Gate: two pillars, a lintel and a shimmering barrier across the gap
+		local gateCenter = center + inward * WALL_RADIUS
+		local gateFrame = CFrame.lookAt(gateCenter, gateCenter + inward) -- -Z faces the hub
+		for _, side in { -1, 1 } do
+			part({
+				Name = "GatePillar",
+				Size = Vector3.new(3, WALL_HEIGHT + 4, 3.5),
+				CFrame = gateFrame * CFrame.new(side * (GATE_WIDTH / 2 + 1.5), (WALL_HEIGHT + 4) / 2, 0),
+				Material = zone.wall,
+				Color = zone.wallColor:Lerp(Color3.new(0, 0, 0), 0.2),
+				Parent = zoneFolder,
+			})
+		end
+		local lintel = part({
+			Name = "GateLintel",
+			Size = Vector3.new(GATE_WIDTH + 6, 2.5, 3.5),
+			CFrame = gateFrame * CFrame.new(0, WALL_HEIGHT + 5, 0),
+			Material = zone.wall,
+			Color = zone.wallColor:Lerp(Color3.new(0, 0, 0), 0.2),
+			Parent = zoneFolder,
 		})
-		local label = billboard(signPart, Vector3.zero, UDim2.fromOffset(240, 44), 260)
-		label.Text = Config.Biomes[zone.biome].displayName
-		label.TextColor3 = Config.Eggs.eggColors[zone.biome]:Lerp(Color3.new(1, 1, 1), 0.35)
+		local gate: BasePart = part({
+			Name = "ZoneGate",
+			Size = Vector3.new(GATE_WIDTH, WALL_HEIGHT + 3, 0.6),
+			CFrame = gateFrame * CFrame.new(0, (WALL_HEIGHT + 3) / 2, 0),
+			Material = Enum.Material.ForceField,
+			Color = Color3.fromRGB(255, 90, 90),
+			Transparency = 0.2,
+			CanCollide = false,
+			CanQuery = false,
+			Parent = zoneFolder,
+		})
+		gate:SetAttribute("Biome", zone.biome)
+		local gateLabel = billboard(lintel, Vector3.new(0, 4.5, 0), UDim2.fromScale(20, 4), 160)
+		gateLabel.Text = Config.Biomes[zone.biome].displayName
+		gateLabel.TextColor3 = biomeColor:Lerp(Color3.new(1, 1, 1), 0.35)
 
+		-- Shrine at the back of the zone
+		local shrineAt = center + outward * (WALL_RADIUS - 12)
+		local shrineFrame = CFrame.lookAt(shrineAt, center)
+		part({
+			Name = "ShrineStep",
+			Size = Vector3.new(12, 1.2, 10),
+			CFrame = shrineFrame * CFrame.new(0, 0.6, 0),
+			Material = Enum.Material.Slate,
+			Color = zone.wallColor,
+			Parent = zoneFolder,
+		})
+		local shrine: BasePart = part({
+			Name = "Shrine",
+			Size = Vector3.new(5, 6, 3),
+			CFrame = shrineFrame * CFrame.new(0, 4.2, 0),
+			Material = Enum.Material.Marble,
+			Color = zone.wallColor:Lerp(Color3.new(1, 1, 1), 0.4),
+			Parent = zoneFolder,
+		})
+		part({
+			Name = "ShrineOrb",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(3, 3, 3),
+			CFrame = shrineFrame * CFrame.new(0, 8.8, 0),
+			Material = Enum.Material.Neon,
+			Color = biomeColor,
+			CanCollide = false,
+			Parent = zoneFolder,
+		})
+		local shrineLabel = billboard(shrine, Vector3.new(0, 8, 0), UDim2.fromScale(14, 3.2), 70)
+		shrineLabel.Text = `{Config.Zones.byBiome[zone.biome].essence} Shrine`
+		shrineLabel.TextColor3 = biomeColor:Lerp(Color3.new(1, 1, 1), 0.35)
+
+		-- Harvest nodes spread around the inner ring, leaving the gate path clear
+		local nodes: { Model } = {}
+		local count = Config.Zones.nodesPerZone
+		for n = 1, count do
+			local angle = inwardAngle + math.rad(45) + (n - 1) / (count - 1) * math.rad(270)
+			local distance = if n % 2 == 0 then 22 else 32
+			local position = center + Vector3.new(math.cos(angle) * distance, 1, math.sin(angle) * distance)
+			local node = buildNode(CFrame.new(position), biomeColor, rng, zoneFolder)
+			node:SetAttribute("Biome", zone.biome)
+			table.insert(nodes, node)
+		end
+
+		table.insert(WorldService.zones, {
+			biome = zone.biome,
+			center = center,
+			radius = WALL_RADIUS - 1,
+			outside = CFrame.lookAt(
+				gateCenter + inward * 8 + Vector3.new(0, 3, 0),
+				gateCenter + inward * 20 + Vector3.new(0, 3, 0)
+			),
+			gate = gate,
+			gateLabel = gateLabel,
+			nodes = nodes,
+			shrine = shrine,
+			shrineLabel = shrineLabel,
+		})
+
+		-- Decor inside the walls, clear of the nodes, the shrine and the gate path
 		local available: { string } = {}
 		for _, name in zone.decor do
 			if Props.template("WorldProps", name) then
@@ -1095,12 +1273,31 @@ local function buildZones(folder: Folder)
 			end
 		end
 		if #available > 0 then
-			for _ = 1, 14 do
+			local placed = 0
+			for _ = 1, 120 do
+				if placed >= 26 then
+					break
+				end
 				local angle = rng:NextNumber() * 2 * math.pi
-				local distance = rng:NextNumber(6, ZONE_SIZE / 2 - 4)
+				local distance = rng:NextNumber(6, WALL_RADIUS - 5)
 				local position = center
 					+ Vector3.new(math.cos(angle) * distance, 0, math.sin(angle) * distance)
-				if not onPlotOrWalkway(position) then
+				local blocked = (position - shrineAt).Magnitude < 11
+				local fromCenter = position - center
+				-- The walk from the gate to the middle
+				if
+					fromCenter:Dot(inward) > 0
+					and (fromCenter - inward * fromCenter:Dot(inward)).Magnitude < 9
+				then
+					blocked = true
+				end
+				for _, node in nodes do
+					local nodePos = (node.PrimaryPart :: BasePart).Position
+					if (Vector3.new(nodePos.X, position.Y, nodePos.Z) - position).Magnitude < 6 then
+						blocked = true
+					end
+				end
+				if not blocked then
 					local name = available[rng:NextInteger(1, #available)]
 					local height = if name == "MossTree" or name == "PineTree"
 						then 20
@@ -1110,8 +1307,9 @@ local function buildZones(folder: Folder)
 						name,
 						CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0),
 						height * rng:NextNumber(0.8, 1.25),
-						folder
+						zoneFolder
 					)
+					placed += 1
 				end
 			end
 		end
@@ -1202,7 +1400,7 @@ local function scatterDecor()
 		-- patch edge (green forest trees were shading the Coral and Magma patches)
 		local margin = 2 + height * 0.45
 		for _, zoneCenter in zones do
-			if (position - zoneCenter).Magnitude < ZONE_SIZE / 2 + margin then
+			if (position - zoneCenter).Magnitude < WALL_RADIUS + margin then
 				blocked = true
 			end
 		end

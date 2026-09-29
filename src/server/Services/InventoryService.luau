@@ -1,7 +1,8 @@
 --!strict
 -- The Creatures menu's actions: store a creature, put it back on a pedestal, move
--- it in or out of the nursery, or sell it. Requests come from the client, so every
--- argument is checked here and nothing about the creature is taken from the client.
+-- it in or out of the nursery, sell it, or release it for biome Essence. Requests
+-- come from the client, so every argument is checked here and nothing about the
+-- creature is taken from the client.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -10,6 +11,7 @@ local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local ZoneService = require(script.Parent.ZoneService)
 
 local InventoryService = {}
 
@@ -19,6 +21,29 @@ local function sell(player: Player, uid: string, record: DataService.CreatureRec
 	CreatureService.remove(player, uid)
 	EconomyService.grant(player, value)
 	Net.notify(player, `Sold your {name} for {Format.cash(value)}.`, "good")
+end
+
+-- Turn a creature in for Essence of its biome (plus spins for rare ones) instead of cash.
+local function release(player: Player, uid: string, record: DataService.CreatureRecord)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local species = Config.CreaturesById[record.species]
+	local essence, spins =
+		Config.Zones.releaseReward(Config.Rarities[species.rarity].order, record.stage, species.biome)
+	CreatureService.remove(player, uid)
+	ZoneService.grantEssence(player, species.biome, essence)
+	data.spins += spins
+	DataService.markDirty(player)
+	local rewards: { string } = {}
+	if essence > 0 then
+		table.insert(rewards, `{essence} {Config.Zones.byBiome[species.biome].essence}`)
+	end
+	if spins > 0 then
+		table.insert(rewards, `{spins} Luck Wheel spin{if spins == 1 then "" else "s"}`)
+	end
+	Net.notify(player, `Released your {species.displayName}: +{table.concat(rewards, ", ")}.`, "good")
 end
 
 local function onCreatureAction(player: Player, action: any, uid: any)
@@ -45,6 +70,11 @@ local function onCreatureAction(player: Player, action: any, uid: any)
 			CreatureService.stopWalking(player)
 		end
 		sell(player, uid, record)
+	elseif action == "release" then
+		if CreatureService.walkingUid(player) == uid then
+			CreatureService.stopWalking(player)
+		end
+		release(player, uid, record)
 	elseif action == "walk" then
 		if CreatureService.walkingUid(player) == uid then
 			CreatureService.stopWalking(player)

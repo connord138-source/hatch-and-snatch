@@ -74,6 +74,7 @@ export type PlayerData = {
 	spins: number, -- banked Luck Wheel spins
 	luckCharge: number, -- luck multiplier waiting for the next egg bought (1 = none)
 	spinProgress: number, -- seconds played toward the next free spin
+	essence: { [string]: number }, -- per biome, from harvest nodes and releases (Config.Zones)
 }
 
 local TEMPLATE: PlayerData = {
@@ -114,6 +115,7 @@ local TEMPLATE: PlayerData = {
 	spins = Config.Economy.tunables.startingSpins,
 	luckCharge = 1,
 	spinProgress = 0,
+	essence = {},
 }
 
 -- Studio reads and writes the live game's DataStores, so Studio sessions (debug

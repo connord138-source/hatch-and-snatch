@@ -6,6 +6,8 @@
 --       -- gives every player that creature (finish and stage optional)
 --   game.ServerStorage.StudioDebug:Invoke("event", "BloodMoon")
 --       -- starts a moon event now
+--   game.ServerStorage.StudioDebug:Invoke("essence", "MagmaRift", 50)
+--       -- gives every player that biome's Essence (shrine testing)
 --
 -- It is a BindableFunction, so only server code and the Studio Command Bar can
 -- reach it (never clients), and it is only created in Studio.
@@ -18,6 +20,7 @@ local Timing = require(ReplicatedStorage.Shared.Timing)
 local CreatureService = require(script.Parent.Services.CreatureService)
 local DataService = require(script.Parent.Services.DataService)
 local EventService = require(script.Parent.Services.EventService)
+local ZoneService = require(script.Parent.Services.ZoneService)
 
 local StudioDebug = {}
 
@@ -52,6 +55,17 @@ local function startEvent(id: any): string
 	return "unknown event"
 end
 
+local function essence(biomeId: any, amount: any): string
+	if typeof(biomeId) ~= "string" or Config.Zones.byBiome[biomeId] == nil then
+		return "unknown biome"
+	end
+	local count = if typeof(amount) == "number" then amount else 50
+	for player in DataService.loadedPlayers() do
+		ZoneService.grantEssence(player, biomeId, count)
+	end
+	return `gave {count} {Config.Zones.byBiome[biomeId].essence}`
+end
+
 function StudioDebug.start()
 	if not RunService:IsStudio() then
 		return
@@ -63,8 +77,10 @@ function StudioDebug.start()
 			return grant(...)
 		elseif action == "event" then
 			return startEvent(...)
+		elseif action == "essence" then
+			return essence(...)
 		end
-		return "actions: grant(species, finish?, stage?), event(id)"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?)"
 	end
 	hook.Parent = ServerStorage
 end

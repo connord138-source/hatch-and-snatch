@@ -57,7 +57,7 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
   Upgrading while an egg is inside speeds up the rest of its time. Junk Eggs fit in any tier.
 - **Rarity tease:** each incubator shows a countdown and a progress bar. From 40% progress the bar, the timer and a glow take on the egg's rarity color, fading in from white; the egg wobbles harder and harder over the last 15%.
-- **Luck Wheel:** spend a spin on an incubating egg (Q) and the wheel lands on a luck multiplier (×1.5 34%, ×2 28%, ×3 20%, ×5 11%, ×10 5%, ×25 jackpot 2%). The egg is re-rolled with Epic+ weights multiplied by that luck, and the better result is kept (it can never get worse). One spin per egg. Spins come from playtime (1 per 20 minutes, up to 10 banked), achievements and rebirths; later they can also be sold as a Robux product.
+- **Luck Wheel:** a physical wheel stands by the plaza. Walk up and hold E to spend a spin; everyone nearby watches it turn. Prizes: ×2 luck 30%, cash (5 min of income) 24%, ×3 luck 18%, +2 spins 12%, ×10 luck 12%, ×25 jackpot 4%. A luck prize charges your **next egg** (bought or forged); its Epic+ weights are multiplied by the luck. Spins come from playtime (1 per 20 minutes, up to 10 banked), achievements, rebirths, the Coral Coast shrine and releasing rare creatures.
 - **Hatch reveal:** a case-opening reel of creature cards from that egg's odds slows down and lands on what hatched, with rare cards teased right beside it. Then a big rarity-colored reveal shows the creature spinning; Mythic and rarer flash the whole screen, and the server announces it once the reveal ends.
 
 ## 4. Creatures
@@ -128,9 +128,10 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 ### 6.1 Base upgrades and themes
 
 - **Base level 1 to 5:** upgrade at the gold-gem station by the lock (or in the Base menu) for 7.5K, 90K, 1.2M and 15M. Each level:
-  - widens and deepens the plot (44×44 up to 68×80 studs), so thieves have a longer run out;
-  - adds a row of 5 pedestals (10 up to 30);
+  - widens and deepens the plot (60×48 up to 76×68 studs), so thieves have a longer run out;
+  - adds pedestals (10 up to 30), spaced 11 studs apart; from level 4 the extra pedestals go on an upper deck reached by a ramp;
   - adds 15 s to the laser lock (+60 s at max).
+- **Security (Base menu):** three one-time upgrades — Intruder Alarm 15K (you're told when someone walks into your base and they glow red), Tripwire 250K (thieves carrying your creatures move 25% slower inside your base), Auto-Lock 3M (the laser lock turns itself on when an intruder enters, if it's off cooldown).
 - **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 20K, Magma 400K, Frost 6M, Storm 90M, Moonfall 1.5B). Owned themes can be switched freely.
 - **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.
 
@@ -182,7 +183,10 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 
 - **The island:** a round grass island with a sandy beach and the sea around it, and a cobblestone plaza under the hub and conveyor. Stone paths run from each plot to the plaza.
 - **Hub:** the hatchery tunnel over the belt, with 12 egg-lantern lamp posts around the loop.
-- **Biome zones:** one in each gap between plots (Mossvale, Coral Coast, Magma Rift, Frost Shelf, Storm Peaks, Moonfall). Each has a themed ground patch, a matching terrain hill, a name sign and biome decor, so every biome is visible from the start as something to work toward.
+- **Biome zones:** one walled zone in each gap between plots (Mossvale, Coral Coast, Magma Rift, Frost Shelf, Storm Peaks, Moonfall), 88 studs across. The gate faces the hub and shows the requirement (the same Hatcher Level + base level that unlocks the biome's eggs); it glows green once you qualify. Locked-out players are bounced back out.
+  - **Harvest nodes:** 7 glowing crystal nodes per zone (hold E). Each gives 1–2 of that biome's Essence and regrows after 40 s. Nodes are shared, so it pays to get there first.
+  - **Shrine:** spend Essence on a **forged egg** of that biome (15) or on the biome's **blessing** (8): Mossvale cash (3 min of income), Coral +3 spins, Magma halves the time left on every incubating egg, Frost ×5 luck on the next egg, Storm XP (400 × level), Moonfall ×25 luck on the next egg.
+  - **Release:** unwanted or duplicate creatures can be released from the Creatures menu for their biome's Essence (by rarity × stage: Baby ×1, Juvenile ×2, Adult ×3), plus Luck Wheel spins for Legendary and up. Selling for cash is still there.
 - **Lighting:** atmosphere, bloom, sun rays, clouds and a slight color grade. During moon events the whole world is tinted in the moon's color, and the banner says what the event does.
 
 ## 8. Moon events (server-wide, hourly)

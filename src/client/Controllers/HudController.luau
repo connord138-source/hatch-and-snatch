@@ -25,6 +25,8 @@ local TOAST_COLORS: { [string]: Color3 } = {
 	rare = Color3.fromRGB(150, 90, 10),
 }
 
+local ESSENCE_ORDER = { "Mossvale", "CoralCoast", "MagmaRift", "FrostShelf", "StormPeaks", "Moonfall" }
+
 local HudController = {}
 
 function HudController.start()
@@ -42,7 +44,7 @@ function HudController.start()
 	overlay.Parent = gui.Parent
 
 	-- Cash panel (top-left)
-	local cashPanel = panel(gui, { Size = UDim2.fromOffset(250, 132), Position = UDim2.fromOffset(12, 12) })
+	local cashPanel = panel(gui, { Size = UDim2.fromOffset(250, 152), Position = UDim2.fromOffset(12, 12) })
 	local cashLabel = label(cashPanel, {
 		Size = UDim2.new(1, -20, 0, 40),
 		Position = UDim2.fromOffset(10, 6),
@@ -90,12 +92,20 @@ function HudController.start()
 	xpFill.BorderSizePixel = 0
 	xpFill.Size = UDim2.fromScale(0, 1)
 	xpFill.Parent = xpBar
+	-- Biome Essence from harvest nodes and releases (only the kinds you have)
+	local essenceLabel = label(cashPanel, {
+		Size = UDim2.new(1, -20, 0, 16),
+		Position = UDim2.fromOffset(10, 128),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = Color3.fromRGB(215, 185, 255),
+		Text = "✦ no Essence yet — harvest in the biome zones",
+	})
 
 	-- Incubators (left, under the lock status; the top-right belongs to Roblox's player list)
 	local maxIncubators = #Config.Progression.incubatorSlotCosts
 	local incubatorPanel = panel(gui, {
 		Size = UDim2.fromOffset(250, 70),
-		Position = UDim2.fromOffset(12, 194),
+		Position = UDim2.fromOffset(12, 214),
 	})
 	label(
 		incubatorPanel,
@@ -130,7 +140,7 @@ function HudController.start()
 	})
 
 	-- Base lock status (under the cash panel)
-	local lockPanel = panel(gui, { Size = UDim2.fromOffset(250, 34), Position = UDim2.fromOffset(12, 152) })
+	local lockPanel = panel(gui, { Size = UDim2.fromOffset(250, 34), Position = UDim2.fromOffset(12, 172) })
 	local lockStatus = label(lockPanel, {
 		Size = UDim2.new(1, -20, 1, -8),
 		Position = UDim2.fromOffset(10, 4),
@@ -278,6 +288,19 @@ function HudController.start()
 			local charge: number = current.luckCharge or 1
 			spinsLabel.Text = `🎡 {current.spins or 0}`
 				.. (if charge > 1 then `  ·  next egg ×{charge}` else "")
+			local essenceParts: { string } = {}
+			local essence: { [string]: number } = current.essence or {}
+			for _, biomeId in ESSENCE_ORDER do
+				if (essence[biomeId] or 0) > 0 then
+					table.insert(
+						essenceParts,
+						`{Config.Zones.byBiome[biomeId].essence:match("^%S+")} {essence[biomeId]}`
+					)
+				end
+			end
+			if #essenceParts > 0 then
+				essenceLabel.Text = `✦ {table.concat(essenceParts, " · ")}`
+			end
 			if current.heldEgg then
 				eggBanner.Visible = true
 				eggLabel.Text =

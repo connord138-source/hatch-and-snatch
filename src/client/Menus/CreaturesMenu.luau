@@ -1,6 +1,7 @@
 --!strict
 -- Creatures menu: everything you own, where it is, what it earns and what it sells
--- for. Walk, Place/Store, Nursery and Sell send requests; the server checks and applies them.
+-- for. Walk, Place/Store, Nursery, Release (for biome Essence + spins) and Sell send
+-- requests; the server checks and applies them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -20,6 +21,8 @@ type Row = {
 	nursery: TextButton,
 	sell: TextButton,
 	sellArmedUntil: number,
+	release: TextButton,
+	releaseArmedUntil: number,
 }
 
 local CONFIRM_SECONDS = 3
@@ -70,6 +73,30 @@ local function updateSell(row: Row, creature: Creature)
 	end
 end
 
+local function releaseText(creature: Creature): string
+	local species = Config.CreaturesById[creature.species]
+	local essence, spins =
+		Config.Zones.releaseReward(Config.Rarities[species.rarity].order, creature.stage, species.biome)
+	local parts: { string } = {}
+	if essence > 0 then
+		table.insert(parts, `{essence}✦`)
+	end
+	if spins > 0 then
+		table.insert(parts, `{spins}🎡`)
+	end
+	return `Release {table.concat(parts, " ")}`
+end
+
+local function updateRelease(row: Row, creature: Creature)
+	if os.clock() < row.releaseArmedUntil then
+		row.release.Text = "Confirm?"
+		setButton(row.release, true, Ui.colors.bad)
+	else
+		row.release.Text = releaseText(creature)
+		setButton(row.release, not creature.carried, Color3.fromRGB(130, 90, 180))
+	end
+end
+
 local function updateRow(row: Row, creature: Creature)
 	local species = Config.CreaturesById[creature.species]
 	local rarityColor = Config.Rarities[species.rarity].color
@@ -108,6 +135,7 @@ local function updateRow(row: Row, creature: Creature)
 	row.nursery.Text = if isNursery(creature.slot) then "Leave Nursery" else "To Nursery"
 	setButton(row.nursery, free, Ui.colors.blue)
 	updateSell(row, creature)
+	updateRelease(row, creature)
 end
 
 local function makeRow(uid: string): Row
@@ -123,7 +151,7 @@ local function makeRow(uid: string): Row
 	strip.Parent = frame
 	local name = Ui.label(frame, {
 		Position = UDim2.fromOffset(20, 7),
-		Size = UDim2.new(1, -380, 0, 22),
+		Size = UDim2.new(1, -490, 0, 22),
 		TextScaled = false,
 		TextSize = 18,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -131,7 +159,7 @@ local function makeRow(uid: string): Row
 	})
 	local details = Ui.label(frame, {
 		Position = UDim2.fromOffset(20, 31),
-		Size = UDim2.new(1, -380, 0, 18),
+		Size = UDim2.new(1, -490, 0, 18),
 		TextScaled = false,
 		TextSize = 13,
 		TextStrokeTransparency = 1,
@@ -148,6 +176,11 @@ local function makeRow(uid: string): Row
 		nursery = Ui.button(frame, { Position = UDim2.new(1, -204, 0, 11), Size = UDim2.fromOffset(96, 36) }),
 		sell = Ui.button(frame, { Position = UDim2.new(1, -102, 0, 11), Size = UDim2.fromOffset(94, 36) }),
 		sellArmedUntil = 0,
+		release = Ui.button(
+			frame,
+			{ Position = UDim2.new(1, -470, 0, 11), Size = UDim2.fromOffset(106, 36) }
+		),
+		releaseArmedUntil = 0,
 	}
 
 	local function request(action: string)
@@ -168,28 +201,34 @@ local function makeRow(uid: string): Row
 	row.walk.Activated:Connect(function()
 		request("walk")
 	end)
-	row.sell.Activated:Connect(function()
-		local creature = latest[uid]
-		if creature == nil or creature.carried then
-			return
-		end
-		if os.clock() < row.sellArmedUntil then
-			row.sellArmedUntil = 0
-			request("sell")
-			return
-		end
-		-- The first click arms the button; a second click within a few seconds sells
-		local armedUntil = os.clock() + CONFIRM_SECONDS
-		row.sellArmedUntil = armedUntil
-		updateSell(row, creature)
-		task.delay(CONFIRM_SECONDS, function()
-			local current = latest[uid]
-			if row.sellArmedUntil == armedUntil and current then
-				row.sellArmedUntil = 0
-				updateSell(row, current)
+	-- Sell and Release are two-click: the first click arms the button, a second
+	-- click within a few seconds confirms
+	local function armed(button: TextButton, field: "sellArmedUntil" | "releaseArmedUntil", action: string)
+		local update: (Row, Creature) -> () = if field == "sellArmedUntil" then updateSell else updateRelease
+		button.Activated:Connect(function()
+			local creature = latest[uid]
+			if creature == nil or creature.carried then
+				return
 			end
+			if os.clock() < (row :: any)[field] then
+				(row :: any)[field] = 0
+				request(action)
+				return
+			end
+			local armedUntil = os.clock() + CONFIRM_SECONDS;
+			(row :: any)[field] = armedUntil
+			update(row, creature)
+			task.delay(CONFIRM_SECONDS, function()
+				local current = latest[uid]
+				if (row :: any)[field] == armedUntil and current then
+					(row :: any)[field] = 0
+					update(row, current)
+				end
+			end)
 		end)
-	end)
+	end
+	armed(row.sell, "sellArmedUntil", "sell")
+	armed(row.release, "releaseArmedUntil", "release")
 	return row
 end
 

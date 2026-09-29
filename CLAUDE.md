@@ -53,11 +53,11 @@ unrelated to the Polymarket worker.
   - Players start with 1 incubator and can buy up to 6.
   - Incubator tiers (Basic → Cosmic) hatch faster and accept later biomes.
   - The rarity color fades in from 40% incubation.
-  - There is a Luck Wheel and a case-opening hatch reveal. See GDD §3.1.
+  - There is a physical Luck Wheel by the plaza (charges the next egg's luck) and a case-opening hatch reveal. See GDD §3.1.
 - **Belt:** eggs roll out of and back into the hatchery tunnel; they never vanish in view.
 - **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed.
-- **Bases:** 5 upgrade levels (bigger plot, +5 pedestals, longer lock) and biome base themes. See GDD §6.1.
-- **World:** biome zones between plots; round island, beach and sea. See GDD §7.3.
+- **Bases:** 5 upgrade levels (bigger plot, more pedestals, an upper deck from level 4, longer lock), 3 security upgrades (alarm, tripwire, auto-lock) and biome base themes. See GDD §6.1.
+- **World:** walled, level-gated biome zones between plots, each with harvest nodes (biome Essence) and a shrine (forge an egg or take the biome's blessing); round island, beach and sea. Releasing creatures also pays Essence. See GDD §7.3 and `Config/Zones.luau`.
 - **Instructions for the owner's PC session must be written as a paste-ready prompt** (the owner asked for this).
 - **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 
