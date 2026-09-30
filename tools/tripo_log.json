@@ -406,6 +406,11 @@
   "task_id": "4ec003e9-22a4-4829-bf64-56e5b6b70aef",
   "type": "image_to_model"
  },
+ "juveniles/Capybaron": {
+  "status": "queued",
+  "task_id": "6f9dcadc-6c7e-46ba-8add-be0103610c34",
+  "type": "image_to_model"
+ },
  "juveniles/Clamodon": {
   "credits": 30,
   "files": [
@@ -487,12 +492,22 @@
   "type": "image_to_model"
  },
  "juveniles/Glacierion": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Glacierion.glb",
+   "Glacierion_preview.webp"
+  ],
+  "status": "success",
   "task_id": "9cb1ca73-d0ac-4f89-a7b0-74987c76d082",
   "type": "image_to_model"
  },
  "juveniles/Halosaur": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Halosaur.glb",
+   "Halosaur_preview.webp"
+  ],
+  "status": "success",
   "task_id": "4d4ad8ba-cfc1-49dd-9300-9653132f5adb",
   "type": "image_to_model"
  },
@@ -517,7 +532,12 @@
   "type": "image_to_model"
  },
  "juveniles/Lunaris": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Lunaris.glb",
+   "Lunaris_preview.webp"
+  ],
+  "status": "success",
   "task_id": "3680c1ae-5ac8-4a85-b2e5-60b91fb4401f",
   "type": "image_to_model"
  },
@@ -551,14 +571,29 @@
   "task_id": "d8a0a34d-e9df-4ca5-a8e2-5e7336df404c",
   "type": "image_to_model"
  },
- "juveniles/Pyrodrake": {
+ "juveniles/Nullcat": {
   "status": "queued",
+  "task_id": "0b39a43a-4ab1-4e26-96c8-56137de3fbdc",
+  "type": "image_to_model"
+ },
+ "juveniles/Pyrodrake": {
+  "credits": 30,
+  "files": [
+   "Pyrodrake.glb",
+   "Pyrodrake_preview.webp"
+  ],
+  "status": "success",
   "task_id": "4fc487ec-d8bc-42a7-8ad6-2b207638a67f",
   "type": "image_to_model"
  },
  "juveniles/Quasarfox": {
   "status": "queued",
   "task_id": "d56fec83-381c-4b29-af54-f957b2e46fcb",
+  "type": "image_to_model"
+ },
+ "juveniles/Singularis": {
+  "status": "queued",
+  "task_id": "30639404-3a62-4127-9dde-e8182f785ae8",
   "type": "image_to_model"
  },
  "juveniles/Slagodon": {
@@ -597,12 +632,22 @@
   "type": "image_to_model"
  },
  "juveniles/Stormgriff": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Stormgriff.glb",
+   "Stormgriff_preview.webp"
+  ],
+  "status": "success",
   "task_id": "32fc0bb4-ce48-4b54-9384-4b69908298a8",
   "type": "image_to_model"
  },
  "juveniles/Sylvanox": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Sylvanox.glb",
+   "Sylvanox_preview.webp"
+  ],
+  "status": "success",
   "task_id": "baac89a1-85ba-4660-871c-eeef90600857",
   "type": "image_to_model"
  },
