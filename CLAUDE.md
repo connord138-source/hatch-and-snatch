@@ -92,7 +92,7 @@ How to prompt for concepts:
 ## 3D assets
 
 - **Everything has a model now** (the Sept 2026 credit promo): 41 adults, babies, 8 eggs and 16 world props.
-  - Juveniles: 23 of 41 (every Common–Legendary species). Still missing: the 12 ultra-rares and 6 Junk; the game uses the adult model for those.
+  - Juveniles: all 41 (the 12 ultra-rares and 6 Junk were added 2026-09-30).
   - Set pieces: 12 (`src/server/SetPieces.luau`, 2–3 per biome zone), each with a part-built stand-in.
   - The links are in `tools/assets_manifest.json`; the workflow is in `docs/ASSETS.md`.
   - `fetch_assets.py` downloads them, `rig_all.py` rigs them, Studio imports them, and `tools/studio/organize_imports.luau` files them.
@@ -107,6 +107,7 @@ How to prompt for concepts:
   - Tripo keeps the concept's three-quarter turn, so the rig squares each body up (PCA) before guessing the head end.
   - The head guess (higher end = head) fails on raised tail clubs, tufts and swirls. Wrong ones carry `"flip"` in `bodyplans.json`, under `front`, `frontBaby` or `frontJuvenile` (each GLB has its own orientation).
   - After adding models, check them with `tools/blender/facing_check.py`: colored side and top views, head should be on the left.
+  - If antlers or wings are wider than the body is long, PCA squares the model up sideways and the top view isn't lengthwise. Give the head's axis instead (`+x`, `-x`, `+y` or `-y`; the Sylvanox Juvenile is `+x`).
   - Grounding: `src/client/CreatureGrounding.luau` does forward kinematics on the bones, solves the sit per model (tilt about the front feet, hind legs folded to the ground) and keeps the lowest foot on the ground. Don't pitch `Hips` for poses: it's the parent of the whole skeleton and swings the front legs off the ground. Test: `bash tools/tests/run_grounding.sh` (luau CLI).
 
 ## Tooling notes

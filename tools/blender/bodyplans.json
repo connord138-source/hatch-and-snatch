@@ -100,7 +100,8 @@
   },
   "Lunaris": {
     "bodyPlan": "heavy-tank",
-    "front": "flip"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Toastoise": {
     "bodyPlan": "shelled",
@@ -112,7 +113,8 @@
   },
   "Grillgator": {
     "bodyPlan": "low-long",
-    "front": "flip"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Laundrophant": {
     "bodyPlan": "big-floppy",
@@ -128,7 +130,8 @@
   },
   "Sylvanox": {
     "bodyPlan": "heavy-tank",
-    "front": "auto"
+    "front": "auto",
+    "frontJuvenile": "+x"
   },
   "Capybaron": {
     "bodyPlan": "small-round",
@@ -144,7 +147,8 @@
   },
   "Solarion": {
     "bodyPlan": "lean-predator",
-    "front": "flip"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Glacierion": {
     "bodyPlan": "lean-predator",
@@ -160,7 +164,8 @@
   },
   "Quasarfox": {
     "bodyPlan": "lean-predator",
-    "front": "flip"
+    "front": "flip",
+    "frontJuvenile": "flip"
   },
   "Singularis": {
     "bodyPlan": "shelled",

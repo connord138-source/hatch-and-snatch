@@ -51,11 +51,13 @@ binding.
 - **Batches A, B and C confirmed in Studio** (2026-09-30, PC fixes ec03ea4…e05f635). Measured: steals, reach checks, mobile scaling (UIScale 0.59 on iPhone 14), about 3 KB/s per client with 4 clients, 60 FPS at a full base, and daily rewards Days 1–7 plus quests.
   - The store title and description are set. **The icon and thumbnails still need uploading** (the built-in browser can't attach files): `marketing/icon_512.png` (realistic-eyed Emberlynx, 50464a2) and `thumb_1`…`thumb_4`.
 - **Open design question (from the audit):** a walked creature can't be stolen and keeps earning, so an AFK player can protect their best one forever. Options: no earnings while walked, or a walk time limit. Ask the owner.
+- **All 41 Juveniles exist** (the 18 ultra-rare and Junk ones were added 2026-09-30, 630 Tripo credits). They are rigged and facing-checked in the sandbox (flips: Grillgator, Lunaris, Quasarfox, Solarion; Sylvanox `+x`). The PC still has to fetch, rig and import them. **The ultra-rare designs themselves still await the owner's approval** (a sheet was sent 2026-09-30; five are lean cat or dog bodies).
+- **Launch checklist:** `docs/LAUNCH.md`.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left
 
-- **Tripo API: 25** (the logo, the moon thumbnail and 2 icons used 40). That is less than one textured model (30), so top up before any model work. 935 were spent on 20 Juveniles, 12 props and concepts.
+- **Tripo API: 135** after the owner's top-up (API credits cost $0.01 each). 935 were spent on 20 Juveniles, 12 props and concepts.
 - **Higgsfield: 0.25.** Needs a top-up for any `gpt_image_2_5` concepts (0.5 each at medium).
 
 ## Next steps
@@ -63,10 +65,7 @@ binding.
 1. Wait for the owner's check of the grounding fix: pedestal sits, sitting beside the owner, and run landings. If a species sits oddly, the per-body-plan tilt is `SIT_TILT` in `CreatureGrounding.luau`.
    - Then build whichever biome activity the owner picks.
    - For set pieces: Set-piece sizes are the `size` boxes in `SetPieces.luau`. Positions are the `heroes` angle and distance in `WorldService` (same layout as the harvest nodes: angle 0 = gate direction).
-2. The remaining 18 Juveniles need about 35 credits each (5 for the concept, 30 for the model), about 630 in all. Top up first.
-   - Ultra-rares: Sylvanox, Capybaron, Lurehound, Pyrodrake, Solarion, Glacierion, Stormgriff, Halosaur, Lunaris, Quasarfox, Singularis, Nullcat.
-   - Junk: Toastoise, Fridgehog, Grillgator, Laundrophant, Lawnmoose, Bassdog.
-   - Toastoise and Fridgehog concepts already exist (uploads `d0d68ca8`, `ffe908cf`) but came out nearly identical to the adults. Redo them with a stronger juvenile push before converting.
+2. Launch: work through `docs/LAUNCH.md` with the owner, and get the ultra-rare designs approved. Redesigning one means a new concept plus new adult, baby and juvenile models: about 110 credits (roughly $1.10).
 3. After any new models, run the facing check (see CLAUDE.md → Rigging) and add `"flip"` where needed.
 
 ## Verifying from a cloud session

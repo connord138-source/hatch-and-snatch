@@ -4,7 +4,7 @@ Every model the game uses is listed in **`tools/assets_manifest.json`**, which m
 
 - **creatures:** all 41 species (adults), from clean neutral-pose model sheets.
 - **babies:** `<SpeciesId>_Baby` models with baby proportions: big head, big eyes, stubby legs.
-- **juveniles:** `<SpeciesId>_Juvenile` teenage models, 23 of 41 so far (every Common–Legendary species). A species without one uses its adult model at the Juvenile stage.
+- **juveniles:** `<SpeciesId>_Juvenile` teenage models, all 41. (A species without one would use its adult model at the Juvenile stage.)
 - **eggs:** one per biome, plus `Egg`, the generic fallback that gets tinted.
 - **props:** the reactor, pedestal, nursery nest, incubator, cash pad, lock button, entrance arch, lamp post, 8 kinds of decor, and 12 biome-zone set pieces (`src/server/SetPieces.luau`).
 
@@ -72,6 +72,8 @@ Babies: Coalby `7abeb627` · Slagodon `3ffbc4f3` · Calderhorn `61aca522` · Fro
 Juveniles (concept image the model was made from; plain ids are Higgsfield jobs, "upload" ids are Higgsfield media uploads of Tripo-made concepts). Mossmunk, Brambloar and Hivebadger came from the earlier Higgsfield run:
 
 Geodeer 4bc5f9d8 · Kelpotter 9566053c · Clamodon upload 6c03ed64 · Coralope dace4571 · Tidalotl 190415ee · Coalby 0fb94bd1 · Slagodon upload a6305212 · Emberlynx f6f5a5ad · Calderhorn f1eb251b · Frostbun 5a9a6268 · Iceadillo upload e4f1f7a0 · Glacibear upload 517cce74 · Aurorox upload 91808e49 · Zapybara upload df2ab93f · Squallcoon upload c165890a · Thunderhoof upload 0ec39d1e · Stormback upload 9f02c823 · Novapanda upload 332293a2 · Nebulion upload 72f8d24b · Eclipsaur upload 52077973 · Toastoise upload d0d68ca8 · Fridgehog upload ffe908cf
+
+Ultra-rare and Junk Juveniles (2026-09-30). The concepts came from `tools/tripo_jobs_juveniles2.json` (Nano Banana; the six `_v2` redos used Nano Banana Pro because the first try looked too much like the adult). The Junk ones read younger through a smaller appliance: a 2-slice toaster, a mini-fridge, a hibachi grill and so on. The GLBs are hosted as Higgsfield files (media ids): Sylvanox `9fc7efbe` · Lurehound `674d9567` · Pyrodrake `ae720d7b` · Glacierion `804b3be5` · Stormgriff `315efa15` · Lunaris `60ae1486` · Solarion `4b0d65a3` · Halosaur `26d074a0` · Quasarfox `f71738f1` · Singularis `1d2271d2` · Capybaron `25730091` · Nullcat `0a829d51` · Toastoise `45821c28` · Fridgehog `3d1c66f0` · Grillgator `c1e0a2d8` · Laundrophant `8f88c736` · Lawnmoose `b8f69588` · Bassdog `0451c1db`
 
 Set pieces (Tripo text_to_model task ids; the prompts are in `tools/tripo_jobs.json`):
 

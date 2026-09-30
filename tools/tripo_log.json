@@ -397,7 +397,12 @@
   "type": "image_to_model"
  },
  "juveniles/Bassdog": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Bassdog.glb",
+   "Bassdog_preview.webp"
+  ],
+  "status": "success",
   "task_id": "587655b8-208c-40cf-9299-663d532b2b2d",
   "type": "image_to_model"
  },
@@ -412,7 +417,12 @@
   "type": "image_to_model"
  },
  "juveniles/Capybaron": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Capybaron.glb",
+   "Capybaron_preview.webp"
+  ],
+  "status": "success",
   "task_id": "6f9dcadc-6c7e-46ba-8add-be0103610c34",
   "type": "image_to_model"
  },
@@ -467,7 +477,12 @@
   "type": "image_to_model"
  },
  "juveniles/Fridgehog": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Fridgehog.glb",
+   "Fridgehog_preview.webp"
+  ],
+  "status": "success",
   "task_id": "53a39732-6156-46b0-99d9-18fffebe332e",
   "type": "image_to_model"
  },
@@ -512,7 +527,12 @@
   "type": "image_to_model"
  },
  "juveniles/Grillgator": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Grillgator.glb",
+   "Grillgator_preview.webp"
+  ],
+  "status": "success",
   "task_id": "5449dba6-bd29-40b7-8137-f87847f10bb1",
   "type": "image_to_model"
  },
@@ -547,12 +567,22 @@
   "type": "image_to_model"
  },
  "juveniles/Laundrophant": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Laundrophant.glb",
+   "Laundrophant_preview.webp"
+  ],
+  "status": "success",
   "task_id": "43522445-f21f-4539-8785-fbc3698ac945",
   "type": "image_to_model"
  },
  "juveniles/Lawnmoose": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Lawnmoose.glb",
+   "Lawnmoose_preview.webp"
+  ],
+  "status": "success",
   "task_id": "5c3fecd0-9025-4210-8ed7-5b5845b8e8f8",
   "type": "image_to_model"
  },
@@ -627,7 +657,12 @@
   "type": "image_to_model"
  },
  "juveniles/Singularis": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Singularis.glb",
+   "Singularis_preview.webp"
+  ],
+  "status": "success",
   "task_id": "30639404-3a62-4127-9dde-e8182f785ae8",
   "type": "image_to_model"
  },
@@ -712,7 +747,12 @@
   "type": "image_to_model"
  },
  "juveniles/Toastoise": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Toastoise.glb",
+   "Toastoise_preview.webp"
+  ],
+  "status": "success",
   "task_id": "9fae6bb5-06c2-4583-b538-d655fadbb8ea",
   "type": "image_to_model"
  },
