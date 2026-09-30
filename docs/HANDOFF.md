@@ -48,16 +48,14 @@ binding.
 - **v1 launches with every biome** (owner): no two-biome soft launch; unlocks come from Hatcher Level and base level.
 - **First-session guide** (`GuideController`): a goal card on the right edge plus a beam to the next objective, driven by `data.onboarding`. Confirmed in Studio (ff7e9a6, PC fixes 62e9ee5 and 3ec745d). The card moved off top-center afterwards because it stacked with the moon-event and carry banners and hid the ⬇ over distant eggs. `StudioDebug:Invoke("guide")` restarts it.
 - **Economy numbers confirmed in the UI** (all prices, B/T/Qa formatting, rebirth at $1T).
-- **Batches A, B and C (2026-09-30), not yet tested in Studio:**
-  - A: security fixes from three audits (GDD §6, CLAUDE.md → Tech), UI auto-scaling for phones, animation LOD, changed-fields-only state sync, client-side belt animation.
-  - B: store art in `marketing/` (`docs/STORE_PAGE.md`). The owner uploads it.
-  - C: daily login streak and quests (GDD §7.4). `StudioDebug:Invoke("daily")` fakes a new day.
+- **Batches A, B and C confirmed in Studio** (2026-09-30, PC fixes ec03ea4…e05f635). Measured: steals, reach checks, mobile scaling (UIScale 0.59 on iPhone 14), about 3 KB/s per client with 4 clients, 60 FPS at a full base, and daily rewards Days 1–7 plus quests.
+  - The store title and description are set. **The icon and thumbnails still need uploading** (the built-in browser can't attach files): `marketing/icon_512.png` (realistic-eyed Emberlynx, 50464a2) and `thumb_1`…`thumb_4`.
 - **Open design question (from the audit):** a walked creature can't be stolen and keeps earning, so an AFK player can protect their best one forever. Options: no earnings while walked, or a walk time limit. Ask the owner.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left
 
-- **Tripo API: 65.** Enough for 2 textured models, kept as a buffer for redos after the playtest. 935 were spent on 20 Juveniles, 12 props and concepts.
+- **Tripo API: 25** (logo, moon thumbnail and 2 icons used 40). Enough for 2 textured models, kept as a buffer for redos after the playtest. 935 were spent on 20 Juveniles, 12 props and concepts.
 - **Higgsfield: 0.25.** Needs a top-up for any `gpt_image_2_5` concepts (0.5 each at medium).
 
 ## Next steps
