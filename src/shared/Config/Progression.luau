@@ -17,7 +17,7 @@ local xp = {
 
 -- XP needed to go from `level` to `level + 1`.
 local function xpToNext(level: number): number
-	return 60 + 40 * level
+	return 40 + 30 * level + 16 * level * level
 end
 
 -- Level + leftover XP from a lifetime XP total.
@@ -34,7 +34,7 @@ end
 export type BiomeRequirement = { level: number, baseLevel: number }
 local biomeRequirements: { [string]: BiomeRequirement } = {
 	Mossvale = { level = 1, baseLevel = 1 },
-	CoralCoast = { level = 5, baseLevel = 1 },
+	CoralCoast = { level = 4, baseLevel = 1 },
 	MagmaRift = { level = 12, baseLevel = 2 },
 	FrostShelf = { level = 20, baseLevel = 3 },
 	StormPeaks = { level = 30, baseLevel = 4 },
@@ -243,7 +243,7 @@ local themes: { BaseTheme } = {
 	},
 	{
 		id = "CoralCoast",
-		cost = 20_000,
+		cost = 100_000,
 		floorMaterial = Enum.Material.Sand,
 		floorColor = Color3.fromRGB(235, 215, 170),
 		trimColor = Color3.fromRGB(240, 150, 150),
@@ -252,7 +252,7 @@ local themes: { BaseTheme } = {
 	},
 	{
 		id = "MagmaRift",
-		cost = 400_000,
+		cost = 25_000_000,
 		floorMaterial = Enum.Material.Basalt,
 		floorColor = Color3.fromRGB(55, 48, 48),
 		trimColor = Color3.fromRGB(255, 110, 30),
@@ -261,7 +261,7 @@ local themes: { BaseTheme } = {
 	},
 	{
 		id = "FrostShelf",
-		cost = 6_000_000,
+		cost = 5_000_000_000,
 		floorMaterial = Enum.Material.Glacier,
 		floorColor = Color3.fromRGB(190, 225, 245),
 		trimColor = Color3.fromRGB(255, 255, 255),
@@ -270,7 +270,7 @@ local themes: { BaseTheme } = {
 	},
 	{
 		id = "StormPeaks",
-		cost = 90_000_000,
+		cost = 500_000_000_000,
 		floorMaterial = Enum.Material.Slate,
 		floorColor = Color3.fromRGB(95, 100, 120),
 		trimColor = Color3.fromRGB(255, 240, 90),
@@ -279,7 +279,7 @@ local themes: { BaseTheme } = {
 	},
 	{
 		id = "Moonfall",
-		cost = 1_500_000_000,
+		cost = 50_000_000_000_000,
 		floorMaterial = Enum.Material.Pebble,
 		floorColor = Color3.fromRGB(120, 110, 150),
 		trimColor = Color3.fromRGB(190, 120, 255),
@@ -294,7 +294,7 @@ end
 
 -- Incubators: you start with one; the rest are bought. Each can be upgraded:
 -- higher tiers hatch faster and accept eggs from later biomes.
-local incubatorSlotCosts = { 0, 2_000, 30_000, 400_000, 6_000_000, 90_000_000 }
+local incubatorSlotCosts = { 0, 5000, 2_000_000, 250_000_000, 30_000_000_000, 600_000_000_000 }
 
 export type IncubatorTier = {
 	name: string,
@@ -309,28 +309,28 @@ local incubatorTiers: { IncubatorTier } = {
 		name = "Heated",
 		speed = 1.5,
 		maxBiomeOrder = 3,
-		upgradeCost = 25_000,
+		upgradeCost = 100_000,
 		color = Color3.fromRGB(255, 130, 60),
 	},
 	{
 		name = "Thermal",
 		speed = 2,
 		maxBiomeOrder = 4,
-		upgradeCost = 500_000,
+		upgradeCost = 25_000_000,
 		color = Color3.fromRGB(80, 200, 255),
 	},
 	{
 		name = "Arcane",
 		speed = 3,
 		maxBiomeOrder = 5,
-		upgradeCost = 8_000_000,
+		upgradeCost = 5_000_000_000,
 		color = Color3.fromRGB(180, 90, 255),
 	},
 	{
 		name = "Cosmic",
 		speed = 4,
 		maxBiomeOrder = 6,
-		upgradeCost = 150_000_000,
+		upgradeCost = 500_000_000_000,
 		color = Color3.fromRGB(255, 230, 120),
 	},
 }

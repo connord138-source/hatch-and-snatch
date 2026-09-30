@@ -45,15 +45,15 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
 - **The belt:** eggs roll out of the hatchery tunnel, ride one lap of the conveyor and roll back in. Eggs never vanish in the open, and the belt can't clog. They can't be bought inside the tunnel.
 - **Carrying:** buying puts the egg over your head. You carry it home and place it in a free incubator (E). You can only carry one egg at a time.
-- **Incubators:** you start with 1 bay and can buy up to 6 ($0 / 2K / 30K / 400K / 6M / 90M). Each bay upgrades through tiers:
+- **Incubators:** you start with 1 bay and can buy up to 6 ($0 / 5K / 2M / 250M / 30B / 600B). Each bay upgrades through tiers:
 
 | Tier | Speed | Takes eggs from | Upgrade cost |
 |---|---|---|---|
 | Basic | ×1 | Mossvale, Coral Coast | — |
-| Heated | ×1.5 | + Magma Rift | 25K |
-| Thermal | ×2 | + Frost Shelf | 500K |
-| Arcane | ×3 | + Storm Peaks | 8M |
-| Cosmic | ×4 | + Moonfall | 150M |
+| Heated | ×1.5 | + Magma Rift | 100K |
+| Thermal | ×2 | + Frost Shelf | 25M |
+| Arcane | ×3 | + Storm Peaks | 5B |
+| Cosmic | ×4 | + Moonfall | 500B |
 
   Upgrading while an egg is inside speeds up the rest of its time. Junk Eggs fit in any tier.
 - **Rarity tease:** each incubator shows a countdown and a progress bar. From 40% progress the bar, the timer and a glow take on the egg's rarity color, fading in from white; the egg wobbles harder and harder over the last 15%.
@@ -72,8 +72,8 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 | Stage | Earnings | Size | Carry speed when stolen |
 |---|---|---|---|
 | Baby | ×1 | small | 100% (full speed, can jump) |
-| Juvenile | ×4 | medium | 75% |
-| Adult | ×15 | large | 50% (no jumping) |
+| Juvenile | ×2.5 | medium | 75% |
+| Adult | ×6 | large | 50% (no jumping) |
 
 - **Growth time** is a base time multiplied by a rarity factor, and it keeps running while the player is offline.
 - **Duplicates can be "fed"** to a creature of the same species to speed up its growth. This gives duplicates a use besides selling. *(Open question: confirm this during playtesting.)*
@@ -127,35 +127,54 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 
 ### 6.1 Base upgrades and themes
 
-- **Base level 1 to 5:** upgrade at the gold-gem station by the lock (or in the Base menu) for 7.5K, 90K, 1.2M and 15M. Each level:
+- **Base level 1 to 5:** upgrade at the gold-gem station by the lock (or in the Base menu) for 60K, 25M, 5B and 500B. Each level:
   - widens and deepens the plot (60×48 up to 76×68 studs), so thieves have a longer run out;
   - adds pedestals (10 up to 30), spaced 11 studs apart; from level 4 the extra pedestals go on an upper deck reached by a ramp;
   - adds 15 s to the laser lock (+60 s at max).
-- **Security (Base menu):** three one-time upgrades — Intruder Alarm 15K (you're told when someone walks into your base and they glow red), Tripwire 250K (thieves carrying your creatures move 25% slower inside your base), Auto-Lock 3M (the laser lock turns itself on when an intruder enters, if it's off cooldown).
-- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 20K, Magma 400K, Frost 6M, Storm 90M, Moonfall 1.5B). Owned themes can be switched freely.
+- **Security (Base menu):** three one-time upgrades — Intruder Alarm 40K (you're told when someone walks into your base and they glow red), Tripwire 10M (thieves carrying your creatures move 25% slower inside your base), Auto-Lock 2B (the laser lock turns itself on when an intruder enters, if it's off cooldown).
+- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 100K, Magma 25M, Frost 5B, Storm 500B, Moonfall 50T). Owned themes can be switched freely.
 - **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.
 
-## 7. Economy (first-pass draft; tune in playtests)
+## 7. Economy (retuned 2026-09-30 for multi-week pacing; tune in playtests)
 
 | Rarity | Base cash/sec | Hatch time | Growth factor |
 |---|---|---|---|
 | Common | 1 | 30 s | ×1 |
-| Uncommon | 4 | 90 s | ×1.25 |
-| Rare | 15 | 5 min | ×1.5 |
-| Epic | 60 | 15 min | ×2 |
-| Legendary | 250 | 45 min | ×3 |
-| Mythic | 1500 | 3 h | ×4 |
-| Celestial | 6000 | 4 h | ×5 |
-| Cosmic | 20000 | 6 h | ×6 |
-| Secret | 50000 | 8 h | ×8 |
-| Junk | 100 | 20 min | ×1.5 |
+| Uncommon | 3 | 90 s | ×1.25 |
+| Rare | 8 | 5 min | ×1.5 |
+| Epic | 25 | 15 min | ×2 |
+| Legendary | 80 | 45 min | ×3 |
+| Mythic | 400 | 3 h | ×4 |
+| Celestial | 1200 | 4 h | ×5 |
+| Cosmic | 3000 | 6 h | ×6 |
+| Secret | 6000 | 8 h | ×8 |
+| Junk | 30 | 20 min | ×1.5 |
 
 - **Growth times:** Baby → Juvenile takes 30 min × the growth factor; Juvenile → Adult takes 3 h × the growth factor.
-- **Egg prices:** $150 × the biome's price multiplier (×8 per biome). New players start with $300 (two eggs).
-- **Biome earnings multiplier:** creatures earn base cash/sec × their biome's earnings multiplier (Mossvale 1, Coral 4, Magma 16, Frost 60, Storm 220, Moonfall 300, Junk 1). It grows slower than egg prices, so payback lengthens as players progress.
-- **Resulting payback** for a Common baby: about 2 min in Mossvale, 4 min in Coral, 8 min in Magma, 17 min in Frost, 37 min in Storm. Expected value per egg pays back faster because of the rare rolls, and growing to Adult (×15) is the big payoff. All of this is a first pass to tune in playtests.
-- **Rebirth** resets cash and pedestals, keeps creatures, unlocks the next biome and gives +10% earnings for each rebirth.
+- **Egg prices:** $150 × the biome's price multiplier (×16 per biome): Mossvale 150, Coral 2.4K, Magma 38.4K, Frost 614K, Storm 9.8M, Moonfall 157M (Junk 38.4K). New players start with $300 (two eggs).
+- **Biome earnings multiplier:** creatures earn base cash/sec × their biome's earnings multiplier (Mossvale 1, Coral 4, Magma 16, Frost 60, Storm 220, Moonfall 300, Junk 1). It grows much slower than egg prices, so each biome is a bigger investment than the last.
+- **Resulting payback** for a Common baby: 2 min in Mossvale, 8 min in Coral, 32 min in Magma, 2.3 h in Frost, 10 h in Storm and 15 h in Moonfall (whose eggs start at Rare). Adults earn ×6, and rare rolls pay back much faster.
+- **Rarity earnings are compressed** (Legendary is 80× a Common, not 250×). Players keep only their best creatures on pedestals, so a steep rarity curve made income explode after a few hundred hatches.
+- **Rebirth** is the endgame sink (see §7.2): the first costs 1T, then 2.5T, 6T, 15T and 40T, and each one after that costs ×2.5.
 - **Offline earnings** are capped at 8 hours; the cap can be raised by a game pass.
+
+### Pacing (simulated)
+
+`bash tools/sim/run_economy_sim.sh [runs]` plays the real config as an efficient free-to-play player, with no stealing, events or passes. Each day is one session followed by offline time. The player keeps the best earners on pedestals and spends half its income on the best eggs it can fit, one trip to the belt (25 s) at a time. Upgrades are bought cheapest-first. Median of 5 runs:
+
+| Milestone | 1 h/day | 3 h/day | 8 h/day | 12 h/day |
+|---|---|---|---|---|
+| Coral Coast (Lv 4) | 22 min | 22 min | 22 min | 22 min |
+| Base level 2 | day 1 | day 1 | day 1 | day 1 |
+| Magma Rift | day 2 | day 2 | day 1 | day 1 |
+| Frost Shelf | day 8 | day 4 | day 2 | day 1 |
+| Storm Peaks | day 28 | day 11 | day 5 | day 3 |
+| Base level 5 (max) | — | day 19 | day 9 | day 7 |
+| Moonfall | — | day 22 | day 9 | day 7 |
+| Everything bought (6 Cosmic incubators) | — | — | day 19 | day 14 |
+| First rebirth | — | — | day 21 | day 16 |
+
+Before the retune, a 3 h/day player had bought everything in about 3 hours of play. Rerun the sim after any economy change. Paid boosts, events and stealing make real players somewhat faster than this baseline.
 
 ### 7.1 Ultra-rares (above Legendary)
 
@@ -174,8 +193,8 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 ### 7.2 Progression: Hatcher Level
 
 - **XP sources:** each hatch gives 12 × the biome's order (Junk counts as 3); +60 for a new species, +10 when a creature grows to Juvenile and +40 at Adult, +45 per steal, +150 × level for base upgrades, +60 per incubator bought and +40 per incubator upgrade.
-- **Level curve:** it takes 60 + 40 × level XP to reach the next level. That's 640 XP for level 5, 3,300 for level 12, 8,740 for 20, 19,140 for 30 and 33,540 for 40.
-- **Biome eggs unlock:** Mossvale at the start, Coral Coast at level 5, Magma Rift at level 12 + base level 2, Frost Shelf at 20 + base 3, Storm Peaks at 30 + base 4, and Moonfall at 40 + base 5. You also need an incubator tier that fits the egg.
+- **Level curve:** it takes 40 + 30 × level + 16 × level² XP to reach the next level. That's 524 XP in total for level 4, 10.5K for 12, 46K for 20, 151K for 30 and 354K for 40.
+- **Biome eggs unlock:** Mossvale at the start, Coral Coast at level 4, Magma Rift at level 12 + base level 2, Frost Shelf at 20 + base 3, Storm Peaks at 30 + base 4, and Moonfall at 40 + base 5. You also need an incubator tier that fits the egg.
 - **Achievements:** 18 goals (hatch counts, adults raised, steals, discoveries, rare finishes, upgrades, incubators, walking, spins, lifetime cash), each paying XP and Luck Wheel spins. Listed in the Progress menu.
 - **Rebirth** is now pure prestige: it resets cash, gives +10% earnings for good and 3 spins, and keeps everything else. It no longer unlocks biomes.
 
@@ -300,9 +319,9 @@ Built 2026-09-30 (`Config/Monetization.luau`, `MonetizationService`). Prices are
 | 3 | Growth stages, stealing, base locks, nursery, Homegrown |
 | 4 | Finishes and mutations, moon events, the collection index |
 | 5 | Monetization, rebirth, UI polish, analytics |
-| 6 | Soft launch with Mossvale and Coral Coast only; other biomes arrive in weekly updates |
+| 6 | Launch v1 with every biome, unlocked through Hatcher Level and base level (owner, 2026-09-30) |
 
-Rolling out one biome per update is deliberate: it gives the weekly updates their content.
+Updates after launch add creatures, maps and features: taming, training, biome shops and larger biomes are on the owner's list.
 
 ## 12. Open questions
 

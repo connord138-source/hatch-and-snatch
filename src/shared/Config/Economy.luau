@@ -35,10 +35,18 @@ local Tunables = {
 	sellValueSeconds = 15,
 	storageSlots = 40, -- off-pedestal creatures; buying and stealing stop when full
 
-	-- Rebirth N costs rebirthCosts[N]; after the list each one costs 10× the last.
-	-- ×10 per step (eggs cost ×8 per biome, earnings grow ×4), so every rebirth
-	-- takes a little longer than the one before. First pass; tune in playtests.
-	rebirthCosts = { 25_000, 250_000, 2_500_000, 25_000_000, 250_000_000 },
+	-- Rebirth N costs rebirthCosts[N]; after the list each one costs
+	-- rebirthCostGrowth× the last. Rebirth is the endgame sink: the first one
+	-- lands after Moonfall and a full base (tools/sim/economy_sim.luau), and each
+	-- +10% makes the next one only a little easier than the cost grows.
+	rebirthCostGrowth = 2.5,
+	rebirthCosts = {
+		1_000_000_000_000,
+		2_500_000_000_000,
+		6_000_000_000_000,
+		15_000_000_000_000,
+		40_000_000_000_000,
+	},
 
 	-- Moon events
 	moonEventIntervalSeconds = 60 * 60,
@@ -47,27 +55,27 @@ local Tunables = {
 	-- thieves), adds a row of 5 pedestals and lengthens the laser lock.
 	baseLevels = {
 		{ cost = 0, pedestals = 10, lockBonusSeconds = 0 },
-		{ cost = 7_500, pedestals = 15, lockBonusSeconds = 15 },
-		{ cost = 90_000, pedestals = 20, lockBonusSeconds = 30 },
-		{ cost = 1_200_000, pedestals = 25, lockBonusSeconds = 45 },
-		{ cost = 15_000_000, pedestals = 30, lockBonusSeconds = 60 },
+		{ cost = 60_000, pedestals = 15, lockBonusSeconds = 15 },
+		{ cost = 25_000_000, pedestals = 20, lockBonusSeconds = 30 },
+		{ cost = 5_000_000_000, pedestals = 25, lockBonusSeconds = 45 },
+		{ cost = 500_000_000_000, pedestals = 30, lockBonusSeconds = 60 },
 	},
 
 	-- Base security (bought in order in the Base menu)
 	securityLevels = {
 		{
 			name = "Intruder Alarm",
-			cost = 15_000,
+			cost = 40_000,
 			description = "Alerts you when someone walks into your base; intruders glow red",
 		},
 		{
 			name = "Tripwire",
-			cost = 250_000,
+			cost = 10_000_000,
 			description = "Thieves carrying your creatures move 25% slower inside your base",
 		},
 		{
 			name = "Auto-Lock",
-			cost = 3_000_000,
+			cost = 2_000_000_000,
 			description = "Your laser gate locks itself when an intruder walks in (if it's charged)",
 		},
 	},
@@ -155,7 +163,7 @@ local function rebirthCost(rebirthsDone: number): number
 	if nth <= #costs then
 		return costs[nth]
 	end
-	return costs[#costs] * 10 ^ (nth - #costs)
+	return costs[#costs] * Tunables.rebirthCostGrowth ^ (nth - #costs)
 end
 
 local maxBiomeOrder = 0

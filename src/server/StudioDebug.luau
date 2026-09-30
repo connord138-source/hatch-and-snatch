@@ -20,6 +20,8 @@
 --       -- toggles pretend Roblox Premium ("premium") or group membership ("group") for every player
 --   game.ServerStorage.StudioDebug:Invoke("codes")
 --       -- forgets which codes every player redeemed (Config.Codes), to test them again
+--   game.ServerStorage.StudioDebug:Invoke("cash", 1e12)
+--       -- gives every player that much cash (late-game upgrades cost billions)
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -33,6 +35,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local CreatureService = require(script.Parent.Services.CreatureService)
 local DataService = require(script.Parent.Services.DataService)
+local EconomyService = require(script.Parent.Services.EconomyService)
 local EventService = require(script.Parent.Services.EventService)
 local MonetizationService = require(script.Parent.Services.MonetizationService)
 local ZoneEventService = require(script.Parent.Services.ZoneEventService)
@@ -133,6 +136,16 @@ local function perk(name: any): string
 	return `{name} {if on then "on" else "off"}`
 end
 
+local function cash(amount: any): string
+	if typeof(amount) ~= "number" or amount <= 0 then
+		return "cash needs a positive amount"
+	end
+	for player in DataService.loadedPlayers() do
+		EconomyService.grant(player, amount, "Debug")
+	end
+	return `gave {amount}`
+end
+
 local function resetCodes(): string
 	for player, data in DataService.loadedPlayers() do
 		table.clear(data.codes)
@@ -182,8 +195,10 @@ function StudioDebug.start()
 			return perk(...)
 		elseif action == "codes" then
 			return resetCodes()
+		elseif action == "cash" then
+			return cash(...)
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), cash(amount), store()"
 	end
 	hook.Parent = ServerStorage
 end

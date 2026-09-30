@@ -64,6 +64,9 @@ unrelated to the Polymarket worker.
   - VIP is a tag, +10 storage and +10% cash, because +10 pedestals doesn't fit the plots. Instant Restock was dropped.
   - Names, prices, descriptions, Creator Hub ids and tuning all live in `src/shared/Config/Monetization.luau`. An item with id 0 is hidden in the live Shop.
   - Free rewards (`RewardsService`): codes (`Config/Codes.luau`), a Roblox group perk (id 0 until the group exists), a Premium perk, and a rewarded ad giving ×2 cash (ad rewards can't be random, so it isn't a free egg).
+- **Launch (owner, 2026-09-30):** v1 ships with every biome. Players unlock them through Hatcher Level and base level. Later updates add creatures, maps and features, not gated biomes.
+- **Economy pacing (owner, 2026-09-30):** players must not max their base on day 1. The economy was retuned so a 3 h/day player reaches Frost around day 4, Storm around day 11 and base 5 plus Moonfall around days 19–22; rebirth is the endgame sink after that. See GDD §7 "Pacing".
+  - Rerun `bash tools/sim/run_economy_sim.sh` after any change to prices, earnings, costs or XP.
 - **Instructions for the owner's PC session must be written as a paste-ready prompt** (the owner asked for this).
 - **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 
