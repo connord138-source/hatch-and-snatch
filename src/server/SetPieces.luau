@@ -19,6 +19,11 @@ type Spec = {
 	radius: number, -- how far other decor keeps away
 	walkable: boolean?, -- no collision (mushrooms)
 	span: boolean?, -- an arch: its long side goes across, so the opening faces the look direction
+	-- How an imported model fills the box (default: as big as fits inside it).
+	-- "height": full box height at the model's own proportions (tall landmarks
+	-- whose model is deeper than the box would otherwise come out short).
+	-- "footprint": fills the box across, then flattens to the box height.
+	fit: ("height" | "footprint")?,
 	build: Builder, -- the stand-in when no model is imported
 	effects: Effects?,
 }
@@ -495,6 +500,7 @@ SPECS.FrozenBoulder = {
 SPECS.LightningCrag = {
 	size = Vector3.new(9, 20, 9),
 	radius = 6.5,
+	fit = "height",
 	build = function(model, frame, s)
 		local rocks = {
 			{ size = Vector3.new(8, 5, 7), at = Vector3.new(0, 2.5, 0), tilt = 0 },
@@ -550,6 +556,7 @@ SPECS.LightningCrag = {
 SPECS.WindSpire = {
 	size = Vector3.new(9, 17, 7),
 	radius = 6,
+	fit = "height",
 	build = function(model, frame, s)
 		local stack = {
 			{ 5, 4, 0, 2, 0 },
@@ -645,6 +652,7 @@ SPECS.MoonMonolith = {
 SPECS.CraterRim = {
 	size = Vector3.new(16, 5, 16),
 	radius = 9,
+	fit = "footprint",
 	build = function(model, frame, s, rng)
 		part({
 			Name = "Bowl",
@@ -720,8 +728,11 @@ local function fitImported(name: string, spec: Spec, frame: CFrame, s: number): 
 			frame * CFrame.Angles(0, math.pi / 2, 0) * CFrame.new(0, size.Y / 2, 0),
 			Vector3.new(size.Z, size.Y, size.X)
 		)
+	elseif spec.fit == "height" then
+		local grow = size.Y / math.max(extents.Y, 0.01)
+		Props.place(model, frame * CFrame.new(0, size.Y / 2, 0), extents * grow)
 	else
-		Props.place(model, frame * CFrame.new(0, size.Y / 2, 0), size)
+		Props.place(model, frame * CFrame.new(0, size.Y / 2, 0), size, spec.fit == "footprint")
 	end
 	return model
 end
@@ -781,11 +792,12 @@ function SetPieces.build(name: string, frame: CFrame, scale: number, parent: Ins
 	local built = model :: Model
 	built.Name = name
 	built.Parent = parent
+	local box, size = built:GetBoundingBox()
 	if spec.effects then
-		local box, size = built:GetBoundingBox()
 		spec.effects(built, box, size)
 	end
-	return spec.radius * scale
+	-- A model fitted by height can come out wider than its box
+	return math.max(spec.radius * scale, math.max(size.X, size.Z) / 2)
 end
 
 -- Every model name a set piece can import (tools/studio/organize_imports.luau files these).

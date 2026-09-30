@@ -1060,7 +1060,7 @@ local ZONES: { Zone } = {
 		decor = { "CrystalCluster", "CrystalCluster", "RockCluster" },
 		heroes = {
 			{ name = "MoonMonolith", angle = 180, distance = 7 },
-			{ name = "CraterRim", angle = 292.5, distance = 34 },
+			{ name = "CraterRim", angle = 292.5, distance = 35, scale = 0.85 },
 			{ name = "MoonMonolith", angle = 67.5, distance = 37, scale = 0.55 },
 		},
 	},
