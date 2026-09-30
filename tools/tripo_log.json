@@ -396,6 +396,11 @@
   "task_id": "1ee163d5-f1ff-4758-86b3-797c94a21a7d",
   "type": "image_to_model"
  },
+ "juveniles/Bassdog": {
+  "status": "queued",
+  "task_id": "587655b8-208c-40cf-9299-663d532b2b2d",
+  "type": "image_to_model"
+ },
  "juveniles/Calderhorn": {
   "credits": 30,
   "files": [
@@ -546,6 +551,11 @@
   "task_id": "43522445-f21f-4539-8785-fbc3698ac945",
   "type": "image_to_model"
  },
+ "juveniles/Lawnmoose": {
+  "status": "queued",
+  "task_id": "5c3fecd0-9025-4210-8ed7-5b5845b8e8f8",
+  "type": "image_to_model"
+ },
  "juveniles/Lunaris": {
   "credits": 30,
   "files": [
@@ -587,7 +597,12 @@
   "type": "image_to_model"
  },
  "juveniles/Nullcat": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Nullcat.glb",
+   "Nullcat_preview.webp"
+  ],
+  "status": "success",
   "task_id": "0b39a43a-4ab1-4e26-96c8-56137de3fbdc",
   "type": "image_to_model"
  },
@@ -602,7 +617,12 @@
   "type": "image_to_model"
  },
  "juveniles/Quasarfox": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Quasarfox.glb",
+   "Quasarfox_preview.webp"
+  ],
+  "status": "success",
   "task_id": "d56fec83-381c-4b29-af54-f957b2e46fcb",
   "type": "image_to_model"
  },
