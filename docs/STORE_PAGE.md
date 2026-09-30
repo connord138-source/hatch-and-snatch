@@ -4,7 +4,10 @@ The files to upload are in `marketing/`. Rebuild them with `python3 tools/market
 
 ## Icon
 
-`marketing/icon_512.png` (512×512): a baby Emberlynx bursting out of a glowing egg while a thief's hand reaches in. It carries no text, because the game name shows under the icon and text is unreadable at list size.
+`marketing/icon_512.png` (512×512): a young Emberlynx snarls out of a cracked golden egg while a thief's gloved hand reaches in. It has realistic eyes, per the art direction.
+- `icon_512_alt.png` is the runner-up: the first draft's cute kitten, with its cartoon eyes fixed.
+- Neither carries text, because the game name shows under the icon and text is unreadable at list size.
+- Roblox can A/B test icons once the game has traffic.
 
 ## Thumbnails (1920×1080, in this order)
 
@@ -28,7 +31,7 @@ Tips:
 
 🐾 41 creatures across 6 biomes, from a magma lynx to a coral axolotl
 ✨ Rare finishes: Gold, Chrome, Diamond, Molten, Galaxy, Prismatic and Blood Moon
-🌕 Moon events: Blood, Gold, Void and Prism moons change everything for 10 minutes
+🌕 Moon events: Blood, Gold, Void and Prism moons shake up the island every hour
 🔒 Lock your base, set tripwires and alarms, and guard your nursery
 🎡 Spin the Luck Wheel and chase 1 in 50,000 Secrets
 🌋 Explore biome zones for Essence, shrines and wild set-piece events
@@ -41,6 +44,7 @@ Keep the first line punchy, because only the first ~150 characters show in searc
 
 ## Sources
 
-- Icon and thumbnails 1–3 are Higgsfield drafts (see `docs/ROSTER.md` → Store art): `0a0bc141`, `c826ccbe`, `a95a62f6`, `1ccbf410`.
+- Icon: `IconRealEyesB` / `IconRealEyesA` (Tripo, `tools/tripo_jobs_marketing.json`).
+- Thumbnails 1–3 are Higgsfield drafts (see `docs/ROSTER.md` → Store art): `0a0bc141`, `c826ccbe`, `a95a62f6`, `1ccbf410`.
 - Logo and thumbnail 4 were made with the Tripo API (`tools/tripo_jobs_marketing.json`, Nano Banana Pro, 10 credits each); the outputs are in `assets/tripo/marketing/`.
 - Fonts: Luckiest Guy (Apache 2.0), Lilita One and Titan One (SIL OFL). The license files are in `tools/marketing/fonts/`.

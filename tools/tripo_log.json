@@ -370,6 +370,24 @@
   "task_id": "bb2494d3-c08b-487c-a09a-da508528545b",
   "type": "image_to_model"
  },
+ "marketing/IconRealEyesA": {
+  "credits": 10,
+  "files": [
+   "IconRealEyesA.png"
+  ],
+  "status": "success",
+  "task_id": "cd24f705-8d03-4fa2-8d65-12d20abbdce1",
+  "type": "generate_image"
+ },
+ "marketing/IconRealEyesB": {
+  "credits": 10,
+  "files": [
+   "IconRealEyesB.png"
+  ],
+  "status": "success",
+  "task_id": "cf5f2044-f7db-48b4-9f0f-1f9c306ab921",
+  "type": "generate_image"
+ },
  "marketing/Logo": {
   "credits": 10,
   "files": [

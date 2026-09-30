@@ -14,6 +14,22 @@
       "model": "gemini_3_pro_image_preview",
       "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_034954_c826ccbe-14b6-4deb-9d92-56e9cbdb1a17.png",
       "prompt": "Same art style, lighting quality and island world as the reference Roblox game thumbnail, but a new scene. Widescreen 16:9. Night falls on Crackpoint Island: a gigantic cracked Moon Egg fills the upper sky, split open and glowing blood red, shards of shell floating around it, red light pouring down. Below, on the grassy island with the egg conveyor and hatchery in the background, three Roblox-style players look up in awe with their mouths open. In the foreground a majestic semi-realistic magma lynx creature with black basalt armor and glowing orange magma cracks (realistic eyes, natural proportions, faceted low-poly look with smooth shading) stands on a stone pedestal and is being transformed by the red moonlight into a glowing crimson 'Blood Moon' version with red sparkles. Dramatic, vivid, high contrast, crisp. No text, no logos, no UI."
+    },
+    {
+      "name": "IconRealEyesA",
+      "group": "marketing",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_034954_0a0bc141-44e9-4f05-aa25-aeed75db0a18.png",
+      "prompt": "Recreate this exact square game icon with the same composition, colors, lighting and energy: the fiery black-and-orange magma lynx kitten bursting out of the cracked glowing golden egg, the black blocky glove hand reaching in from the top right, the blue radial burst background and flying shell shards. Change only the creature: give it realistic feline lynx eyes (amber irises with dark vertical slit pupils, natural size and shape for a real lynx kitten, no big round cartoon or anime eyes, no huge shiny highlights) and slightly more natural, semi-realistic lynx kitten proportions with tufted ears. Keep it bold, vivid and readable at small sizes. No text."
+    },
+    {
+      "name": "IconRealEyesB",
+      "group": "marketing",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_203811_3532202e-82f5-494c-8589-748f96eabe33.png",
+      "prompt": "Square Roblox game icon, 1:1, extremely eye-catching. A young version of this exact creature (a lynx with black basalt armor plates, glowing orange magma cracks and a lava-rock tail club, semi-realistic, faceted with smooth shading) bursts out of a cracked, glowing golden egg toward the viewer with a fierce playful snarl, fangs showing. Realistic amber lynx eyes with vertical slit pupils, natural proportions, no cartoon or anime eyes. A blocky Roblox-style arm in a black glove reaches in from the top right corner to snatch the creature. Bright electric-blue radial burst background, golden eggshell shards and embers flying outward, strong orange rim light, vivid saturated colors, high contrast, big clear shapes that read at small size. No text, no logo."
     }
   ]
 }

@@ -7,7 +7,7 @@ docs/STORE_PAGE.md): the Higgsfield drafts, and Logo.png / ThumbMoon.png from
 tools/tripo_jobs_marketing.json. Outputs go to marketing/ (committed) as the
 files to upload in Creator Hub:
 
-    icon_512.png                 game icon (512x512)
+    icon_512.png                 game icon (512x512); icon_512_alt.png is the runner-up
     thumb_1_steal.jpg ...        thumbnails (1920x1080)
     logo.png                     the logo with a transparent background
 
@@ -144,8 +144,10 @@ def main():
     logo.save(OUT / "logo.png")
 
     # Icon: the snatch moment, straight from the draft, a touch punchier
-    icon = vibrance(src("0a0bc141")).resize((512, 512), Image.LANCZOS)
-    icon.save(OUT / "icon_512.png")
+    # Realistic eyes (owner's art direction): B is the snarling young Emberlynx
+    # from its model sheet; A is the first draft's composition with the eyes fixed
+    vibrance(src("IconRealEyesB")).resize((512, 512), Image.LANCZOS).save(OUT / "icon_512.png")
+    vibrance(src("IconRealEyesA")).resize((512, 512), Image.LANCZOS).save(OUT / "icon_512_alt.png")
 
     # 1. The steal (lead thumbnail): big logo, one line of hype
     c = vibrance(cover(src("c826ccbe"), W, H, (0.5, 0.45))).convert("RGBA")
