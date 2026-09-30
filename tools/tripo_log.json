@@ -461,6 +461,11 @@
   "task_id": "5d0928e9-ec6f-404e-80d1-26cd11c0cbd5",
   "type": "image_to_model"
  },
+ "juveniles/Fridgehog": {
+  "status": "queued",
+  "task_id": "53a39732-6156-46b0-99d9-18fffebe332e",
+  "type": "image_to_model"
+ },
  "juveniles/Frostbun": {
   "credits": 30,
   "files": [
@@ -501,6 +506,11 @@
   "task_id": "9cb1ca73-d0ac-4f89-a7b0-74987c76d082",
   "type": "image_to_model"
  },
+ "juveniles/Grillgator": {
+  "status": "queued",
+  "task_id": "5449dba6-bd29-40b7-8137-f87847f10bb1",
+  "type": "image_to_model"
+ },
  "juveniles/Halosaur": {
   "credits": 30,
   "files": [
@@ -529,6 +539,11 @@
   ],
   "status": "success",
   "task_id": "0a855338-feba-45f8-ad60-a0f851e56cb7",
+  "type": "image_to_model"
+ },
+ "juveniles/Laundrophant": {
+  "status": "queued",
+  "task_id": "43522445-f21f-4539-8785-fbc3698ac945",
   "type": "image_to_model"
  },
  "juveniles/Lunaris": {
@@ -607,7 +622,12 @@
   "type": "image_to_model"
  },
  "juveniles/Solarion": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "Solarion.glb",
+   "Solarion_preview.webp"
+  ],
+  "status": "success",
   "task_id": "e256d2ac-cdb3-4cb7-93f2-419fde2c15a7",
   "type": "image_to_model"
  },
@@ -669,6 +689,11 @@
   ],
   "status": "success",
   "task_id": "910cc4da-525c-4fa4-b408-46815e46ed70",
+  "type": "image_to_model"
+ },
+ "juveniles/Toastoise": {
+  "status": "queued",
+  "task_id": "9fae6bb5-06c2-4583-b538-d655fadbb8ea",
   "type": "image_to_model"
  },
  "juveniles/Zapybara": {
