@@ -270,7 +270,6 @@ function HatchService.giveEgg(player: Player, biomeId: string)
 		Net.notify(player, `Your ×{charge} Luck Wheel charge was used on this egg!`, "rare")
 	end
 	data.heldEgg = { biome = biomeId, species = species }
-	data.stats.eggsBought += 1
 	attachHeldEgg(player, biomeId)
 	refreshIncubators(player, data)
 	DataService.markDirty(player)
