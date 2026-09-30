@@ -12,6 +12,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -87,11 +88,14 @@ function GuideController.start()
 	gui.Parent = player:WaitForChild("PlayerGui")
 	Ui.autoScale(gui)
 	-- A goal card on the right edge: clear of the top-center banners (moon event,
-	-- carrying) and of the horizon, where the ⬇ over distant targets shows. It
-	-- grows downward when the text wraps.
+	-- carrying) and of the horizon, where the ⬇ over distant targets shows. It grows
+	-- downward when the text wraps. On a desktop its top sits under a full 6-player
+	-- list even in a small window; phones hide the list but put the jump button
+	-- bottom-right, so there it sits higher.
+	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 	local banner = Ui.panel(gui, {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -12, 0.42, 0),
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -12, if touch then 0.42 else 0.55, 0),
 		Size = UDim2.fromOffset(250, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = Color3.fromRGB(60, 50, 20),
