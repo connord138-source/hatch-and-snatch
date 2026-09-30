@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Net = require(script.Parent.Parent.Net)
+local Reach = require(script.Parent.Parent.Reach)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local ProgressionService = require(script.Parent.ProgressionService)
@@ -113,7 +114,11 @@ end
 function WheelService.start()
 	local wheel = WorldService.luckWheel
 	if wheel then
-		wheel.prompt.Triggered:Connect(spin)
+		wheel.prompt.Triggered:Connect(function(player)
+			if Reach.prompt(player, wheel.prompt) then
+				spin(player)
+			end
+		end)
 	end
 end
 

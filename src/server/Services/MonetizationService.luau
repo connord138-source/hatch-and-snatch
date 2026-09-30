@@ -14,6 +14,7 @@
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -159,8 +160,9 @@ function MonetizationService.boostServerLuck(buyer: Player)
 		luckMultiplier = 1
 		luckUntil = now
 	end
+	-- Every purchase adds its full time; only the multiplier is capped
 	luckMultiplier = math.min(luckMultiplier + 1, tune.maxMultiplier)
-	luckUntil = math.min(luckUntil + tune.minutes * 60, now + tune.maxMinutes * 60)
+	luckUntil += tune.minutes * 60
 	publishLuck()
 	local minutes = math.ceil((luckUntil - now) / 60)
 	Net.announce(
@@ -211,13 +213,35 @@ local function processReceipt(receipt: { [string]: any }): Enum.ProductPurchaseD
 	return decision
 end
 
+-- Asks Roblox whether the player owns a pass: true / false, or nil if Roblox
+-- couldn't answer after a few tries.
+local function ownsOnRoblox(player: Player, passId: number): boolean?
+	for attempt = 1, 3 do
+		local ok, has =
+			pcall(MarketplaceService.UserOwnsGamePassAsync, MarketplaceService, player.UserId, passId)
+		if ok then
+			return has
+		end
+		if attempt < 3 and player.Parent == Players then
+			task.wait(1.5 * attempt)
+		end
+	end
+	return nil
+end
+
+-- On join, Roblox's answer wins: owned passes are granted, and a saved pass
+-- Roblox says isn't owned (refunded) is removed. Saved passes are only trusted
+-- when Roblox can't be reached.
 local function checkPasses(player: Player)
 	for _, pass in Monetization.passes do
 		if pass.id ~= 0 then
-			local ok, has =
-				pcall(MarketplaceService.UserOwnsGamePassAsync, MarketplaceService, player.UserId, pass.id)
-			if ok and has then
+			local owns = ownsOnRoblox(player, pass.id)
+			local data = DataService.get(player)
+			if owns == true then
 				MonetizationService.grantPass(player, pass.key)
+			elseif owns == false and data and data.passes[pass.key] and not RunService:IsStudio() then
+				data.passes[pass.key] = nil
+				DataService.markDirty(player)
 			end
 		end
 	end
@@ -244,8 +268,17 @@ function MonetizationService.start()
 		end
 		for _, pass in Monetization.passes do
 			if pass.id == passId and pass.id ~= 0 then
-				MonetizationService.grantPass(player, pass.key)
-				Net.notify(player, `Thanks! {pass.name} is yours.`, "rare")
+				-- Confirm with Roblox first: this event alone isn't proof of purchase
+				task.spawn(function()
+					if ownsOnRoblox(player, pass.id) == false then
+						warn(
+							`[MonetizationService] {player.Name}: purchase of {pass.key} not confirmed by Roblox`
+						)
+						return
+					end
+					MonetizationService.grantPass(player, pass.key)
+					Net.notify(player, `Thanks! {pass.name} is yours.`, "rare")
+				end)
 			end
 		end
 	end)

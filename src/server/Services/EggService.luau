@@ -5,10 +5,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local Belt = require(ReplicatedStorage.Shared.Belt)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
+local Reach = require(script.Parent.Parent.Reach)
 local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
@@ -23,16 +25,15 @@ type Egg = {
 	part: BasePart,
 	biome: string,
 	price: number,
-	angle: number,
-	travelled: number,
+	spawnedAt: number, -- Workspace:GetServerTimeNow() when it left the tunnel center
 	sold: boolean,
 }
 
 local conveyor = Config.Eggs.conveyor
 -- Eggs start in the middle of the hatchery tunnel, ride one lap and are removed
--- back in the middle of it, so none ever vanishes in view
-local TUNNEL_CENTER = math.rad(conveyor.tunnelCenterDegrees)
-local TUNNEL_HALF = math.rad(conveyor.tunnelHalfDegrees)
+-- back in the middle of it, so none ever vanishes in view (Belt). Clients move
+-- them smoothly; the server only needs positions for the buy prompts.
+local SERVER_MOVE_SECONDS = 0.25
 local EGG_HEIGHT = 3.4 -- studs, for imported egg meshes
 local rng = Random.new()
 local eggs: { Egg } = {}
@@ -63,7 +64,16 @@ local function pickBiome(): string
 end
 
 local function tryBuy(egg: Egg, player: Player)
-	if egg.sold then
+	if egg.sold or egg.part.Parent == nil then
+		return
+	end
+	-- Checked here too, not just by the prompt: never inside the tunnel, and the
+	-- buyer has to be at the belt
+	local prompt = egg.part:FindFirstChildOfClass("ProximityPrompt")
+	if Belt.inTunnel(Belt.angle(Workspace:GetServerTimeNow() - egg.spawnedAt)) then
+		return
+	end
+	if prompt == nil or not Reach.prompt(player, prompt) then
 		return
 	end
 	local data = DataService.get(player)
@@ -151,14 +161,17 @@ local function spawnEgg()
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = part
 
+	local now = Workspace:GetServerTimeNow()
 	local egg: Egg = {
 		part = part,
 		biome = biomeId,
 		price = price,
-		angle = TUNNEL_CENTER,
-		travelled = 0,
+		spawnedAt = now,
 		sold = false,
 	}
+	part:SetAttribute("SpawnedAt", now) -- BeltController animates it from this
+	part.CFrame = Belt.cframe(WorldService.conveyorCenter, Belt.angle(0))
+	prompt.Enabled = false -- starts inside the tunnel
 	prompt.Triggered:Connect(function(player)
 		tryBuy(egg, player)
 	end)
@@ -167,42 +180,41 @@ local function spawnEgg()
 	table.insert(eggs, egg)
 end
 
-local function step(dt: number)
-	local center = WorldService.conveyorCenter
-	local angularSpeed = conveyor.speed / conveyor.radius
+local lastMove = 0
+local function step()
+	local now = Workspace:GetServerTimeNow()
+	local move = now - lastMove >= SERVER_MOVE_SECONDS
+	if move then
+		lastMove = now
+	end
 	for i = #eggs, 1, -1 do
 		local egg = eggs[i]
 		if egg.sold then
 			table.remove(eggs, i)
 			continue
 		end
-		egg.angle += angularSpeed * dt
-		egg.travelled += angularSpeed * dt
-		if egg.travelled >= 2 * math.pi then
+		local age = now - egg.spawnedAt
+		if age >= Belt.LAP_SECONDS then
 			egg.part:Destroy()
 			table.remove(eggs, i)
 			continue
 		end
+		local angle = Belt.angle(age)
 		-- No buying while it's inside the tunnel
-		local fromCenter = math.abs(((egg.angle - TUNNEL_CENTER + math.pi) % (2 * math.pi)) - math.pi)
 		local prompt = egg.part:FindFirstChildOfClass("ProximityPrompt")
 		if prompt then
-			prompt.Enabled = fromCenter > TUNNEL_HALF
+			prompt.Enabled = not Belt.inTunnel(angle)
 		end
-		local bob = math.sin(egg.angle * 6) * 0.15
-		local position = center
-			+ Vector3.new(
-				math.cos(egg.angle) * conveyor.radius,
-				conveyor.height + bob,
-				math.sin(egg.angle) * conveyor.radius
-			)
-		egg.part.CFrame = CFrame.new(position) * CFrame.Angles(0, -egg.angle, 0)
+		if move then
+			egg.part.CFrame = Belt.cframe(WorldService.conveyorCenter, angle)
+		end
 	end
 end
 
 function EggService.start()
 	folder = Instance.new("Folder")
 	folder.Name = "ConveyorEggs"
+	folder:SetAttribute("Center", WorldService.conveyorCenter) -- for BeltController
 	folder.Parent = Workspace
 
 	RunService.Heartbeat:Connect(step)

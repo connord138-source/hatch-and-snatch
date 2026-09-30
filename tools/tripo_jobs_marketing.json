@@ -1,0 +1,19 @@
+{
+  "jobs": [
+    {
+      "name": "Logo",
+      "group": "marketing",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "prompt": "A bold Roblox game logo that reads exactly \"HATCH & SNATCH\" and nothing else. Two stacked lines: \"HATCH\" on top, \"& SNATCH\" below. Chunky rounded 3D cartoon letters with a thick dark navy outline and glossy highlights. HATCH is warm golden orange with a cracked eggshell texture and small glowing orange cracks, as if it is hatching. SNATCH is electric blue fading to violet, slightly italic and leaning forward like it is running away. The ampersand is a small glowing golden egg. Energetic, readable at small sizes, centered with generous margins, on a completely flat pure green (#00FF00) background with no shadows, gradients, scenery or other objects on the background."
+    },
+    {
+      "name": "ThumbMoon",
+      "group": "marketing",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_034954_c826ccbe-14b6-4deb-9d92-56e9cbdb1a17.png",
+      "prompt": "Same art style, lighting quality and island world as the reference Roblox game thumbnail, but a new scene. Widescreen 16:9. Night falls on Crackpoint Island: a gigantic cracked Moon Egg fills the upper sky, split open and glowing blood red, shards of shell floating around it, red light pouring down. Below, on the grassy island with the egg conveyor and hatchery in the background, three Roblox-style players look up in awe with their mouths open. In the foreground a majestic semi-realistic magma lynx creature with black basalt armor and glowing orange magma cracks (realistic eyes, natural proportions, faceted low-poly look with smooth shading) stands on a stone pedestal and is being transformed by the red moonlight into a glowing crimson 'Blood Moon' version with red sparkles. Dramatic, vivid, high contrast, crisp. No text, no logos, no UI."
+    }
+  ]
+}

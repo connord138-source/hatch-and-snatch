@@ -370,6 +370,24 @@
   "task_id": "bb2494d3-c08b-487c-a09a-da508528545b",
   "type": "image_to_model"
  },
+ "marketing/Logo": {
+  "credits": 10,
+  "files": [
+   "Logo.png"
+  ],
+  "status": "success",
+  "task_id": "26a3e6a3-ca76-4f28-ac20-044baa5491f5",
+  "type": "generate_image"
+ },
+ "marketing/ThumbMoon": {
+  "credits": 10,
+  "files": [
+   "ThumbMoon.png"
+  ],
+  "status": "success",
+  "task_id": "a2fb48d8-2a5f-4f18-88c8-44fd8f7a79f4",
+  "type": "generate_image"
+ },
  "props/CraterRim": {
   "credits": 20,
   "files": [

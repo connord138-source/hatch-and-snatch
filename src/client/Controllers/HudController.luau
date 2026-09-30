@@ -36,6 +36,7 @@ function HudController.start()
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = false
 	gui.Parent = player:WaitForChild("PlayerGui")
+	Ui.autoScale(gui)
 
 	-- Toasts and announcements go on their own layer so they show over open menus
 	local overlay = Instance.new("ScreenGui")
@@ -43,6 +44,7 @@ function HudController.start()
 	overlay.ResetOnSpawn = false
 	overlay.DisplayOrder = 10
 	overlay.Parent = gui.Parent
+	Ui.autoScale(overlay)
 
 	-- Cash panel (top-left)
 	local cashPanel = panel(gui, { Size = UDim2.fromOffset(250, 152), Position = UDim2.fromOffset(12, 12) })
@@ -209,7 +211,10 @@ function HudController.start()
 			Size = UDim2.new(1, 0, 0, 34),
 			BackgroundColor3 = TOAST_COLORS[kind] or TOAST_COLORS.info,
 		})
-		label(toastFrame, { Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4), Text = text })
+		label(
+			toastFrame,
+			{ Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4), Text = Ui.hint(text) }
+		)
 		task.delay(4, function()
 			toastFrame:Destroy()
 		end)
@@ -331,8 +336,9 @@ function HudController.start()
 			end
 			if current.heldEgg then
 				eggBanner.Visible = true
-				eggLabel.Text =
+				eggLabel.Text = Ui.hint(
 					`Carrying a {Config.Biomes[current.heldEgg].displayName} egg — place it in an incubator (E)`
+				)
 			else
 				eggBanner.Visible = false
 			end

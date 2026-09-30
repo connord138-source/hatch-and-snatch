@@ -37,6 +37,7 @@ function MenuController.start()
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 5 -- above the HUD panels, below its toasts (HatchOverlay)
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	Ui.autoScale(gui)
 
 	local window = Ui.panel(gui, {
 		AnchorPoint = Vector2.new(0.5, 0.5),

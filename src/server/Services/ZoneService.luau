@@ -11,6 +11,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Net = require(script.Parent.Parent.Net)
+local Reach = require(script.Parent.Parent.Reach)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -342,7 +343,9 @@ function ZoneService.start()
 		for _, node in zone.nodes do
 			local p = prompt(node.PrimaryPart :: BasePart, "Harvest", "Harvest", info.node, Enum.KeyCode.E, 1)
 			p.Triggered:Connect(function(player)
-				harvest(player, zone, node, p)
+				if Reach.prompt(player, p) then
+					harvest(player, zone, node, p)
+				end
 			end)
 		end
 		local egg = prompt(
@@ -354,7 +357,9 @@ function ZoneService.start()
 			0.6
 		)
 		egg.Triggered:Connect(function(player)
-			forgeEgg(player, zone)
+			if Reach.prompt(player, egg) then
+				forgeEgg(player, zone)
+			end
 		end)
 		local blessing = prompt(
 			zone.shrine,
@@ -365,7 +370,9 @@ function ZoneService.start()
 			0.6
 		)
 		blessing.Triggered:Connect(function(player)
-			bless(player, zone)
+			if Reach.prompt(player, blessing) then
+				bless(player, zone)
+			end
 		end)
 	end
 

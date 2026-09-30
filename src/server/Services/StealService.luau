@@ -8,7 +8,11 @@
 --     creature may break free once, and dying / leaving / timing out returns it.
 --   • Base lock: 60 s laser gate (then 45 s cooldown) that ejects intruders.
 --   • The record stays in the owner's save until delivery, so a crash mid-steal
---     can never lose or duplicate a creature.
+--     can never lose or duplicate a creature; both saves are written right after.
+--   • Movement is the client's, so the server checks it: grabs only from inside
+--     the base after the prompt's hold time, no moving faster than the carry
+--     speed allows (a teleport drops the creature), and a re-stolen creature
+--     pays no steal rewards for a while (so two accounts can't farm each other).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -42,6 +46,11 @@ type Carry = {
 	jumpPower: number,
 	jumpHeight: number,
 	connections: { RBXScriptConnection },
+	-- movement checks
+	grabPosition: Vector3,
+	grabbedAt: number,
+	lastPosition: Vector3,
+	lastAt: number,
 }
 
 type LockState = { lockedUntil: number, cooldownUntil: number }
@@ -51,10 +60,18 @@ local CARRY_TIMEOUT = 120
 local HOMEGROWN_STRUGGLE = 0.8 -- extra carry-speed multiplier for Homegrown creatures
 local BREAK_FREE_CHANCE = 0.35
 local TAKE_BACK_HOLD: { [string]: number } = { Baby = 1.0, Juvenile = 0.6, Adult = 0.3 }
+local MIN_INSIDE_SECONDS = 0.9 -- in the base at least this long before a grab (the Steal hold is 1.2 s+)
+local MOVE_SLACK = 1.5 -- carry movement allowed per tick: speed × time × slack + MOVE_GRACE studs
+local MOVE_GRACE = 3
+local RESTEAL_COOLDOWN = 30 * 60 -- a creature stolen this recently pays no steal rewards
+local ALARM_COOLDOWN = 10 -- seconds between alarms for the same intruder
 
 local carries: { [Player]: Carry } = {} -- keyed by thief
 local locks: { [number]: LockState } = {} -- keyed by plot index
-local intruders: { [number]: { [Player]: boolean } } = {} -- plot index -> players inside
+local intruders: { [number]: { [Player]: number } } = {} -- plot index -> player -> os.clock() they walked in
+local lastAlarm: { [number]: { [Player]: number } } = {} -- plot index -> player -> os.clock() of the alarm
+local lastIntruderAt: { [number]: number } = {} -- plot index -> os.clock() someone was last inside
+local THREAT_SECONDS = 5 -- how long after an intruder leaves the base still counts as under threat
 local rng = Random.new()
 
 local StealService = {}
@@ -83,6 +100,15 @@ function StealService.carryingName(thief: Player): string?
 	return if record then Config.CreaturesById[record.species].displayName else nil
 end
 
+-- Whether someone else is in the player's base (or just left): pedestal
+-- creatures can't be stored, walked or moved to the nursery then, so a thief
+-- can't be dodged by pulling a creature away mid-grab.
+function StealService.underThreat(player: Player): boolean
+	local plot = PlotService.get(player)
+	local at = plot and lastIntruderAt[plot.index]
+	return at ~= nil and os.clock() - at < THREAT_SECONDS
+end
+
 function StealService.lockState(player: Player): LockState?
 	local plot = PlotService.get(player)
 	return if plot then locks[plot.index] else nil
@@ -101,9 +127,23 @@ local function isProtected(owner: Player): boolean
 	return data ~= nil and Timing.now() < data.createdAt + tunables.newPlayerProtectionSeconds
 end
 
+local function flat(v: Vector3): Vector3
+	return Vector3.new(v.X, 0, v.Z)
+end
+
 local function endCarry(carry: Carry, outcome: Outcome)
 	if carries[carry.thief] ~= carry then
 		return
+	end
+	-- Delivery needs somewhere to put it: the thief's data and a free spot
+	if outcome == "delivered" then
+		local thiefData = DataService.get(carry.thief)
+		if thiefData == nil then
+			outcome = "returned"
+		elseif not CreatureService.hasRoom(thiefData) then
+			Net.notify(carry.thief, "You had no room for it, so it ran home.", "bad")
+			outcome = "returned"
+		end
 	end
 	carries[carry.thief] = nil
 	carry.thief:SetAttribute("Carrying", nil)
@@ -126,6 +166,10 @@ local function endCarry(carry: Carry, outcome: Outcome)
 
 	if outcome == "delivered" and record then
 		local creature = Config.CreaturesById[record.species]
+		local now = Timing.now()
+		-- Stolen again soon after its last steal: it still changes hands, but pays
+		-- no XP, bonus or announcement (stops two accounts farming each other)
+		local rewarded = record.stolenAt == nil or now - record.stolenAt >= RESTEAL_COOLDOWN
 		CreatureService.remove(owner, uid)
 		CreatureService.add(thief, {
 			species = record.species,
@@ -135,23 +179,29 @@ local function endCarry(carry: Carry, outcome: Outcome)
 			mutation = record.mutation,
 			homegrown = false,
 			stolenFrom = owner.DisplayName,
+			stolenAt = now,
 		})
+		-- The creature just moved between two saves: write both now
+		DataService.save(owner)
+		DataService.save(thief)
 		Net.notify(thief, `You stole {owner.DisplayName}'s {name}!`, "rare")
-		ProgressionService.addXp(thief, Config.Progression.xp.steal)
-		ProgressionService.bump(thief, "steals")
-		Analytics.event(thief, "Steal", 1, { tostring(creature.rarity), record.stage })
 		Net.notify(owner, `{thief.DisplayName} stole your {name}!`, "bad")
-		local event = EventService.active()
-		if event and event.stealCashBonus > 0 then
-			local bonus = math.floor(Config.Eggs.price(creature.biome) * event.stealCashBonus)
-			EconomyService.grant(thief, bonus, "MoonStealBonus")
-			Net.notify(thief, `{event.displayName} bonus: +{Format.cash(bonus)}`, "good")
-		end
-		if Config.Rarities[creature.rarity].order >= 5 or record.finish ~= "Normal" then
-			Net.announce(
-				`{thief.DisplayName} stole {owner.DisplayName}'s {name}!`,
-				Config.Rarities[creature.rarity].color
-			)
+		Analytics.event(thief, "Steal", 1, { tostring(creature.rarity), record.stage })
+		if rewarded then
+			ProgressionService.addXp(thief, Config.Progression.xp.steal)
+			ProgressionService.bump(thief, "steals")
+			local event = EventService.active()
+			if event and event.stealCashBonus > 0 then
+				local bonus = math.floor(Config.Eggs.price(creature.biome) * event.stealCashBonus)
+				EconomyService.grant(thief, bonus, "MoonStealBonus")
+				Net.notify(thief, `{event.displayName} bonus: +{Format.cash(bonus)}`, "good")
+			end
+			if Config.Rarities[creature.rarity].order >= 5 or record.finish ~= "Normal" then
+				Net.announce(
+					`{thief.DisplayName} stole {owner.DisplayName}'s {name}!`,
+					Config.Rarities[creature.rarity].color
+				)
+			end
 		end
 	else
 		CreatureService.setCarried(owner, uid, false)
@@ -183,8 +233,12 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 	if record == nil or thiefData == nil or ownerPlot == nil or thiefPlot == nil then
 		return
 	end
-	if CreatureService.isCarried(owner, uid) then
-		return
+	if
+		CreatureService.isCarried(owner, uid)
+		or record.slot == nil
+		or CreatureService.walkingUid(owner) == uid
+	then
+		return -- only creatures sitting on a pedestal can be grabbed
 	end
 	if CreatureService.isNursery(ownerData :: DataService.PlayerData, record.slot) then
 		Net.notify(thief, "Creatures in a nursery can't be stolen.", "bad")
@@ -207,11 +261,21 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 		return
 	end
 	local pedestalModel = ownerPlot.model:FindFirstChild(`{record.species}_{uid}`)
-	local target = if pedestalModel and pedestalModel:IsA("Model")
-		then pedestalModel:GetPivot().Position
-		else ownerPlot.origin.Position
-	if (root.Position - target).Magnitude > 16 then
+	if pedestalModel == nil or not pedestalModel:IsA("Model") then
+		return
+	end
+	if (root.Position - pedestalModel:GetPivot().Position).Magnitude > 16 then
 		return -- prompt range is 10; allow some latency slack but reject far-away triggers
+	end
+	-- From inside the base only, and for about as long as the prompt's hold: a
+	-- teleport-in-and-grab fails, and the alarm and auto-lock get their chance
+	if not WorldService.isInsidePlot(ownerPlot, root.Position) then
+		Net.notify(thief, "Get inside their base to steal it!", "bad")
+		return
+	end
+	local enteredAt = intruders[ownerPlot.index] and intruders[ownerPlot.index][thief]
+	if enteredAt == nil or os.clock() - enteredAt < MIN_INSIDE_SECONDS then
+		return -- not seen inside yet (the tick records entries and sounds the alarm)
 	end
 
 	-- Lift the creature over the thief's head
@@ -259,6 +323,10 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 		jumpPower = humanoid.JumpPower,
 		jumpHeight = humanoid.JumpHeight,
 		connections = {},
+		grabPosition = root.Position,
+		grabbedAt = os.clock(),
+		lastPosition = root.Position,
+		lastAt = os.clock(),
 	}
 	carries[thief] = carry
 	thief:SetAttribute("Carrying", true) -- clients hide Steal prompts while you carry one
@@ -354,24 +422,54 @@ local function refreshLockVisuals(now: number)
 	end
 end
 
+-- One carry's checks: tripwire, movement sanity, delivery, break-free, timeout.
+local function tickCarry(carry: Carry, clock: number)
+	local humanoid, root = humanoidOf(carry.thief)
+	local thiefPlot = PlotService.get(carry.thief)
+	-- Tripwire: slower while still inside the owner's base
+	local ownerPlot = PlotService.get(carry.owner)
+	if humanoid and root and ownerPlot then
+		local tripped = security(carry.owner) >= 2 and WorldService.isInsidePlot(ownerPlot, root.Position)
+		humanoid.WalkSpeed = carry.moveSpeed * (if tripped then tunables.tripwireSlow else 1)
+	end
+	if root == nil or clock >= carry.expiresAt then
+		endCarry(carry, "returned")
+		return
+	end
+	-- Moving faster than the carry speed allows (a teleport or speed hack) drops it
+	local moved = flat(root.Position - carry.lastPosition).Magnitude
+	local allowed = carry.moveSpeed * (clock - carry.lastAt) * MOVE_SLACK + MOVE_GRACE
+	carry.lastPosition = root.Position
+	carry.lastAt = clock
+	if moved > allowed then
+		endCarry(carry, "returned")
+		return
+	end
+	if thiefPlot and WorldService.isInsidePlot(thiefPlot, root.Position) then
+		-- It must also have taken about as long as the run should take
+		local edge = math.max(thiefPlot.width, thiefPlot.depth) / 2
+		local run = math.max(0, flat(carry.grabPosition - thiefPlot.origin.Position).Magnitude - edge)
+		if clock - carry.grabbedAt >= 0.7 * run / carry.moveSpeed then
+			endCarry(carry, "delivered")
+		else
+			endCarry(carry, "returned")
+		end
+	elseif carry.breakFreeAt and clock >= carry.breakFreeAt then
+		endCarry(carry, "brokeFree")
+	end
+end
+
 local function tick()
 	local now = serverNow()
 	local clock = os.clock()
 
 	for _, carry in carries do
-		local humanoid, root = humanoidOf(carry.thief)
-		local thiefPlot = PlotService.get(carry.thief)
-		-- Tripwire: slower while still inside the owner's base
-		local ownerPlot = PlotService.get(carry.owner)
-		if humanoid and root and ownerPlot then
-			local tripped = security(carry.owner) >= 2 and WorldService.isInsidePlot(ownerPlot, root.Position)
-			humanoid.WalkSpeed = carry.moveSpeed * (if tripped then tunables.tripwireSlow else 1)
-		end
-		if root and thiefPlot and WorldService.isInsidePlot(thiefPlot, root.Position) then
-			endCarry(carry, "delivered")
-		elseif carry.breakFreeAt and clock >= carry.breakFreeAt then
-			endCarry(carry, "brokeFree")
-		elseif clock >= carry.expiresAt or root == nil then
+		local ok, problem = pcall(function(): any
+			tickCarry(carry, clock)
+			return nil
+		end)
+		if not ok then
+			warn(`[StealService] carry check failed: {problem}`)
 			endCarry(carry, "returned")
 		end
 	end
@@ -382,6 +480,8 @@ local function tick()
 		local level = security(owner)
 		local inside = intruders[plot.index] or {}
 		intruders[plot.index] = inside
+		local alarms = lastAlarm[plot.index] or {}
+		lastAlarm[plot.index] = alarms
 		for _, player in Players:GetPlayers() do
 			local _, root = humanoidOf(player)
 			local isIn = owner ~= nil
@@ -389,10 +489,26 @@ local function tick()
 				and root ~= nil
 				and WorldService.isInsidePlot(plot, (root :: BasePart).Position)
 			local character = player.Character
+			if isIn then
+				lastIntruderAt[plot.index] = clock
+			end
 			if isIn and not inside[player] then
-				inside[player] = true
-				if level >= 1 and owner and character then
+				inside[player] = clock
+				if
+					level >= 1
+					and owner
+					and character
+					and clock - (alarms[player] or -math.huge) >= ALARM_COOLDOWN
+				then
+					alarms[player] = clock
 					Net.notify(owner, `⚠ {player.DisplayName} walked into your base!`, "bad")
+				end
+				if
+					level >= 1
+					and owner
+					and character
+					and character:FindFirstChild("IntruderHighlight") == nil
+				then
 					local highlight = Instance.new("Highlight")
 					highlight.Name = "IntruderHighlight"
 					highlight.FillColor = Color3.fromRGB(255, 40, 40)
@@ -424,6 +540,11 @@ local function tick()
 				if player ~= owner then
 					local _, root = humanoidOf(player)
 					if root and WorldService.isInsidePlot(plot, root.Position) then
+						-- The gate doesn't carry a thief (and the owner's creature) past the tripwire
+						local carry = carries[player]
+						if carry and carry.owner == owner then
+							endCarry(carry, "takenBack")
+						end
 						(player.Character :: Model):PivotTo(WorldService.outsideFront(plot))
 						Net.notify(player, "The laser gate pushed you out!", "bad")
 					end
@@ -448,6 +569,9 @@ function StealService.start()
 		for _, inside in intruders do
 			inside[player] = nil
 		end
+		for _, alarms in lastAlarm do
+			alarms[player] = nil
+		end
 	end)
 
 	DataService.releasing:connect(function(player: Player)
@@ -466,7 +590,13 @@ function StealService.start()
 	task.spawn(function()
 		while true do
 			task.wait(0.2)
-			tick()
+			local ok, problem = pcall(function(): any
+				tick()
+				return nil
+			end)
+			if not ok then
+				warn(`[StealService] tick failed: {problem}`)
+			end
 		end
 	end)
 end

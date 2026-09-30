@@ -16,9 +16,19 @@ local ClientState = {
 
 function ClientState.start()
 	local stateUpdate = remotes:WaitForChild("StateUpdate") :: RemoteEvent
-	stateUpdate.OnClientEvent:Connect(function(snapshot: { [string]: any })
-		ClientState.current = snapshot
-		ClientState.changed:fire(snapshot)
+	-- The server sends only the fields that changed; merge them into the current state
+	stateUpdate.OnClientEvent:Connect(function(changes: { [string]: any }, cleared: { string }, full: boolean)
+		local state = if full or ClientState.current == nil
+			then {}
+			else ClientState.current :: { [string]: any }
+		for key, value in changes do
+			state[key] = value
+		end
+		for _, key in cleared do
+			state[key] = nil
+		end
+		ClientState.current = state
+		ClientState.changed:fire(state)
 	end)
 end
 

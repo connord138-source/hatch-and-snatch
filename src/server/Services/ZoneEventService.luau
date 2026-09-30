@@ -11,6 +11,7 @@ local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Net = require(script.Parent.Parent.Net)
+local Reach = require(script.Parent.Parent.Reach)
 local SetPieces = require(script.Parent.Parent.SetPieces)
 local DataService = require(script.Parent.DataService)
 local WorldService = require(script.Parent.WorldService)
@@ -165,7 +166,12 @@ local function prize(
 			then Players:GetPlayerFromCharacter(character)
 			else nil
 		local data = player and DataService.get(player)
-		if player == nil or data == nil or not unlocked(data, zone.biome) then
+		if
+			player == nil
+			or data == nil
+			or not unlocked(data, zone.biome)
+			or not Reach.touching(player, p)
+		then
 			return
 		end
 		taken = true
@@ -422,13 +428,19 @@ local function boulder(zone: Zone, landmark: Landmark)
 	prompt.Parent = core
 
 	local helpers: { [Player]: boolean } = {}
+	local lastHit: { [Player]: number } = {}
 	local hits = 0
 	local done = false
 	prompt.Triggered:Connect(function(player)
 		local data = DataService.get(player)
-		if done or data == nil or not unlocked(data, zone.biome) then
+		if done or data == nil or not unlocked(data, zone.biome) or not Reach.prompt(player, prompt) then
 			return
 		end
+		-- One hit per hold: spamming the prompt can't break it alone in a second
+		if os.clock() - (lastHit[player] or 0) < prompt.HoldDuration then
+			return
+		end
+		lastHit[player] = os.clock()
 		helpers[player] = true
 		hits += 1
 		glow.Brightness = 0.4 + hits * 0.1

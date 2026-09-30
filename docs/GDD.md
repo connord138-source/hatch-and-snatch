@@ -123,7 +123,14 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 | **Stolen from [name]** tag | permanent; a stolen creature loses Homegrown status |
 | **Nursery** slots (nothing in them can be stolen) | 1 to start; up to 3 with cash upgrades or the game pass |
 
-All of this is checked on the server: grab range, carry state, drop-off at the thief's own base, and the lock state.
+All of this is checked on the server: grab range, carry state, drop-off at the thief's own base, and the lock state. Hardened after the 2026-09-30 security audit:
+
+- A thief must be inside the base for about a second before grabbing, so the alarm and auto-lock get their chance.
+- A carry that moves faster than its carry speed allows (a teleport or speed hack) drops the creature, and delivery must take about as long as the run would.
+- A creature stolen again within 30 minutes still changes hands, but pays no XP, bonus or announcement. This stops two accounts farming each other.
+- While someone is in your base, you can't pull pedestal creatures into storage, the nursery or a walk.
+- A locked gate that pushes a thief out takes the owner's creature back.
+- Both saves are written right after a delivery.
 
 ### 6.1 Base upgrades and themes
 
@@ -262,7 +269,7 @@ Built 2026-09-30 (`Config/Monetization.luau`, `MonetizationService`). Prices are
 
   | Product | R$ | Effect |
   |---|---|---|
-  | Server Luck | 99 | Headline product. Epic+ odds ×2 on every egg rolled in the server for 15 min, buyer announced. Each repeat adds 15 min (max 60 left) and +1 (max ×5) |
+  | Server Luck | 99 | Headline product. Epic+ odds ×2 on every egg rolled in the server for 15 min, buyer announced. Each repeat adds 15 min and +1 (max ×5) |
   | Growth Elixir | 49 | Your creatures grow ×2 for 30 min, stacking with walking |
   | Skip Hatch | 29 | Hatches every incubating egg now; with none incubating, the next egg placed hatches instantly |
   | Cash Pouch | 29 | 10 min of income, at least $1,000 |

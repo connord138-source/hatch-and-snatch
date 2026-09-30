@@ -11,6 +11,7 @@ local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local StealService = require(script.Parent.StealService)
 local ZoneService = require(script.Parent.ZoneService)
 
 local InventoryService = {}
@@ -57,6 +58,16 @@ local function onCreatureAction(player: Player, action: any, uid: any)
 	end
 	if CreatureService.isCarried(player, uid) then
 		Net.notify(player, "A thief has that one! Take it back first.", "bad")
+		return
+	end
+	-- No pulling a pedestal creature out of a thief's hands at the last second
+	local dodge = action == "store"
+		or (action == "walk" and CreatureService.walkingUid(player) ~= uid)
+		or (
+			action == "nursery" and not CreatureService.isNursery(data :: DataService.PlayerData, record.slot)
+		)
+	if dodge and record.slot ~= nil and StealService.underThreat(player) then
+		Net.notify(player, "Not while an intruder is in your base! Lock it or chase them out.", "bad")
 		return
 	end
 	if action == "store" then

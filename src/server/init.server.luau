@@ -40,6 +40,25 @@ local function validateConfig(): { string }
 		table.insert(problems, `mutation chances sum to {mutationTotal} (must be < 1)`)
 	end
 
+	-- Codes: a typo would fail halfway through a redeem, after the code is used up
+	for _, entry in Config.Codes.codes do
+		local reward = entry.reward
+		for _, amount in { reward.spins, reward.luck, reward.cash } do
+			if amount ~= nil and amount <= 0 then
+				table.insert(problems, `code {entry.code}: rewards must be positive`)
+			end
+		end
+		local essence: { [string]: number } = reward.essence or {}
+		for biomeId, amount in essence do
+			if Config.Zones.byBiome[biomeId] == nil or amount <= 0 then
+				table.insert(problems, `code {entry.code}: bad essence reward {biomeId}`)
+			end
+		end
+		if entry.expires and not entry.expires:match("^%d%d%d%d%-%d%d%-%d%d$") then
+			table.insert(problems, `code {entry.code}: expires must be "YYYY-MM-DD"`)
+		end
+	end
+
 	return problems
 end
 

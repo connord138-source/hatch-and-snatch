@@ -39,6 +39,9 @@ type Tracked = {
 	nextLook: number,
 	-- Galaxy finish: a tiny planet orbiting the creature
 	planet: BasePart?,
+	-- Level of detail: seconds since this creature was last updated
+	sinceUpdate: number,
+	parts: { BasePart }?, -- Prismatic recolor list, gathered once
 }
 
 local STAGE_MOTION: { [string]: { stride: number, height: number, speed: number } } = {
@@ -52,6 +55,17 @@ local RIGGED_HOP = 0.5 -- rigged legs do part of the work, so the body lifts les
 local FOLLOW_OFFSET = CFrame.new(4, 0, 4.5) -- beside and behind the owner
 local SNAP_DISTANCE = 70 -- teleported owner: jump straight there
 local TURNTABLE_SPEED = 2 * math.pi / 24 -- one slow turn every 24 s on a pedestal
+
+-- Level of detail: six full bases can hold ~180 creatures, so only the ones near
+-- the camera update every frame; farther ones update at 20 Hz, then 8 Hz.
+local function updateInterval(distance: number): number
+	if distance < 45 then
+		return 0
+	elseif distance < 90 then
+		return 1 / 20
+	end
+	return 1 / 8
+end
 
 -- Rig bones point along their local Y (Blender convention), so pitch is local X,
 -- side-to-side sway is local Z and a head turn is local Y.
@@ -199,6 +213,9 @@ local function track(instance: Instance)
 			elseif descendant.Name == "GalaxyPlanet" and descendant:IsA("BasePart") then
 				info.planet = descendant
 			end
+			if descendant:IsA("BasePart") then
+				info.parts = nil -- regather for the Prismatic recolor
+			end
 		end)
 		tracked[instance] = {
 			model = instance,
@@ -218,6 +235,7 @@ local function track(instance: Instance)
 			lookTarget = 0,
 			nextLook = os.clock() + seed % 4,
 			planet = if planet and planet:IsA("BasePart") then planet else nil,
+			sinceUpdate = math.huge, -- place it on the first frame
 		}
 	end)
 end
@@ -290,7 +308,7 @@ function CreatureAnimator.start()
 	CollectionService:GetInstanceAddedSignal("Creature"):Connect(track)
 	CollectionService:GetInstanceRemovedSignal("Creature"):Connect(untrack)
 
-	RunService.RenderStepped:Connect(function(dt: number)
+	RunService.RenderStepped:Connect(function(frameDt: number)
 		local camera = Workspace.CurrentCamera
 		local cameraPos = if camera then camera.CFrame.Position else Vector3.zero
 		local t = os.clock()
@@ -302,9 +320,13 @@ function CreatureAnimator.start()
 			local root = if model:GetAttribute("Walking") then ownerRoot(model) else nil
 			local reference = if root then root.Position else info.base.Position
 			local distance = (reference - cameraPos).Magnitude
-			if distance > MAX_DISTANCE then
+			info.sinceUpdate += frameDt
+			if distance > MAX_DISTANCE or info.sinceUpdate < updateInterval(distance) then
 				continue
 			end
+			-- Everything below advances by the time since this creature's last update
+			local dt = math.min(info.sinceUpdate, 0.25)
+			info.sinceUpdate = 0
 
 			-- Idle look-around: pick a new direction every few seconds
 			if t >= info.nextLook then
@@ -366,10 +388,17 @@ function CreatureAnimator.start()
 
 			if CollectionService:HasTag(model, "Prismatic") then
 				local color = Color3.fromHSV((t * 0.2 + info.seed) % 1, 0.8, 1)
-				for _, part in model:GetDescendants() do
-					if part:IsA("BasePart") then
-						part.Color = color
+				if info.parts == nil then
+					local parts: { BasePart } = {}
+					for _, part in model:GetDescendants() do
+						if part:IsA("BasePart") then
+							table.insert(parts, part)
+						end
 					end
+					info.parts = parts
+				end
+				for _, part in info.parts :: { BasePart } do
+					part.Color = color
 				end
 			end
 		end

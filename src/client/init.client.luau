@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Ads = require(script.Ads)
+local BeltController = require(script.Controllers.BeltController)
 local ClientState = require(script.ClientState)
 local CreatureAnimator = require(script.Controllers.CreatureAnimator)
 local GuideController = require(script.Controllers.GuideController)
@@ -28,6 +29,7 @@ RevealController.start()
 task.spawn(ZoneGateController.start) -- waits for the world to replicate
 task.spawn(ZoneMoodController.start) -- waits for the world to replicate
 task.spawn(GuideController.start) -- waits for the world to replicate
+task.spawn(BeltController.start) -- waits for the belt folder
 task.spawn(Ads.start) -- checks every minute whether a rewarded ad can play
 
 print(`[HatchAndSnatch] Client ready — {#Config.Creatures} creatures in config`)

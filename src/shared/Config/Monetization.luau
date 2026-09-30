@@ -130,10 +130,9 @@ local Monetization = {
 		extraNursery = 1,
 		lockMultiplier = 2,
 		offlineBonusSeconds = 8 * 60 * 60,
-		-- Server Luck: each purchase adds `minutes` (up to `maxMinutes` left) and
-		-- +1 to the multiplier (starting at ×2, up to `maxMultiplier`). Resets to ×1
-		-- when it runs out.
-		serverLuck = { minutes = 15, maxMinutes = 60, maxMultiplier = 5 },
+		-- Server Luck: each purchase adds `minutes` and +1 to the multiplier
+		-- (starting at ×2, up to `maxMultiplier`). Resets to ×1 when it runs out.
+		serverLuck = { minutes = 15, maxMultiplier = 5 },
 		growthElixir = { minutes = 30, multiplier = 2 },
 		cashSmall = { minutes = 10, minimum = 1_000 },
 		cashLarge = { minutes = 90, minimum = 10_000 },

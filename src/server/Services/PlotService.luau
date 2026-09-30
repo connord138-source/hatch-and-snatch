@@ -8,6 +8,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local DataService = require(script.Parent.DataService)
 local WorldService = require(script.Parent.WorldService)
+local Reach = require(script.Parent.Parent.Reach)
 
 local owners: { [number]: Player } = {}
 local plotOf: { [Player]: WorldService.PlotLayout } = {}
@@ -96,7 +97,11 @@ function PlotService.start()
 		plot.collector.Touched:Connect(function(hit)
 			local character = hit:FindFirstAncestorOfClass("Model")
 			local player = character and Players:GetPlayerFromCharacter(character)
-			if player == nil or owners[plot.index] ~= player then
+			if
+				player == nil
+				or owners[plot.index] ~= player
+				or not Reach.touching(player, plot.collector)
+			then
 				return
 			end
 			local now = os.clock()

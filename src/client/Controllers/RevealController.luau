@@ -14,6 +14,7 @@ local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local FinishLooks = require(ReplicatedStorage.Shared.FinishLooks)
+local Ui = require(script.Parent.Parent.Ui)
 
 local TICK_SOUND = "rbxasset://sounds/electronicpingshort.wav"
 local CARD_W, CARD_H, CARD_GAP = 118, 150, 10
@@ -332,6 +333,7 @@ function RevealController.start()
 	gui.IgnoreGuiInset = true
 	gui.DisplayOrder = 20
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	Ui.autoScale(gui)
 
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
 	local revealRemote = remotes:WaitForChild("HatchReveal") :: RemoteEvent

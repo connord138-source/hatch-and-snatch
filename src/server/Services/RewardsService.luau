@@ -133,10 +133,19 @@ local function rewardGroup(player: Player, data: PlayerData)
 end
 
 -- The Shop's Join/Claim button: the client shows Roblox's join prompt first, then asks.
+local lastGroupCheck: { [Player]: number } = {}
+local GROUP_CHECK_COOLDOWN = 10
+
 local function claimGroup(player: Player)
 	if busy[player] or Tuning.group.id == 0 then
 		return
 	end
+	-- Each claim asks Roblox's web API, so not more often than every few seconds
+	if os.clock() - (lastGroupCheck[player] or -math.huge) < GROUP_CHECK_COOLDOWN then
+		Net.notify(player, "Give it a few seconds, then try again.", "info")
+		return
+	end
+	lastGroupCheck[player] = os.clock()
 	busy[player] = true
 	local member = MonetizationService.checkGroup(player)
 	busy[player] = nil
@@ -220,6 +229,7 @@ function RewardsService.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		lastCodeAttempt[player] = nil
+		lastGroupCheck[player] = nil
 		busy[player] = nil
 	end)
 end

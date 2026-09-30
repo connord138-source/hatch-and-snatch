@@ -34,8 +34,8 @@ local requests: { [string]: RemoteEvent } = {
 
 folder.Parent = ReplicatedStorage
 
-local REQUEST_INTERVAL = 0.15 -- minimum seconds between one player's requests
-local lastRequest: { [Player]: number } = {}
+local REQUEST_INTERVAL = 0.15 -- minimum seconds between one player's requests of one kind
+local lastRequest: { [Player]: { [string]: number } } = {}
 Players.PlayerRemoving:Connect(function(player)
 	lastRequest[player] = nil
 end)
@@ -44,8 +44,10 @@ export type NotifyKind = "info" | "good" | "bad" | "rare"
 
 local Net = {}
 
-function Net.sendState(player: Player, snapshot: { [string]: any })
-	stateUpdate:FireClient(player, snapshot)
+-- Sends the fields of a player's state that changed (StateService); `cleared`
+-- lists fields that are now nil, and `full` says to start from an empty state.
+function Net.sendState(player: Player, changes: { [string]: any }, cleared: { string }, full: boolean)
+	stateUpdate:FireClient(player, changes, cleared, full)
 end
 
 function Net.notify(player: Player, text: string, kind: NotifyKind?)
@@ -66,10 +68,12 @@ end
 function Net.onRequest(name: string, handler: (Player, ...any) -> ())
 	requests[name].OnServerEvent:Connect(function(player: Player, ...: any)
 		local now = os.clock()
-		if now - (lastRequest[player] or 0) < REQUEST_INTERVAL then
+		local last = lastRequest[player] or {}
+		lastRequest[player] = last
+		if now - (last[name] or 0) < REQUEST_INTERVAL then
 			return
 		end
-		lastRequest[player] = now
+		last[name] = now
 		handler(player, ...)
 	end)
 end

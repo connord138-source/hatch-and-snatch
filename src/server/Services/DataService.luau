@@ -17,6 +17,7 @@ export type CreatureRecord = {
 	mutation: string?,
 	homegrown: boolean,
 	stolenFrom: string?,
+	stolenAt: number?, -- unix time of the last steal (no steal rewards again for a while)
 	slot: number?, -- pedestal index, nil = in storage
 }
 
@@ -220,11 +221,25 @@ function DataService.processPurchase(
 	local connection = profile.OnAfterSave:Connect(check)
 	profile:Save()
 	local deadline = os.clock() + 30
+	local nextSave = os.clock() + 10
 	while decision == nil and profile:IsActive() and os.clock() < deadline do
 		task.wait()
+		if os.clock() >= nextSave then
+			nextSave = os.clock() + 10
+			profile:Save() -- the first save may have been throttled
+		end
 	end
 	connection:Disconnect()
 	return decision or Enum.ProductPurchaseDecision.NotProcessedYet
+end
+
+-- Saves a player's data now (after something that must not be lost in a crash,
+-- like a creature moving between two players' saves).
+function DataService.save(player: Player)
+	local profile = profiles[player]
+	if profile and profile:IsActive() then
+		profile:Save()
+	end
 end
 
 function DataService.newUid(data: PlayerData): string
@@ -234,11 +249,13 @@ function DataService.newUid(data: PlayerData): string
 end
 
 local function onPlayerAdded(player: Player)
+	-- Give up after a minute (ProfileStore's own timeout is off when Cancel is set)
+	local started = os.clock()
 	local profile = store:StartSessionAsync(
 		`Player_{player.UserId}`,
 		{
 			Cancel = function()
-				return player.Parent ~= Players
+				return player.Parent ~= Players or os.clock() - started > 60
 			end,
 		} :: any
 	)
@@ -250,8 +267,16 @@ local function onPlayerAdded(player: Player)
 	profile:AddUserId(player.UserId)
 	profile:Reconcile()
 	profile.OnSessionEnd:Connect(function()
-		profiles[player] = nil
-		player:Kick("Your data was loaded on another server — please rejoin.")
+		-- The session ended under us (loaded on another server, or the lock was
+		-- lost): let services clean up (plot, carries) as if the player left
+		if profiles[player] == profile then
+			DataService.releasing:fire(player, profile.Data)
+			profiles[player] = nil
+			dirty[player] = nil
+		end
+		if player.Parent == Players and not ProfileStore.IsClosing then
+			player:Kick("Your data was loaded on another server — please rejoin.")
+		end
 	end)
 
 	if player.Parent ~= Players then

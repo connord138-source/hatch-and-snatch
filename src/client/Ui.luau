@@ -1,6 +1,14 @@
 --!strict
 -- Builders for the placeholder UI made in code (HUD and menus). Presentation only.
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
 local Ui = {}
+
+-- The screen size the HUD and menus are laid out for, in pixels. Smaller screens
+-- (phones, small windows) scale the whole UI down to fit; bigger ones keep 1:1.
+local DESIGN_SIZE = Vector2.new(1100, 620)
+local MIN_SCALE = 0.5
 
 Ui.colors = {
 	panel = Color3.fromRGB(20, 22, 30),
@@ -86,6 +94,42 @@ function Ui.scrollList(parent: Instance, props: { [string]: any }): ScrollingFra
 	layout.Parent = scroll
 	scroll.Parent = parent
 	return scroll
+end
+
+-- Scales a ScreenGui to the screen: everything laid out in pixels shrinks on
+-- phones and small windows, and elements anchored to an edge stay on that edge.
+function Ui.autoScale(gui: ScreenGui)
+	local scale = Instance.new("UIScale")
+	scale.Parent = gui
+	local function update()
+		local camera = Workspace.CurrentCamera
+		if camera == nil then
+			return
+		end
+		local size = camera.ViewportSize
+		scale.Scale = math.clamp(math.min(size.X / DESIGN_SIZE.X, size.Y / DESIGN_SIZE.Y), MIN_SCALE, 1)
+	end
+	update()
+	local camera = Workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
+	end
+	Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+		local newCamera = Workspace.CurrentCamera
+		if newCamera then
+			newCamera:GetPropertyChangedSignal("ViewportSize"):Connect(update)
+			update()
+		end
+	end)
+end
+
+-- Key hints like " (E)" mean nothing on a touch screen (prompts show a tap
+-- button there), so they're dropped for touch-only players.
+function Ui.hint(text: string): string
+	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+		return (text:gsub(" %(%u%)", ""))
+	end
+	return text
 end
 
 return Ui

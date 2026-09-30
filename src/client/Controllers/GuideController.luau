@@ -85,6 +85,7 @@ function GuideController.start()
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 4 -- under the menus
 	gui.Parent = player:WaitForChild("PlayerGui")
+	Ui.autoScale(gui)
 	-- A goal card on the right edge: clear of the top-center banners (moon event,
 	-- carrying) and of the horizon, where the ⬇ over distant targets shows. It
 	-- grows downward when the text wraps.
@@ -259,7 +260,7 @@ function GuideController.start()
 			end
 		end
 		if message then
-			text.Text = message
+			text.Text = Ui.hint(message)
 		end
 		banner.Visible = message ~= nil
 		point(target)
