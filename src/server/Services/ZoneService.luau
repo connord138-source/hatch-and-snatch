@@ -370,6 +370,8 @@ function ZoneService.start()
 			Enum.KeyCode.F,
 			0.6
 		)
+		-- Both prompts sit on the shrine; without an offset one hides the other
+		blessing.UIOffset = Vector2.new(0, 76)
 		blessing.Triggered:Connect(function(player)
 			if Reach.prompt(player, blessing) then
 				bless(player, zone)
