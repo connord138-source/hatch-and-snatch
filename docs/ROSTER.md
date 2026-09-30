@@ -106,7 +106,7 @@ Odds and rules: docs/GDD.md §7.1. After approval, redo each at `quality: high`,
 - **Rejected:** Kitefin, Puffleece and Crateroo (too cartoon), Cometoad, Galebat, Cindermander, and the lean-cat versions of Rimewolf, Staticat, Tempestiger, Leviathound and Voidfang.
 - **Held for updates:** Blazemole (Magma), Voltpine (Storm), Celestapir (Moonfall).
 
-## Store art (drafts, awaiting owner pick)
+## Store art (sources; the finished files are in `marketing/`, see docs/STORE_PAGE.md)
 
 | Use | Image (job) |
 |---|---|
