@@ -83,7 +83,7 @@ local function releaseText(creature: Creature): string
 		Config.Zones.releaseReward(Config.Rarities[species.rarity].order, creature.stage, species.biome)
 	local parts: { string } = {}
 	if essence > 0 then
-		table.insert(parts, `{essence}✦`)
+		table.insert(parts, `{essence}✨`)
 	end
 	if spins > 0 then
 		table.insert(parts, `{spins}🎡`)

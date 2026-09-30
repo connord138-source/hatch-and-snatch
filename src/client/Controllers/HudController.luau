@@ -99,7 +99,7 @@ function HudController.start()
 		Position = UDim2.fromOffset(10, 128),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextColor3 = Color3.fromRGB(215, 185, 255),
-		Text = "✦ no Essence yet — harvest in the biome zones",
+		Text = "✨ no Essence yet — harvest in the biome zones",
 	})
 
 	-- Incubators (left, under the lock status; the top-right belongs to Roblox's player list)
@@ -327,7 +327,7 @@ function HudController.start()
 				end
 			end
 			if #essenceParts > 0 then
-				essenceLabel.Text = `✦ {table.concat(essenceParts, " · ")}`
+				essenceLabel.Text = `✨ {table.concat(essenceParts, " · ")}`
 			end
 			if current.heldEgg then
 				eggBanner.Visible = true

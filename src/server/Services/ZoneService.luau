@@ -348,7 +348,7 @@ function ZoneService.start()
 		local egg = prompt(
 			zone.shrine,
 			"ForgeEgg",
-			`Forge egg ({Zones.eggCost} ✦)`,
+			`Forge egg ({Zones.eggCost} ✨)`,
 			info.essence,
 			Enum.KeyCode.E,
 			0.6
@@ -359,7 +359,7 @@ function ZoneService.start()
 		local blessing = prompt(
 			zone.shrine,
 			"Blessing",
-			`{info.blessing.name} ({Zones.blessingCost} ✦)`,
+			`{info.blessing.name} ({Zones.blessingCost} ✨)`,
 			info.blessing.description,
 			Enum.KeyCode.F,
 			0.6
