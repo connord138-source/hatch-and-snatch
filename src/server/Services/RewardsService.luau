@@ -166,12 +166,21 @@ local function watchAd(player: Player)
 		return
 	end
 	busy[player] = true
-	local ok = pcall(function()
+	local ok, result = pcall(function()
 		local reward = AdService:CreateAdRewardFromDevProductId(product.id)
 		return AdService:ShowRewardedVideoAdAsync(player, reward)
 	end)
 	busy[player] = nil
-	if not ok then
+	if player.Parent ~= Players then
+		return
+	end
+	-- A finished ad pays through ProcessReceipt (the AdBoost handler below). Roblox
+	-- reports most failures (no ad ready, an internal error) as a result, not an error.
+	if ok and result == Enum.ShowAdResult.ShowCompleted then
+		return
+	elseif ok and result == Enum.ShowAdResult.ShowInterrupted then
+		Net.notify(player, "The ad didn't finish, so no boost this time.", "bad")
+	else
 		Net.notify(player, "No ad to show right now. Try again later.", "bad")
 	end
 end
