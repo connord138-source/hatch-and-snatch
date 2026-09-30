@@ -193,8 +193,8 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
     - Frost Shelf: an ice arch over the gate path and a boulder frozen in ice.
     - Storm Peaks: a lightning-rod crag that gets struck every 6–14 s, and two wind-bent spires.
     - Moonfall: a moon-crystal monolith (plus a smaller one) and a meteor crater.
-  - **Set-piece events** (`ZoneEventService`, tuning in `Config.Zones.events`): about every 5 minutes (±45 s) each zone's landmark does something.
-    - It's announced 10 s ahead to players who have that zone unlocked, and zones are staggered so one is always coming up.
+  - **Set-piece events** (`ZoneEventService`, tuning in `Config.Zones.events`): the zones take turns. Every ~50 s the next zone's landmark does something, so each zone's event comes round every 5 minutes, always in the same order.
+    - It's announced 10 s ahead to players who have that zone unlocked.
     - Most prizes are first-come, which pulls players away from their bases and opens steal windows.
     - Luck prizes charge the next egg like the Luck Wheel does: the best unspent charge counts, and a player who already holds more gets spins instead.
 

@@ -30,14 +30,14 @@ local Zones = {
 	releaseStageMultiplier = { Baby = 1, Juvenile = 2, Adult = 3 } :: { [string]: number },
 	releaseSpins = { 0, 0, 0, 0, 1, 1, 2, 3, 5 },
 
-	-- Set-piece events (ZoneEventService). Every `interval` seconds (± jitter) one
-	-- landmark in each zone does something worth running for. It's announced
-	-- `warning` seconds ahead to players who have that zone unlocked, and zones are
-	-- staggered so there's always one coming up. Luck prizes charge the next egg the
-	-- way the Luck Wheel does (the best unspent charge counts).
+	-- Set-piece events (ZoneEventService). The zones take turns: one every
+	-- interval / #zones seconds (± jitter), so each zone's landmark does something
+	-- every `interval`. It's announced `warning` seconds ahead to players who have
+	-- that zone unlocked. Luck prizes charge the next egg the way the Luck Wheel
+	-- does (the best unspent charge counts).
 	events = {
 		interval = 300,
-		jitter = 45,
+		jitter = 8, -- on each turn's gap (50 s with 6 zones)
 		warning = 10,
 		firstDelay = 45, -- after the server starts, before the first zone's first event
 		-- Mossvale: the glowcap ring blooms; everyone standing in it gets Essence every `tick`

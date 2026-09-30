@@ -430,7 +430,7 @@ local function boulder(zone: Zone, landmark: Landmark)
 		end
 		helpers[player] = true
 		hits += 1
-		glow.Brightness = 1 + hits * 0.6
+		glow.Brightness = 0.8 + hits * 0.25
 		-- A glowing crack for every hit
 		local angle = rng:NextNumber() * 2 * math.pi
 		local reach = math.min(landmark.size.X, landmark.size.Z) * 0.48
@@ -459,16 +459,16 @@ local function boulder(zone: Zone, landmark: Landmark)
 		local burst = emitter(core, {
 			Texture = SPARKLE,
 			Color = ColorSequence.new(Color3.fromRGB(210, 245, 255)),
-			LightEmission = 1,
 			Rate = 0,
-			Lifetime = NumberRange.new(0.8, 1.5),
-			Speed = NumberRange.new(15, 30),
+			LightEmission = 0.4,
+			Lifetime = NumberRange.new(0.6, 1.2),
+			Speed = NumberRange.new(12, 24),
 			SpreadAngle = Vector2.new(180, 180),
-			Acceleration = Vector3.new(0, -30, 0),
-			Size = NumberSequence.new(1, 0),
+			Acceleration = Vector3.new(0, -35, 0),
+			Size = NumberSequence.new(0.6, 0),
 		})
-		burst:Emit(120)
-		glow.Brightness = 8
+		burst:Emit(50)
+		glow.Brightness = 3
 		for player in helpers do
 			local data = DataService.get(player)
 			if data == nil then
@@ -650,16 +650,22 @@ end
 
 function ZoneEventService.start()
 	local zones = WorldService.zones
-	for i, zone in zones do
-		task.spawn(function()
-			-- Staggered, so the zones take turns
-			task.wait(Events.firstDelay + (i - 1) * Events.interval / #zones)
-			while true do
-				ZoneEventService.run(zone)
-				task.wait(Events.interval + rng:NextNumber(-Events.jitter, Events.jitter))
-			end
-		end)
+	if #zones == 0 then
+		return
 	end
+	-- One round-robin: the zones take turns, the next one every interval / #zones
+	-- seconds, so each zone's event comes round every `interval` and they never
+	-- bunch up (separate per-zone timers with jitter drifted together)
+	task.spawn(function()
+		local slot = Events.interval / #zones
+		task.wait(Events.firstDelay)
+		local turn = 0
+		while true do
+			turn = turn % #zones + 1
+			task.spawn(ZoneEventService.run, zones[turn])
+			task.wait(slot + rng:NextNumber(-Events.jitter, Events.jitter))
+		end
+	end)
 end
 
 return ZoneEventService

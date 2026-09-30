@@ -28,12 +28,15 @@ binding.
   - The fix is `src/client/CreatureGrounding.luau` (forward kinematics over the bones, solved per model), wired into `CreatureAnimator`.
   - The sit now tilts the body nose-up about the front feet, folds the hind legs to meet the ground, and keeps the front legs upright.
   - Every frame, the lowest foot is clamped to the ground, so mid-run landings touch down too.
-  - Tested on toy rigs (`tools/tests/run_grounding.sh`) and previewed on real rigs in Blender. **Not yet seen in Studio.**
+  - Tested on toy rigs (`tools/tests/run_grounding.sh`) and previewed on real rigs in Blender. **Confirmed in Studio 2026-09-30** on pedestals and beside the player.
 
 ### Open
 
 - Max Players = 6 has to be set in Creator Hub (owner).
-- **Zone set-piece events** are built (`ZoneEventService`, GDD §7.3). The owner picked these over wild nests. **They haven't been seen in Studio yet.**
+- **Zone set-piece events** are built (`ZoneEventService`, GDD §7.3). The owner picked these over wild nests.
+  - **All six were confirmed in Studio 2026-09-30.** They pay out as designed, the heads-ups arrive 10 s ahead, and there were no errors.
+  - The PC session made the crater walkable (7891fae).
+  - Follow-up (this session): one round-robin scheduler, since per-zone timers drifted together, and a softer boulder shatter, which whited out the screen. The round-robin still needs a check in Studio.
   - Trigger one with `game.ServerStorage.StudioDebug:Invoke("zone", "<BiomeId>")`.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
