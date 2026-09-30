@@ -1,5 +1,5 @@
 --!strict
--- First-session guide: an objective banner plus a glowing beam from the player to
+-- First-session guide: a goal card plus a glowing beam from the player to
 -- the next thing to do, following the onboarding step the server tracks
 -- (state.onboarding, see Analytics.ONBOARDING):
 --   1 joined         → buy an egg off the belt (beam to the nearest affordable egg)
@@ -85,10 +85,14 @@ function GuideController.start()
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 4 -- under the menus
 	gui.Parent = player:WaitForChild("PlayerGui")
+	-- A goal card on the right edge: clear of the top-center banners (moon event,
+	-- carrying) and of the horizon, where the ⬇ over distant targets shows. It
+	-- grows downward when the text wraps.
 	local banner = Ui.panel(gui, {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 124),
-		Size = UDim2.fromOffset(460, 44),
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -12, 0.42, 0),
+		Size = UDim2.fromOffset(250, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = Color3.fromRGB(60, 50, 20),
 		Visible = false,
 	})
@@ -96,10 +100,34 @@ function GuideController.start()
 	stroke.Color = BEAM_COLOR
 	stroke.Thickness = 2
 	stroke.Parent = banner
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 8)
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 12)
+	padding.PaddingRight = UDim.new(0, 12)
+	padding.Parent = banner
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 4)
+	layout.Parent = banner
+	Ui.label(banner, {
+		Size = UDim2.new(1, 0, 0, 18),
+		TextScaled = false,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = BEAM_COLOR,
+		Text = "🎯 GOAL",
+		LayoutOrder = 1,
+	})
 	local text = Ui.label(banner, {
-		Position = UDim2.fromOffset(10, 4),
-		Size = UDim2.new(1, -20, 1, -8),
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		TextScaled = false,
+		TextSize = 17,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
 		TextColor3 = Color3.fromRGB(255, 240, 190),
+		LayoutOrder = 2,
 	})
 
 	-- The beam: from the character to the current target. The target end lives on

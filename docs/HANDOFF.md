@@ -46,7 +46,8 @@ binding.
 - **Free rewards and analytics are confirmed in Studio** (467f78f, PC ids 76c4fd0, ad fix ea9f578). All 6 passes and 6 products have Creator Hub ids. Group skipped (it costs 100 Robux; `tuning.group.id` stays 0). Max Players = 6 is set.
 - **Economy retuned** (d49dbaa) after the owner asked that nobody maxes their base on day 1. See GDD §7 "Pacing" and `tools/sim/economy_sim.luau`. Rerun the sim after any economy change.
 - **v1 launches with every biome** (owner): no two-biome soft launch; unlocks come from Hatcher Level and base level.
-- **First-session guide** (`GuideController`): a banner plus a beam to the next objective, driven by `data.onboarding`. Not yet tested in Studio. `StudioDebug:Invoke("guide")` restarts it.
+- **First-session guide** (`GuideController`): a goal card on the right edge plus a beam to the next objective, driven by `data.onboarding`. Confirmed in Studio (ff7e9a6, PC fixes 62e9ee5 and 3ec745d). The card moved off top-center afterwards because it stacked with the moon-event and carry banners and hid the ⬇ over distant eggs. `StudioDebug:Invoke("guide")` restarts it.
+- **Economy numbers confirmed in the UI** (all prices, B/T/Qa formatting, rebirth at $1T).
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left

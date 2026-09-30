@@ -137,4 +137,5 @@ How to prompt for concepts:
 - Analytics: log through `src/server/Analytics.luau`. `EconomyService.spend` and `grant` take an item SKU for the economy dashboard, so keep SKUs to small fixed sets.
 - Services live in `src/server/Services`. The start order in `init.server.luau` matters: each service connects to `DataService.loaded` inside its `start()`, and DataService starts last.
 - **Verifying from a cloud session** (no Studio available): use `rojo sourcemap`, then `luau-lsp analyze --definitions=<globalTypes.d.luau> --sourcemap=... --ignore="**/Packages/**" src`, then `stylua --check src`. Pure config and economy logic can run in the plain `luau` runtime after swapping `script.Parent.X` requires for `./X` and stubbing `Color3`.
+- UI text: ✦ (U+2726) renders as an empty box in Roblox fonts, so use ✨. The other symbols in use (→ ⚠ ✓ ✔ ⬇ ★ ◆ and emoji) render fine.
 - luau-lsp quirk: indexing `{ [Types.BiomeId]: T }` maps with values from other modules raises false singleton errors, so biome-keyed maps use `string` keys.
