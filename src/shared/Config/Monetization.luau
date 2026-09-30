@@ -25,42 +25,42 @@ export type Product = {
 local passes: { Pass } = {
 	{
 		key = "DoubleCash",
-		id = 0,
+		id = 2002052639,
 		name = "2× Cash",
 		price = 249,
 		description = "Every creature you own earns double cash, forever.",
 	},
 	{
 		key = "VIP",
-		id = 0,
+		id = 2002946469,
 		name = "VIP",
 		price = 349,
 		description = "A gold VIP tag over your base, +10 creature storage and +10% cash.",
 	},
 	{
 		key = "AutoCollect",
-		id = 0,
+		id = 2002826495,
 		name = "Auto-Collect",
 		price = 149,
 		description = "Your earnings go straight into your wallet. No more stepping on the pad.",
 	},
 	{
 		key = "ExtraNursery",
-		id = 0,
+		id = 2002112636,
 		name = "Extra Nursery",
 		price = 99,
 		description = "+1 protected nursery slot at every base level.",
 	},
 	{
 		key = "LongerLock",
-		id = 0,
+		id = 2002466629,
 		name = "Longer Lock",
 		price = 99,
 		description = "Your base's laser lock stays up twice as long.",
 	},
 	{
 		key = "OfflinePlus",
-		id = 0,
+		id = 2003048495,
 		name = "Offline +8h",
 		price = 79,
 		description = "Keep earning while you're away for up to 16 hours instead of 8.",
@@ -70,7 +70,7 @@ local passes: { Pass } = {
 local products: { Product } = {
 	{
 		key = "ServerLuck",
-		id = 0,
+		id = 3715650749,
 		name = "Server Luck",
 		price = 99,
 		description = "Doubles Epic+ odds on every egg for everyone in the server for 15 minutes, "
@@ -79,28 +79,28 @@ local products: { Product } = {
 	},
 	{
 		key = "GrowthElixir",
-		id = 0,
+		id = 3715650875,
 		name = "Growth Elixir",
 		price = 49,
 		description = "All your creatures grow twice as fast for 30 minutes (on top of walking).",
 	},
 	{
 		key = "SkipHatch",
-		id = 0,
+		id = 3715650974,
 		name = "Skip Hatch",
 		price = 29,
 		description = "Every egg in your incubators hatches right now (with none incubating, your next egg hatches instantly).",
 	},
 	{
 		key = "CashSmall",
-		id = 0,
+		id = 3715651058,
 		name = "Cash Pouch",
 		price = 29,
 		description = "10 minutes of your income, at least $1,000.",
 	},
 	{
 		key = "CashLarge",
-		id = 0,
+		id = 3715651167,
 		name = "Cash Chest",
 		price = 149,
 		description = "90 minutes of your income, at least $10,000.",
@@ -109,7 +109,7 @@ local products: { Product } = {
 		-- The rewarded video ad's reward (Roblox grants ad rewards as a developer
 		-- product, and they can't be random). Not sold in the Shop.
 		key = "AdBoost",
-		id = 0,
+		id = 3715651304,
 		name = "Ad Boost",
 		price = 5,
 		description = "2× cash for 15 minutes.",
