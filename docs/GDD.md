@@ -193,6 +193,20 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
     - Frost Shelf: an ice arch over the gate path and a boulder frozen in ice.
     - Storm Peaks: a lightning-rod crag that gets struck every 6–14 s, and two wind-bent spires.
     - Moonfall: a moon-crystal monolith (plus a smaller one) and a meteor crater.
+  - **Set-piece events** (`ZoneEventService`, tuning in `Config.Zones.events`): about every 5 minutes (±45 s) each zone's landmark does something.
+    - It's announced 10 s ahead to players who have that zone unlocked, and zones are staggered so one is always coming up.
+    - Most prizes are first-come, which pulls players away from their bases and opens steal windows.
+    - Luck prizes charge the next egg like the Luck Wheel does: the best unspent charge counts, and a player who already holds more gets spins instead.
+
+    | Zone | Event | Prize |
+    |---|---|---|
+    | Mossvale | Glowcap bloom, 20 s | Everyone inside the ring gets 1 Moss Essence every 4 s (about 5) |
+    | Coral Coast | The clam opens and a pearl rolls out | First to grab it: +2 spins. A 10% Black Pearl gives ×10 luck instead |
+    | Magma Rift | The vent erupts 8 Ember shards | 2 Ember Essence each. A 15% gold shard gives a free Forge Heat (6 Essence if no egg is incubating) |
+    | Frost Shelf | The boulder cracks; players break it together (8 holds) | Every helper gets 3–5 Frost Essence, plus a 25% chance of ×3 luck |
+    | Storm Peaks | A huge strike on the crag | Crystals within 28 studs regrow and pay ×3 for 30 s |
+    | Moonfall | A meteor lands in the crater | First to grab the moonstone: ×10 luck (+3 spins if already lucky) |
+  - **Later (owner's ideas, 2026-09-30):** taming wild creatures, training, biome shops, and larger biomes. Essence is the natural currency for all of them.
   - **Release:** unwanted or duplicate creatures can be released from the Creatures menu for their biome's Essence (by rarity × stage: Baby ×1, Juvenile ×2, Adult ×3), plus Luck Wheel spins for Legendary and up. Selling for cash is still there.
 - **Lighting:** atmosphere, bloom, sun rays, clouds and a slight color grade. During moon events the whole world is tinted in the moon's color, and the banner says what the event does.
 

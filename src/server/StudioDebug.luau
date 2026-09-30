@@ -8,6 +8,8 @@
 --       -- starts a moon event now
 --   game.ServerStorage.StudioDebug:Invoke("essence", "MagmaRift", 50)
 --       -- gives every player that biome's Essence (shrine testing)
+--   game.ServerStorage.StudioDebug:Invoke("zone", "MagmaRift")
+--       -- runs that zone's set-piece event now (bloom, clam, eruption, boulder, strike, meteor)
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -22,6 +24,7 @@ local Timing = require(ReplicatedStorage.Shared.Timing)
 local CreatureService = require(script.Parent.Services.CreatureService)
 local DataService = require(script.Parent.Services.DataService)
 local EventService = require(script.Parent.Services.EventService)
+local ZoneEventService = require(script.Parent.Services.ZoneEventService)
 local ZoneService = require(script.Parent.Services.ZoneService)
 
 local StudioDebug = {}
@@ -84,6 +87,15 @@ local function essence(biomeId: any, amount: any): string
 	return `gave {count} {Config.Zones.byBiome[biomeId].essence}`
 end
 
+local function zoneEvent(biomeId: any): string
+	local zone = if typeof(biomeId) == "string" then ZoneEventService.zone(biomeId) else nil
+	if zone == nil then
+		return "unknown biome"
+	end
+	task.spawn(ZoneEventService.run, zone, true)
+	return `running the {biomeId} event`
+end
+
 function StudioDebug.start()
 	if not RunService:IsStudio() then
 		return
@@ -99,8 +111,10 @@ function StudioDebug.start()
 			return essence(...)
 		elseif action == "store" then
 			return storeAll()
+		elseif action == "zone" then
+			return zoneEvent(...)
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), store()"
 	end
 	hook.Parent = ServerStorage
 end

@@ -1086,6 +1086,16 @@ export type ZoneLayout = {
 	nodes: { Model }, -- PrimaryPart is the rock the prompt sits on; "Crystal" parts hide when picked
 	shrine: BasePart,
 	shrineLabel: TextLabel,
+	folder: Folder, -- the zone's parts; zone events put their pieces here
+	landmarks: { [string]: Landmark }, -- set pieces by name (the first of each), for zone events
+}
+-- Where a set piece stands (ZoneEventService stages its events on these)
+export type Landmark = {
+	position: Vector3, -- on the ground at its middle
+	frame: CFrame, -- that spot, facing the way the piece faces
+	radius: number, -- how far it reaches across
+	top: Vector3, -- top middle of the fitted model
+	size: Vector3, -- its fitted bounding box
 }
 WorldService.zones = {} :: { ZoneLayout }
 
@@ -1288,6 +1298,7 @@ local function buildZones(folder: Folder)
 			table.insert(nodes, node)
 		end
 
+		local landmarks: { [string]: Landmark } = {}
 		table.insert(WorldService.zones, {
 			biome = zone.biome,
 			center = center,
@@ -1301,6 +1312,8 @@ local function buildZones(folder: Folder)
 			nodes = nodes,
 			shrine = shrine,
 			shrineLabel = shrineLabel,
+			folder = zoneFolder,
+			landmarks = landmarks,
 		})
 
 		-- Hero set pieces: side ones face the middle, central ones face the gate
@@ -1311,8 +1324,18 @@ local function buildZones(folder: Folder)
 				+ Vector3.new(math.cos(angle) * hero.distance, 0, math.sin(angle) * hero.distance)
 			local facing = if hero.distance > 20 then center else gateCenter
 			local frame = CFrame.lookAt(position, Vector3.new(facing.X, position.Y, facing.Z))
-			local radius = SetPieces.build(hero.name, frame, hero.scale or 1, zoneFolder, rng)
+			local radius, model = SetPieces.build(hero.name, frame, hero.scale or 1, zoneFolder, rng)
 			table.insert(heroSpots, { position = position, radius = radius })
+			if landmarks[hero.name] == nil then
+				local box, size = model:GetBoundingBox()
+				landmarks[hero.name] = {
+					position = position,
+					frame = frame,
+					radius = radius,
+					top = (box * CFrame.new(0, size.Y / 2, 0)).Position,
+					size = size,
+				}
+			end
 		end
 
 		-- The weather blows around the ring; ZoneMoodController reads these attributes

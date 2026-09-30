@@ -58,6 +58,8 @@ unrelated to the Polymarket worker.
 - **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed.
 - **Bases:** 5 upgrade levels (bigger plot, more pedestals, an upper deck from level 4, longer lock), 3 security upgrades (alarm, tripwire, auto-lock) and biome base themes. See GDD §6.1.
 - **World:** walled, level-gated biome zones between plots, each with harvest nodes (biome Essence) and a shrine (forge an egg or take the biome's blessing); round island, beach and sea. Releasing creatures also pays Essence. See GDD §7.3 and `Config/Zones.luau`.
+- **Zone set-piece events** (approved 2026-09-30): bloom, pearl, eruption, boulder, strike and meteor, each paying Essence, spins or a luck charge. See GDD §7.3.
+  - Later, per the owner: taming, training, biome shops and larger biomes.
 - **Instructions for the owner's PC session must be written as a paste-ready prompt** (the owner asked for this).
 - **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 

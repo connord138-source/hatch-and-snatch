@@ -33,7 +33,9 @@ binding.
 ### Open
 
 - Max Players = 6 has to be set in Creator Hub (owner).
-- **What players do inside the biomes is thin:** 7 shared nodes → Essence → shrine egg (15) or blessing (8). The owner asked about it; options are in the chat reply and a decision is pending. The recommendation is wild nests (a rare wild egg spawns in a zone, gets announced, and players race to carry it home, where it can be stolen on the way), then biome events tied to the set pieces.
+- **Zone set-piece events** are built (`ZoneEventService`, GDD §7.3). The owner picked these over wild nests. **They haven't been seen in Studio yet.**
+  - Trigger one with `game.ServerStorage.StudioDebug:Invoke("zone", "<BiomeId>")`.
+- **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left
 

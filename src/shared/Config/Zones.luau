@@ -30,6 +30,43 @@ local Zones = {
 	releaseStageMultiplier = { Baby = 1, Juvenile = 2, Adult = 3 } :: { [string]: number },
 	releaseSpins = { 0, 0, 0, 0, 1, 1, 2, 3, 5 },
 
+	-- Set-piece events (ZoneEventService). Every `interval` seconds (± jitter) one
+	-- landmark in each zone does something worth running for. It's announced
+	-- `warning` seconds ahead to players who have that zone unlocked, and zones are
+	-- staggered so there's always one coming up. Luck prizes charge the next egg the
+	-- way the Luck Wheel does (the best unspent charge counts).
+	events = {
+		interval = 300,
+		jitter = 45,
+		warning = 10,
+		firstDelay = 45, -- after the server starts, before the first zone's first event
+		-- Mossvale: the glowcap ring blooms; everyone standing in it gets Essence every `tick`
+		bloom = { duration = 20, tick = 4, essence = 1 },
+		-- Coral Coast: the giant clam opens; the first to grab the pearl gets spins,
+		-- or a Black Pearl's luck
+		clam = { duration = 15, spins = 2, blackPearlChance = 0.1, blackPearlLuck = 10 },
+		-- Magma Rift: the vent erupts shards; each pays Essence, a rare gold one pays the
+		-- Forge Heat blessing (or `goldEssence` when no egg is incubating)
+		eruption = { duration = 20, shards = 8, essence = 2, goldChance = 0.15, goldEssence = 6 },
+		-- Frost Shelf: the frozen boulder cracks; players break it together (a hold
+		-- each), and everyone who helped gets Essence and maybe a luck shard
+		boulder = { duration = 35, hits = 8, essence = { 3, 5 }, luckChance = 0.25, luck = 3 },
+		-- Storm Peaks: a huge strike charges the crystals near the crag
+		strike = { duration = 30, radius = 28, multiplier = 3 },
+		-- Moonfall: a meteor lands in the crater; the first to grab the moonstone gets
+		-- its luck (or spins if their next egg already has that much)
+		meteor = { duration = 30, luck = 10, spins = 3 },
+	},
+	-- Which event each zone runs, and the set piece it happens at
+	eventByBiome = {
+		Mossvale = { kind = "bloom", landmark = "GlowcapRing" },
+		CoralCoast = { kind = "clam", landmark = "GiantClam" },
+		MagmaRift = { kind = "eruption", landmark = "LavaVent" },
+		FrostShelf = { kind = "boulder", landmark = "FrozenBoulder" },
+		StormPeaks = { kind = "strike", landmark = "LightningCrag" },
+		Moonfall = { kind = "meteor", landmark = "CraterRim" },
+	} :: { [string]: { kind: string, landmark: string } },
+
 	byBiome = {
 		Mossvale = {
 			essence = "Moss Essence",

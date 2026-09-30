@@ -64,6 +64,7 @@ local ProgressionService = require(Services.ProgressionService)
 local BaseService = require(Services.BaseService)
 local WheelService = require(Services.WheelService)
 local ZoneService = require(Services.ZoneService)
+local ZoneEventService = require(Services.ZoneEventService)
 local RebirthService = require(Services.RebirthService)
 local StateService = require(Services.StateService)
 local DataService = require(Services.DataService)
@@ -82,6 +83,7 @@ InventoryService.start() -- Creatures menu requests: store, place, nursery, sell
 RebirthService.start()
 WheelService.start()
 ZoneService.start() -- biome zone gates, harvest nodes, shrines
+ZoneEventService.start() -- set-piece events in the zones, every few minutes each
 StateService.start()
 DataService.start() -- last: fires loaded for players already in the server
 require(script.StudioDebug).start() -- Studio only: Command Bar test hook (see the module)

@@ -848,8 +848,14 @@ end
 
 -- Builds set piece `name` standing on the ground at `frame` (its front faces the
 -- frame's look direction), scaled by `scale`, and returns how far other decor
--- should keep from it. "GlowcapRing" is a fairy ring of GiantGlowcaps.
-function SetPieces.build(name: string, frame: CFrame, scale: number, parent: Instance, rng: Random): number
+-- should keep from it, and the model. "GlowcapRing" is a fairy ring of GiantGlowcaps.
+function SetPieces.build(
+	name: string,
+	frame: CFrame,
+	scale: number,
+	parent: Instance,
+	rng: Random
+): (number, Model)
 	if name == "GlowcapRing" then
 		local ring = Instance.new("Model")
 		ring.Name = "GlowcapRing"
@@ -886,7 +892,7 @@ function SetPieces.build(name: string, frame: CFrame, scale: number, parent: Ins
 			Size = NumberSequence.new(0.35, 0),
 			Transparency = fade(0.1, 1),
 		})
-		return 13 * scale
+		return 13 * scale, ring
 	end
 
 	local spec = SPECS[name]
@@ -906,7 +912,69 @@ function SetPieces.build(name: string, frame: CFrame, scale: number, parent: Ins
 		spec.effects(built, box, size)
 	end
 	-- A model fitted by height can come out wider than its box
-	return math.max(spec.radius * scale, math.max(size.X, size.Z) / 2)
+	return math.max(spec.radius * scale, math.max(size.X, size.Z) / 2), built
+end
+
+-- The Storm Peaks event strike (ZoneEventService): a thick bolt out of the storm
+-- cloud onto `tip`, three flashes, a blast of sparks and light across the zone.
+function SetPieces.bigStrike(tip: Vector3, parent: Instance)
+	local rng = Random.new()
+	local bolt = Instance.new("Folder")
+	bolt.Name = "BigStrike"
+	local points = { tip + Vector3.new(rng:NextNumber(-4, 4), 34, rng:NextNumber(-4, 4)) }
+	for i = 1, 7 do
+		local along = points[1]:Lerp(tip, i / 8)
+		table.insert(points, along + Vector3.new(rng:NextNumber(-3.5, 3.5), 0, rng:NextNumber(-3.5, 3.5)))
+	end
+	table.insert(points, tip)
+	for i = 1, #points - 1 do
+		local a, b = points[i], points[i + 1]
+		part({
+			Name = "Segment",
+			Size = Vector3.new(1.6, 1.6, (b - a).Magnitude + 0.8),
+			CFrame = CFrame.lookAt((a + b) / 2, b),
+			Material = Enum.Material.Neon,
+			Color = Color3.fromRGB(200, 230, 255),
+			CanCollide = false,
+			CastShadow = false,
+			Parent = bolt,
+		})
+	end
+	local blast = part({
+		Name = "Blast",
+		Size = Vector3.new(2, 2, 2),
+		CFrame = CFrame.new(tip),
+		Transparency = 1,
+		CanCollide = false,
+		CastShadow = false,
+		Parent = bolt,
+	})
+	local flash = light(blast, Color3.fromRGB(190, 220, 255), 0, 70)
+	local sparks = emitter(blast, {
+		Texture = SPARKLE,
+		Color = ColorSequence.new(Color3.fromRGB(210, 235, 255)),
+		LightEmission = 1,
+		Rate = 0,
+		Lifetime = NumberRange.new(0.6, 1.2),
+		Speed = NumberRange.new(18, 34),
+		SpreadAngle = Vector2.new(180, 180),
+		Acceleration = Vector3.new(0, -30, 0),
+		Size = NumberSequence.new(0.8, 0),
+		Transparency = fade(0, 0.5),
+	})
+	bolt.Parent = parent
+	sparks:Emit(80)
+	for _, brightness in { 10, 0, 14, 2, 12 } do
+		flash.Brightness = brightness
+		for _, segment in bolt:GetChildren() do
+			if segment:IsA("BasePart") and segment.Name == "Segment" then
+				segment.Transparency = if brightness > 0 then 0 else 1
+			end
+		end
+		task.wait(0.07)
+	end
+	task.wait(0.15)
+	bolt:Destroy()
 end
 
 -- True when `name` is something SetPieces.build can make (imported or not).

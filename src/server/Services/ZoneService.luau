@@ -27,6 +27,8 @@ local ZoneService = {}
 
 local rng = Random.new()
 local lastWarned: { [Player]: number } = {}
+-- Nodes a zone event has charged: harvests pay `multiplier` times until `untilTime`
+local charged: { [Model]: { untilTime: number, multiplier: number } } = {}
 
 local function essenceName(biomeId: string): string
 	return Zones.byBiome[biomeId].essence
@@ -101,17 +103,76 @@ local function harvest(player: Player, zone: WorldService.ZoneLayout, node: Mode
 	prompt.Enabled = false
 	setNodeVisible(node, false)
 	local amount = rng:NextInteger(Zones.nodeYield[1], Zones.nodeYield[2])
+	local charge = charged[node]
+	local boosted = charge ~= nil and os.clock() < charge.untilTime
+	if charge and boosted then
+		amount *= charge.multiplier
+	end
 	ZoneService.grantEssence(player, zone.biome, amount)
 	ProgressionService.addXp(player, 5 * Config.Biomes[zone.biome].order)
 	Net.notify(
 		player,
-		`+{amount} {essenceName(zone.biome)} ({ZoneService.essence(data, zone.biome)} total)`,
+		`{if boosted then "⚡ " else ""}+{amount} {essenceName(zone.biome)} ({ZoneService.essence(
+			data,
+			zone.biome
+		)} total)`,
 		"good"
 	)
 	task.delay(Timing.scaled(Zones.nodeRespawnSeconds), function()
 		setNodeVisible(node, true)
 		prompt.Enabled = true
 	end)
+end
+
+-- Charges the zone's nodes within `radius` of `center` for `seconds` (a zone event):
+-- picked ones grow back at once, and each pays `multiplier` times its usual Essence.
+function ZoneService.chargeNodes(
+	zone: WorldService.ZoneLayout,
+	center: Vector3,
+	radius: number,
+	seconds: number,
+	multiplier: number
+)
+	local untilTime = os.clock() + seconds
+	for _, node in zone.nodes do
+		local rock = node.PrimaryPart :: BasePart
+		local offset = rock.Position - center
+		if Vector3.new(offset.X, 0, offset.Z).Magnitude > radius then
+			continue
+		end
+		charged[node] = { untilTime = untilTime, multiplier = multiplier }
+		local prompt = rock:FindFirstChild("Harvest")
+		if prompt and prompt:IsA("ProximityPrompt") and not prompt.Enabled then
+			setNodeVisible(node, true)
+			prompt.Enabled = true
+		end
+		local sparks = Instance.new("ParticleEmitter")
+		sparks.Name = "Charge"
+		sparks.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		sparks.Color = ColorSequence.new(Color3.fromRGB(190, 225, 255))
+		sparks.LightEmission = 1
+		sparks.Rate = 25
+		sparks.Lifetime = NumberRange.new(0.3, 0.6)
+		sparks.Speed = NumberRange.new(4, 9)
+		sparks.SpreadAngle = Vector2.new(180, 180)
+		sparks.Size = NumberSequence.new(0.5, 0)
+		sparks.Parent = rock
+		local light = rock:FindFirstChildWhichIsA("PointLight")
+		local brightness = if light then light.Brightness else 0
+		if light then
+			light.Brightness = brightness * 4
+		end
+		task.delay(seconds, function()
+			sparks:Destroy()
+			if light then
+				light.Brightness = brightness
+			end
+			local current = charged[node]
+			if current and current.untilTime == untilTime then
+				charged[node] = nil
+			end
+		end)
+	end
 end
 
 ---------------------------------------------------------------------------
@@ -151,23 +212,20 @@ local function forgeEgg(player: Player, zone: WorldService.ZoneLayout)
 	Net.notify(player, `The shrine forged a {biome.displayName} egg! Carry it home to an incubator.`, "rare")
 end
 
-local function bless(player: Player, zone: WorldService.ZoneLayout)
-	local data = DataService.get(player)
-	if data == nil or not unlocked(data, zone.biome) then
-		return
-	end
-	local blessing = Zones.byBiome[zone.biome].blessing
+-- Why a blessing can't do anything right now, or nil when it can.
+local function blessingBlocked(data: PlayerData, biomeId: string): string?
+	local blessing = Zones.byBiome[biomeId].blessing
 	if blessing.kind == "hatchSpeed" and #data.incubators == 0 then
-		Net.notify(player, "No eggs are incubating — start one first, then come back.", "bad")
-		return
+		return "No eggs are incubating — start one first, then come back."
 	end
 	if blessing.kind == "luck" and data.luckCharge >= blessing.value then
-		Net.notify(player, `Your next egg already has ×{data.luckCharge} luck.`, "bad")
-		return
+		return `Your next egg already has ×{data.luckCharge} luck.`
 	end
-	if not spend(player, data, zone.biome, Zones.blessingCost) then
-		return
-	end
+	return nil
+end
+
+local function applyBlessing(player: Player, data: PlayerData, biomeId: string)
+	local blessing = Zones.byBiome[biomeId].blessing
 	if blessing.kind == "cash" then
 		local amount = math.max(250, math.floor(EconomyService.rate(player) * blessing.value))
 		EconomyService.grant(player, amount)
@@ -193,6 +251,33 @@ local function bless(player: Player, zone: WorldService.ZoneLayout)
 		Net.notify(player, `{blessing.name}: +{amount} XP!`, "good")
 	end
 	DataService.markDirty(player)
+end
+
+-- A biome's blessing for free (zone event prizes). False when it wouldn't do
+-- anything right now, so the caller can pay out something else instead.
+function ZoneService.giveBlessing(player: Player, biomeId: string): boolean
+	local data = DataService.get(player)
+	if data == nil or blessingBlocked(data, biomeId) ~= nil then
+		return false
+	end
+	applyBlessing(player, data, biomeId)
+	return true
+end
+
+local function bless(player: Player, zone: WorldService.ZoneLayout)
+	local data = DataService.get(player)
+	if data == nil or not unlocked(data, zone.biome) then
+		return
+	end
+	local blocked = blessingBlocked(data, zone.biome)
+	if blocked then
+		Net.notify(player, blocked, "bad")
+		return
+	end
+	if not spend(player, data, zone.biome, Zones.blessingCost) then
+		return
+	end
+	applyBlessing(player, data, zone.biome)
 end
 
 local function prompt(
