@@ -1,0 +1,304 @@
+{
+  "jobs": [
+    {
+      "name": "Sylvanox_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_5b7089c9-d3ee-4b21-bd6b-eabb8fc50464.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the bark hide with glowing gold cracks and small sapling trees growing from its antlers (much smaller than the adult's full trees). Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Lurehound_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_7952fe31-371b-49e7-844b-71cd3768eb05.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the glowing anglerfish lure on its head, the icy blue fin crests and the rows of blue bioluminescent spots. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Pyrodrake_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_cd493bcd-5bc8-46a1-b347-53331f508c60.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the black obsidian scales with glowing lava seams and the ridge of spikes down its back and tail (shorter spikes). Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Glacierion_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_79b6adcd-f5ac-4fe8-a229-a3c78f556a7c.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the icicle mane with aurora colors, only half grown, and the ice-crystal tail tip. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Stormgriff_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_972abbb7-0bed-4d70-b0fd-204277ad8794.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the eagle head and front talons, and the storm-cloud wings with yellow lightning (smaller wings). Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Lunaris_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215702_8bb5fa6f-94dd-4407-bc2c-c2549e531e53.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the white-and-gold armor with gold light shining through its cracks and the crescent-moon horns (small horns). Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Solarion_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_8f1a698f-7079-4d69-a4f8-dd7cd5160f61.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the flaming sun-corona mane, only half grown, and the flame-tipped tail. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Halosaur_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030655_cf9c787c-139e-408b-bcea-182a816a5cf6.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the white marble armor plates with gold trim, the cloud-shaped back spikes and the golden halo (smaller plates). Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Quasarfox_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_bb596547-de6d-424d-afc4-747deaf265b8.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the starfield fur and the twin blue plasma-jet tails (shorter tails). Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Singularis_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_3cdb361c-4de5-400d-b1b4-eff13ecc01af.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the black-hole shell with its glowing orange accretion ring and a few small orbiting rocks. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Capybaron_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_e1838f3f-aa84-41de-9020-28e623b8f896.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the solid gold body, a small crown and a short red cape; keep the same sitting pose as the reference. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Nullcat_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_6bbdcb76-9255-49d0-a1ca-6ca0696080a2.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the gray tabby fur broken up by magenta-and-black missing-texture glitch patches. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text."
+    },
+    {
+      "name": "Toastoise_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215731_a89c70a0-d876-416f-9e73-965ae656d37b.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the toaster shell with a slice of toast popping out. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text. This is a comedy creature, so make the youth obvious through its appliance: its shell is a small, simple 2-slice toaster (the adult has a big 4-slice one) and it has a young tortoise's smoother, rounder shell edge."
+    },
+    {
+      "name": "Fridgehog_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215730_44a1939d-cc73-4d02-83a0-102a25759c83.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the fridge body with a door and the colorful fridge-magnet spines. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text. This is a comedy creature, so make the youth obvious through its appliance: its body is a small mini-fridge (dorm-room size) with fewer, smaller magnet spines."
+    },
+    {
+      "name": "Grillgator_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215731_f31eb68e-0b23-45e4-aaba-ae4f9b23f256.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the barbecue grill on its back and the spatula tail. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text. This is a comedy creature, so make the youth obvious through its appliance: its grill is a small tabletop hibachi grill with one tiny burger, and its snout is shorter."
+    },
+    {
+      "name": "Laundrophant_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215730_9f9d05c0-ad70-4798-9cb6-a9da10d667e2.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the washing-machine body with the round glass door and bubbles from its trunk. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text. This is a comedy creature, so make the youth obvious through its appliance: its body is a small compact washer, and its ears and trunk are shorter; no tusks yet."
+    },
+    {
+      "name": "Lawnmoose_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215731_27fd5ae9-46e5-4ed3-b2ab-6c2a03bd492f.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Slightly lankier legs, like a teenager who hasn't filled out yet. Keep its signature feature: the red lawnmower body and the hedge-trimmer antlers. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text. This is a comedy creature, so make the youth obvious through its appliance: its body is a small old-fashioned push reel mower instead of a ride-on mower, and its antlers are two short stubby trimmer nubs."
+    },
+    {
+      "name": "Bassdog_Juvenile",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215731_6bd7dff7-cacd-4001-9010-c0d31f54cd2e.png",
+      "prompt": "Clean 3D model sheet of the JUVENILE (teenage) stage of this exact creature: same species, same colors, materials and markings, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes with natural proportions, not cartoon or anime eyes). It must look clearly YOUNGER than the reference: about two-thirds of the adult's size, a slightly larger head for its body, a less bulky build and smaller, less developed features, but not a baby and not toy-like. Legs only a little longer in proportion than a baby's, but still short and sturdy like the reference. Keep its signature feature: the boombox body with two big speaker cones. Neutral standing pose with all legs apart and visible, full body in frame, three-quarter side view facing left, plain light gray background, no shadow on the background, no text. This is a comedy creature, so make the youth obvious through its appliance: its boombox is a small portable speaker with one speaker cone, and it is a bulldog puppy-teen with a less wrinkly face."
+    },
+    {
+      "name": "Halosaur_Juvenile_v2",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030655_cf9c787c-139e-408b-bcea-182a816a5cf6.png",
+      "prompt": "Same species, colors and materials as the reference, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes). ONE creature only, one single view. Clean 3D model sheet: neutral standing pose with all legs apart and visible, full body, three-quarter side view facing left, plain light gray background, no text. Show its JUVENILE (teenage) stage, clearly different from the adult: a smaller, slimmer young dinosaur with a larger head for its body and shorter legs; only a few small white marble armor plates with thin gold trim, with smooth pale-blue skin showing between them; tiny stubby cloud-puff back spikes instead of big ones; a thin, simple golden halo ring. It must not look like the adult."
+    },
+    {
+      "name": "Singularis_Juvenile_v2",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_3cdb361c-4de5-400d-b1b4-eff13ecc01af.png",
+      "prompt": "Same species, colors and materials as the reference, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes). ONE creature only, one single view. Clean 3D model sheet: neutral standing pose with all legs apart and visible, full body, three-quarter side view facing left, plain light gray background, no text. Show its JUVENILE (teenage) stage, clearly different from the adult: a young tortoise with a larger head for its body and a smaller, smoother, rounder shell; the black hole is only a small dark swirl in the middle of the shell, the glowing orange accretion ring is thin and faint, and just one small pebble orbits it (no big rocks, no sneaker). It must not look like the adult."
+    },
+    {
+      "name": "Stormgriff_Juvenile_v2",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_972abbb7-0bed-4d70-b0fd-204277ad8794.png",
+      "prompt": "Same species, colors and materials as the reference, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes). ONE creature only, one single view. Clean 3D model sheet: neutral standing pose with all legs apart and visible, full body, three-quarter side view facing left, plain light gray background, no text. Show its JUVENILE (teenage) stage, clearly different from the adult: a young griffin with fluffy, downy gray-and-white feathers, a larger head for its body, a smaller beak and talons, and small half-grown storm-cloud wings with only a few tiny yellow lightning sparks (no rain). It must not look like the adult."
+    },
+    {
+      "name": "Lawnmoose_Juvenile_v2",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260927_215731_27fd5ae9-46e5-4ed3-b2ab-6c2a03bd492f.png",
+      "prompt": "Same species, colors and materials as the reference, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes). ONE creature only, one single view. Clean 3D model sheet: neutral standing pose with all legs apart and visible, full body, three-quarter side view facing left, plain light gray background, no text. Show its JUVENILE (teenage) stage, clearly different from the adult: a gangly young moose with long thin legs, a shorter snout and big ears. Instead of the adult's big red ride-on lawnmower, a small old-fashioned manual push reel mower (spiral cylinder blades between two small wheels) is strapped to its back like a saddle, and its antlers are just two short stubby hedge-trimmer nubs. It must not look like the adult."
+    },
+    {
+      "name": "Capybaron_Juvenile_v2",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_e1838f3f-aa84-41de-9020-28e623b8f896.png",
+      "prompt": "Same species, colors and materials as the reference, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes). ONE creature only, one single view. Clean 3D model sheet: neutral standing pose with all legs apart and visible, full body, three-quarter side view facing left, plain light gray background, no text. Show its JUVENILE (teenage) stage: a younger, smaller solid-gold capybara with a slimmer, less round body and a larger head, wearing a small tilted crown and a short red cape, sitting upright like the reference. Exactly ONE capybara in the image."
+    },
+    {
+      "name": "Nullcat_Juvenile_v2",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030656_6bbdcb76-9255-49d0-a1ca-6ca0696080a2.png",
+      "prompt": "Same species, colors and materials as the reference, same art style (semi-realistic fantasy animal, faceted low-poly look with smooth shading and solid color regions, realistic eyes). ONE creature only, one single view. Clean 3D model sheet: neutral standing pose with all legs apart and visible, full body, three-quarter side view facing left, plain light gray background, no text. Show its JUVENILE (teenage) stage: a lanky young gray tabby cat with big ears and a slightly larger head. Keep its signature missing-texture glitch clearly visible: many magenta-and-black checkerboard glitch blocks across its head, back, legs and tail, with a few pixel fragments trailing off the tail."
+    },
+    {
+      "name": "Sylvanox",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Sylvanox_Juvenile.png"
+    },
+    {
+      "name": "Lurehound",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Lurehound_Juvenile.png"
+    },
+    {
+      "name": "Pyrodrake",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Pyrodrake_Juvenile.png"
+    },
+    {
+      "name": "Glacierion",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Glacierion_Juvenile.png"
+    },
+    {
+      "name": "Stormgriff",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Stormgriff_Juvenile_v2.png"
+    },
+    {
+      "name": "Lunaris",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Lunaris_Juvenile.png"
+    },
+    {
+      "name": "Solarion",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Solarion_Juvenile.png"
+    },
+    {
+      "name": "Halosaur",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Halosaur_Juvenile_v2.png"
+    },
+    {
+      "name": "Quasarfox",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Quasarfox_Juvenile.png"
+    },
+    {
+      "name": "Singularis",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Singularis_Juvenile_v2.png"
+    },
+    {
+      "name": "Capybaron",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Capybaron_Juvenile_v2.png"
+    },
+    {
+      "name": "Nullcat",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Nullcat_Juvenile_v2.png"
+    },
+    {
+      "name": "Toastoise",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Toastoise_Juvenile.png"
+    },
+    {
+      "name": "Fridgehog",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Fridgehog_Juvenile.png"
+    },
+    {
+      "name": "Grillgator",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Grillgator_Juvenile.png"
+    },
+    {
+      "name": "Laundrophant",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Laundrophant_Juvenile.png"
+    },
+    {
+      "name": "Lawnmoose",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Lawnmoose_Juvenile_v2.png"
+    },
+    {
+      "name": "Bassdog",
+      "group": "juveniles",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/Bassdog_Juvenile.png"
+    }
+  ]
+}

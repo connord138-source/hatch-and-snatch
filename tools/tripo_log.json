@@ -17,6 +17,33 @@
   "task_id": "bd7582f0-74c1-47e6-8ca2-e3eff9d06fdd",
   "type": "generate_image"
  },
+ "concepts/Bassdog_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Bassdog_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "c71e2f9a-652a-420b-8c25-b825c90d8c80",
+  "type": "generate_image"
+ },
+ "concepts/Capybaron_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Capybaron_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "d2a43f44-c4c8-4172-9aad-8f7765882acb",
+  "type": "generate_image"
+ },
+ "concepts/Capybaron_Juvenile_v2": {
+  "credits": 10,
+  "files": [
+   "Capybaron_Juvenile_v2.png"
+  ],
+  "status": "success",
+  "task_id": "14dea323-1b8d-4939-9733-f7e81586f376",
+  "type": "generate_image"
+ },
  "concepts/Clamodon_v2": {
   "credits": 5,
   "files": [
@@ -53,6 +80,15 @@
   "task_id": "8212d751-ed71-4fd4-a249-f4648aadaa01",
   "type": "generate_image"
  },
+ "concepts/Fridgehog_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Fridgehog_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "bbb69369-a136-42e6-b11c-53062b0cdac5",
+  "type": "generate_image"
+ },
  "concepts/Glacibear_gpt4o": {
   "credits": 5,
   "files": [
@@ -71,6 +107,42 @@
   "task_id": "6069ff45-45cc-49c9-b944-fdca2efa9897",
   "type": "generate_image"
  },
+ "concepts/Glacierion_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Glacierion_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "f0f07e47-5a08-403d-bdc6-35b9ea2d8667",
+  "type": "generate_image"
+ },
+ "concepts/Grillgator_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Grillgator_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "8ede85e1-d886-4da4-9a71-0e5464412c19",
+  "type": "generate_image"
+ },
+ "concepts/Halosaur_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Halosaur_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "e4ae75de-f690-4388-8df7-5173c45f832b",
+  "type": "generate_image"
+ },
+ "concepts/Halosaur_Juvenile_v2": {
+  "credits": 10,
+  "files": [
+   "Halosaur_Juvenile_v2.png"
+  ],
+  "status": "success",
+  "task_id": "fb4652f3-c99f-4f13-96b7-c302abbe46c0",
+  "type": "generate_image"
+ },
  "concepts/Iceadillo_v2": {
   "credits": 5,
   "files": [
@@ -78,6 +150,51 @@
   ],
   "status": "success",
   "task_id": "2a96036d-3863-49d7-a362-659dabe68466",
+  "type": "generate_image"
+ },
+ "concepts/Laundrophant_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Laundrophant_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "a49baf39-30eb-4fe9-8232-39267f7d3b11",
+  "type": "generate_image"
+ },
+ "concepts/Lawnmoose_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Lawnmoose_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "3de0073a-9aca-47f2-a7bc-bbe736c384ad",
+  "type": "generate_image"
+ },
+ "concepts/Lawnmoose_Juvenile_v2": {
+  "credits": 10,
+  "files": [
+   "Lawnmoose_Juvenile_v2.png"
+  ],
+  "status": "success",
+  "task_id": "039bf4e6-d439-48cd-9563-09ee4cf41b12",
+  "type": "generate_image"
+ },
+ "concepts/Lunaris_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Lunaris_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "079e34f4-07d7-4aaa-a90e-aeaa7ef4a151",
+  "type": "generate_image"
+ },
+ "concepts/Lurehound_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Lurehound_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "068a4ec5-d721-4c0b-ace7-aaa064fad38e",
   "type": "generate_image"
  },
  "concepts/Nebulion": {
@@ -98,6 +215,60 @@
   "task_id": "bf2d9554-7c65-4573-a524-0520c0b43377",
   "type": "generate_image"
  },
+ "concepts/Nullcat_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Nullcat_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "dd8abf82-d677-408e-879b-e43048020e7c",
+  "type": "generate_image"
+ },
+ "concepts/Nullcat_Juvenile_v2": {
+  "credits": 10,
+  "files": [
+   "Nullcat_Juvenile_v2.png"
+  ],
+  "status": "success",
+  "task_id": "29b7c128-8cfb-46c3-be91-ba0ef5142fc5",
+  "type": "generate_image"
+ },
+ "concepts/Pyrodrake_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Pyrodrake_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "bc86b348-0b5f-4e6a-aa9f-1784ab6d54fa",
+  "type": "generate_image"
+ },
+ "concepts/Quasarfox_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Quasarfox_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "2986f616-2c42-4729-af1d-c98a7a831370",
+  "type": "generate_image"
+ },
+ "concepts/Singularis_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Singularis_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "8d3d3e03-4e1b-499d-be1d-dbb7e5400d53",
+  "type": "generate_image"
+ },
+ "concepts/Singularis_Juvenile_v2": {
+  "credits": 10,
+  "files": [
+   "Singularis_Juvenile_v2.png"
+  ],
+  "status": "success",
+  "task_id": "856712c0-b473-4656-9683-9b1e316a30fb",
+  "type": "generate_image"
+ },
  "concepts/Slagodon_v2": {
   "credits": 5,
   "files": [
@@ -105,6 +276,15 @@
   ],
   "status": "success",
   "task_id": "ea841e3f-3375-4547-91a7-e7b7dbb80770",
+  "type": "generate_image"
+ },
+ "concepts/Solarion_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Solarion_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "b2c7226a-b8bf-4e5b-b818-cec300ca6ca9",
   "type": "generate_image"
  },
  "concepts/Squallcoon": {
@@ -143,6 +323,33 @@
   "task_id": "48a1132c-7ec9-4d61-88d4-c54bc31dfd05",
   "type": "generate_image"
  },
+ "concepts/Stormgriff_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Stormgriff_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "ab529730-3f2f-40bb-8caf-49561eb2c6ec",
+  "type": "generate_image"
+ },
+ "concepts/Stormgriff_Juvenile_v2": {
+  "credits": 10,
+  "files": [
+   "Stormgriff_Juvenile_v2.png"
+  ],
+  "status": "success",
+  "task_id": "f567351a-fb57-49ec-beb6-75c964c028f2",
+  "type": "generate_image"
+ },
+ "concepts/Sylvanox_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Sylvanox_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "1dac1e48-c38d-40d3-a988-8632e03e3916",
+  "type": "generate_image"
+ },
  "concepts/Thunderhoof": {
   "credits": 5,
   "files": [
@@ -159,6 +366,15 @@
   ],
   "status": "success",
   "task_id": "a3d4da71-5826-4cb4-b38b-9bc9fbdf56be",
+  "type": "generate_image"
+ },
+ "concepts/Toastoise_Juvenile": {
+  "credits": 5,
+  "files": [
+   "Toastoise_Juvenile.png"
+  ],
+  "status": "success",
+  "task_id": "d4ef1baf-74e7-4ae8-9ee3-c51cb396e70d",
   "type": "generate_image"
  },
  "concepts/Zapybara": {
@@ -270,6 +486,16 @@
   "task_id": "434afbaf-ca50-4e44-b60b-07c92a34f444",
   "type": "image_to_model"
  },
+ "juveniles/Glacierion": {
+  "status": "queued",
+  "task_id": "9cb1ca73-d0ac-4f89-a7b0-74987c76d082",
+  "type": "image_to_model"
+ },
+ "juveniles/Halosaur": {
+  "status": "queued",
+  "task_id": "4d4ad8ba-cfc1-49dd-9300-9653132f5adb",
+  "type": "image_to_model"
+ },
  "juveniles/Iceadillo": {
   "credits": 30,
   "files": [
@@ -288,6 +514,16 @@
   ],
   "status": "success",
   "task_id": "0a855338-feba-45f8-ad60-a0f851e56cb7",
+  "type": "image_to_model"
+ },
+ "juveniles/Lunaris": {
+  "status": "queued",
+  "task_id": "3680c1ae-5ac8-4a85-b2e5-60b91fb4401f",
+  "type": "image_to_model"
+ },
+ "juveniles/Lurehound": {
+  "status": "queued",
+  "task_id": "9cf2541a-fbe0-483a-906d-283214fab6a9",
   "type": "image_to_model"
  },
  "juveniles/Nebulion": {
@@ -310,6 +546,11 @@
   "task_id": "d8a0a34d-e9df-4ca5-a8e2-5e7336df404c",
   "type": "image_to_model"
  },
+ "juveniles/Pyrodrake": {
+  "status": "queued",
+  "task_id": "4fc487ec-d8bc-42a7-8ad6-2b207638a67f",
+  "type": "image_to_model"
+ },
  "juveniles/Slagodon": {
   "credits": 30,
   "files": [
@@ -318,6 +559,11 @@
   ],
   "status": "success",
   "task_id": "dc466fae-0178-4e74-9ce9-f75371620a72",
+  "type": "image_to_model"
+ },
+ "juveniles/Solarion": {
+  "status": "queued",
+  "task_id": "e256d2ac-cdb3-4cb7-93f2-419fde2c15a7",
   "type": "image_to_model"
  },
  "juveniles/Squallcoon": {
@@ -338,6 +584,16 @@
   ],
   "status": "success",
   "task_id": "2f355948-393a-49d0-b6c2-c4defc98897a",
+  "type": "image_to_model"
+ },
+ "juveniles/Stormgriff": {
+  "status": "queued",
+  "task_id": "32fc0bb4-ce48-4b54-9384-4b69908298a8",
+  "type": "image_to_model"
+ },
+ "juveniles/Sylvanox": {
+  "status": "queued",
+  "task_id": "baac89a1-85ba-4660-871c-eeef90600857",
   "type": "image_to_model"
  },
  "juveniles/Thunderhoof": {
