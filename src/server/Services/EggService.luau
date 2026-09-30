@@ -7,6 +7,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
 local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
@@ -98,13 +99,14 @@ local function tryBuy(egg: Egg, player: Player)
 		Net.notify(player, "Your pedestals and storage are full. Sell a creature first.", "bad")
 		return
 	end
-	if not EconomyService.spend(player, egg.price) then
+	if not EconomyService.spend(player, egg.price, `Egg_{egg.biome}`) then
 		Net.notify(player, `You need {Format.cash(egg.price)} for this egg.`, "bad")
 		return
 	end
 	egg.sold = true
 	egg.part:Destroy()
 	HatchService.giveEgg(player, egg.biome)
+	Analytics.onboard(player, data, 2)
 	Net.notify(player, `Got a {biome.displayName} egg! Carry it home and place it in an incubator.`, "good")
 end
 

@@ -16,6 +16,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
+local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
 local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
@@ -307,6 +308,7 @@ local function place(player: Player, slot: number)
 	})
 	data.heldEgg = nil
 	attachHeldEgg(player, nil)
+	Analytics.onboard(player, data, 3)
 	Net.notify(player, "Egg placed! Its glow shows the rarity as it gets close to hatching.", "good")
 	refreshIncubators(player, data)
 	DataService.markDirty(player)
@@ -325,7 +327,7 @@ local function buyIncubator(player: Player, slot: number)
 	if cost == nil then
 		return
 	end
-	if not EconomyService.spend(player, cost) then
+	if not EconomyService.spend(player, cost, `Incubator{slot}`) then
 		Net.notify(player, `You need {Format.cash(cost)} for another incubator.`, "bad")
 		return
 	end
@@ -347,7 +349,7 @@ local function upgradeIncubator(player: Player, slot: number)
 	if nextTier == nil then
 		return
 	end
-	if not EconomyService.spend(player, nextTier.upgradeCost) then
+	if not EconomyService.spend(player, nextTier.upgradeCost, `IncubatorTier{tier + 1}`) then
 		Net.notify(
 			player,
 			`You need {Format.cash(nextTier.upgradeCost)} for a {nextTier.name} incubator.`,
@@ -405,6 +407,13 @@ local function hatch(player: Player, data: PlayerData, index: number)
 	table.insert(parts, creature.displayName)
 	local name = table.concat(parts, " ")
 
+	Analytics.onboard(player, data, 4)
+	Analytics.event(
+		player,
+		"Hatch",
+		1,
+		{ tostring(creature.rarity), egg.biome, if finishId == "Normal" then "Normal" else "Finish" }
+	)
 	Net.hatchReveal(player, {
 		species = egg.species,
 		biome = egg.biome,

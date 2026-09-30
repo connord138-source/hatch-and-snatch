@@ -19,6 +19,7 @@ export type Product = {
 	name: string,
 	price: number,
 	description: string,
+	shop: boolean?, -- false = not sold in the Shop (the rewarded-ad reward)
 }
 
 local passes: { Pass } = {
@@ -104,6 +105,16 @@ local products: { Product } = {
 		price = 149,
 		description = "90 minutes of your income, at least $10,000.",
 	},
+	{
+		-- The rewarded video ad's reward (Roblox grants ad rewards as a developer
+		-- product, and they can't be random). Not sold in the Shop.
+		key = "AdBoost",
+		id = 0,
+		name = "Ad Boost",
+		price = 5,
+		description = "2× cash for 15 minutes.",
+		shop = false,
+	},
 }
 
 local Monetization = {
@@ -126,6 +137,14 @@ local Monetization = {
 		growthElixir = { minutes = 30, multiplier = 2 },
 		cashSmall = { minutes = 10, minimum = 1_000 },
 		cashLarge = { minutes = 90, minimum = 10_000 },
+		-- Free perks
+		premiumCash = 1.1, -- Roblox Premium members (more Premium playtime → Premium Payouts)
+		-- The Roblox group: `id` 0 until the group exists. Members earn `cash` more;
+		-- joining pays `spins` once.
+		group = { id = 0, cash = 1.05, spins = 3 },
+		-- Rewarded video ad: each watch adds `minutes` of ×`multiplier` cash, up to
+		-- `maxMinutes` banked.
+		adBoost = { minutes = 15, maxMinutes = 60, multiplier = 2 },
 	},
 }
 

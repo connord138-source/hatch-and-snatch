@@ -9,6 +9,8 @@
 --    the save that records it.
 --  * Server Luck: a server-wide Epic+ odds multiplier with a timer, announced to
 --    everyone; eggs rolled while it runs use it (MonetizationService.serverLuck).
+--  * Free perks: Roblox Premium and Roblox group membership (checked on join and
+--    when the player asks, see RewardsService).
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,6 +32,9 @@ local MonetizationService = {
 }
 
 local owned: { [Player]: { [string]: boolean } } = {}
+local groupMembers: { [Player]: boolean } = {}
+local debugPerks: { [Player]: { [string]: boolean } } = {} -- StudioDebug "perk"
+
 local luckUntil = 0 -- Workspace:GetServerTimeNow() when Server Luck runs out
 local luckMultiplier = 1
 
@@ -59,6 +64,44 @@ function MonetizationService.grantPass(player: Player, key: string)
 		DataService.markDirty(player)
 	end
 	MonetizationService.passAdded:fire(player, key)
+end
+
+local function debugPerk(player: Player, perk: string): boolean
+	local perks = debugPerks[player]
+	return perks ~= nil and perks[perk] == true
+end
+
+function MonetizationService.isPremium(player: Player): boolean
+	return player.MembershipType == Enum.MembershipType.Premium or debugPerk(player, "premium")
+end
+
+-- Whether the player is in the game's Roblox group (as of the last check).
+function MonetizationService.inGroup(player: Player): boolean
+	return groupMembers[player] == true or debugPerk(player, "group")
+end
+
+-- Studio testing: pretend the player has Premium ("premium") or is in the group ("group").
+function MonetizationService.setDebugPerk(player: Player, perk: string, on: boolean)
+	debugPerks[player] = debugPerks[player] or {}
+	debugPerks[player][perk] = on
+	DataService.markDirty(player)
+end
+
+-- Asks Roblox whether the player is in the group now (yields). Returns the answer,
+-- or nil when there's no group set up or the check failed.
+function MonetizationService.checkGroup(player: Player): boolean?
+	local groupId = Tuning.group.id
+	if groupId == 0 then
+		return nil
+	end
+	local ok, member = pcall(player.IsInGroupAsync, player, groupId)
+	if not ok then
+		return nil
+	end
+	if player.Parent == Players then
+		groupMembers[player] = member
+	end
+	return member
 end
 
 -- The pass keys a player owns, for the client's Shop.
@@ -211,6 +254,8 @@ function MonetizationService.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		owned[player] = nil
+		groupMembers[player] = nil
+		debugPerks[player] = nil
 	end)
 	publishLuck()
 	-- Tell clients when Server Luck ends

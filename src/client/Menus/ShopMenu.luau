@@ -1,8 +1,10 @@
 --!strict
--- Shop menu: game passes and developer products (Config.Monetization). Buttons open
--- Roblox's own purchase prompt; the server grants what was bought
--- (MonetizationService). Items without a Creator Hub id yet are hidden in a live
--- game and shown greyed out in Studio, so the layout can be checked early.
+-- Shop menu: free rewards (codes, Roblox group, Premium, rewarded ad), then game
+-- passes and developer products (Config.Monetization). Buttons open Roblox's own
+-- prompts; the server grants everything (MonetizationService, RewardsService). Items
+-- without a Creator Hub id yet are hidden in a live game and shown greyed out in
+-- Studio, so the layout can be checked early.
+local GroupService = game:GetService("GroupService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,16 +13,22 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Ads = require(script.Parent.Parent.Ads)
+local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
 
 local Monetization = Config.Monetization
+local Tuning = Monetization.tuning
 local SHOW_UNSET = RunService:IsStudio()
 
 type Row = { button: TextButton, note: TextLabel?, key: string, pass: boolean }
 
 local rows: { Row } = {}
 local luckLine: TextLabel
-local emptyNote: TextLabel
+local groupButton: TextButton?
+local premiumButton: TextButton
+local adRow: Frame?
+local adNote: TextLabel?
 
 local ShopMenu = {}
 
@@ -81,19 +89,122 @@ function ShopMenu.build(content: Frame)
 	})
 	local list =
 		Ui.scrollList(content, { Position = UDim2.fromOffset(0, 30), Size = UDim2.new(1, 0, 1, -30) })
-	emptyNote = text(list, {
-		Size = UDim2.new(1, -10, 0, 40),
-		TextSize = 16,
-		TextColor3 = Ui.colors.muted,
-		Text = "The shop opens soon!",
-		Visible = false,
-		LayoutOrder = 0,
-	})
 
 	local order = 1
-	header(list, order, "Game passes: yours forever")
+	header(list, order, "Free rewards")
+
+	-- Codes
+	order += 1
+	local codeFrame, redeem = row(list, order, "Codes", "")
+	local box = Instance.new("TextBox")
+	box.Position = UDim2.fromOffset(12, 32)
+	box.Size = UDim2.new(1, -160, 0, 34)
+	box.BackgroundColor3 = Ui.colors.panel
+	box.TextColor3 = Color3.new(1, 1, 1)
+	box.PlaceholderText = "Enter a code (new ones drop at like goals)"
+	box.PlaceholderColor3 = Ui.colors.muted
+	box.Font = Enum.Font.GothamBold
+	box.TextSize = 16
+	box.Text = ""
+	box.ClearTextOnFocus = false
+	box.Parent = codeFrame
+	local boxCorner = Instance.new("UICorner")
+	boxCorner.CornerRadius = UDim.new(0, 8)
+	boxCorner.Parent = box
+	redeem.Text = "Redeem"
+	redeem.BackgroundColor3 = Ui.colors.blue
+	local function submit()
+		if box.Text:match("%S") then
+			ClientState.request("RedeemCode", box.Text)
+			box.Text = ""
+		end
+	end
+	redeem.Activated:Connect(submit)
+	box.FocusLost:Connect(function(enterPressed)
+		if enterPressed then
+			submit()
+		end
+	end)
+
+	-- Roblox group (once it exists)
+	local groupId = Tuning.group.id
+	if groupId ~= 0 then
+		order += 1
+		local _, button = row(
+			list,
+			order,
+			"Join the group",
+			`Group members earn +{math.round((Tuning.group.cash - 1) * 100)}% cash, and joining gives {Tuning.group.spins} free Luck Wheel spins.`
+		)
+		button.Activated:Connect(function()
+			local state = ClientState.current
+			if state and state.inGroup then
+				ClientState.request("ClaimGroup")
+				return
+			end
+			task.spawn(function()
+				pcall(GroupService.PromptJoinAsync, GroupService, groupId)
+				ClientState.request("ClaimGroup")
+			end)
+		end)
+		groupButton = button
+	end
+
+	-- Roblox Premium
+	order += 1
+	local _, premium = row(
+		list,
+		order,
+		"Roblox Premium",
+		`Premium members earn +{math.round((Tuning.premiumCash - 1) * 100)}% cash here, on top of everything else.`
+	)
+	premium.Activated:Connect(function()
+		local state = ClientState.current
+		if not (state and state.premium) then
+			MarketplaceService:PromptPremiumPurchase(Players.LocalPlayer)
+		end
+	end)
+	premiumButton = premium
+
+	-- Rewarded video ad (only while Roblox has one to show)
+	local ad = Monetization.productsByKey.AdBoost
+	if ad and ad.id ~= 0 then
+		order += 1
+		local frame, watch = row(
+			list,
+			order,
+			"Watch an ad",
+			`×{Tuning.adBoost.multiplier} cash for {Tuning.adBoost.minutes} minutes. Watch again to stack up to {Tuning.adBoost.maxMinutes} minutes.`
+		)
+		frame.Visible = false
+		watch.Text = "📺 Watch"
+		watch.BackgroundColor3 = Ui.colors.good
+		watch.Activated:Connect(Ads.watch)
+		adNote = text(frame, {
+			AnchorPoint = Vector2.new(1, 1),
+			Position = UDim2.new(1, -10, 1, -2),
+			Size = UDim2.fromOffset(130, 14),
+			TextSize = 11,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextColor3 = Color3.fromRGB(140, 255, 160),
+			TextStrokeTransparency = 1,
+		})
+		adRow = frame
+	end
+
+	local function shown(id: number, shop: boolean?): boolean
+		return shop ~= false and (id ~= 0 or SHOW_UNSET)
+	end
+	local anyPass = false
 	for _, pass in Monetization.passes do
-		if pass.id == 0 and not SHOW_UNSET then
+		anyPass = anyPass or shown(pass.id)
+	end
+	order += 1
+	if anyPass then
+		header(list, order, "Game passes: yours forever")
+	end
+	for _, pass in Monetization.passes do
+		if not shown(pass.id) then
 			continue
 		end
 		order += 1
@@ -105,10 +216,16 @@ function ShopMenu.build(content: Frame)
 		end)
 		table.insert(rows, { button = button, key = pass.key, pass = true })
 	end
-	order += 1
-	header(list, order, "Boosts and cash")
+	local anyProduct = false
 	for _, product in Monetization.products do
-		if product.id == 0 and not SHOW_UNSET then
+		anyProduct = anyProduct or shown(product.id, product.shop)
+	end
+	order += 1
+	if anyProduct then
+		header(list, order, "Boosts and cash")
+	end
+	for _, product in Monetization.products do
+		if not shown(product.id, product.shop) then
 			continue
 		end
 		order += 1
@@ -129,7 +246,12 @@ function ShopMenu.build(content: Frame)
 		end)
 		table.insert(rows, { button = button, note = note, key = product.key, pass = false })
 	end
-	emptyNote.Visible = #rows == 0
+end
+
+local function setButton(button: TextButton, label: string, enabled: boolean, color: Color3?)
+	button.Text = label
+	button.AutoButtonColor = enabled
+	button.BackgroundColor3 = if enabled then color or Ui.colors.good else Ui.colors.disabled
 end
 
 function ShopMenu.refresh(state: { [string]: any })
@@ -143,6 +265,28 @@ function ShopMenu.refresh(state: { [string]: any })
 		luckLine.Text = `🍀 Server Luck ×{luck} is on: {Format.duration(math.ceil(luckUntil - now))} left`
 	else
 		luckLine.Text = "Everything that matters can be earned in-game. These just speed things up."
+	end
+
+	if groupButton then
+		if state.inGroup and state.groupRewarded then
+			setButton(groupButton, "Joined ✓", false)
+		elseif state.inGroup then
+			setButton(groupButton, "Claim", true)
+		else
+			setButton(groupButton, "Join", true, Ui.colors.blue)
+		end
+	end
+	if state.premium then
+		setButton(premiumButton, "Active ✓", false)
+	else
+		setButton(premiumButton, "Get Premium", true, Ui.colors.blue)
+	end
+	if adRow and adNote then
+		adRow.Visible = Ads.available
+		local boostEnds = boosts.cash or 0
+		adNote.Text = if boostEnds > os.time()
+			then `Active: {Format.duration(boostEnds - os.time())} left`
+			else ""
 	end
 
 	for _, entry in rows do

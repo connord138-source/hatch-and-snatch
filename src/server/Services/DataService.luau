@@ -79,7 +79,10 @@ export type PlayerData = {
 	-- join; this also keeps passes bought or granted this session.
 	passes: { [string]: boolean },
 	purchaseIds: { string }, -- developer-product receipts already granted (newest last)
-	boosts: { [string]: number }, -- personal timed boosts: Unix time each runs out
+	boosts: { [string]: number }, -- personal boosts: Unix time each runs out (instantHatch: a count)
+	codes: { [string]: boolean }, -- codes already redeemed (Config.Codes, upper case)
+	groupRewarded: boolean, -- got the one-time Roblox group reward
+	onboarding: number, -- furthest onboarding funnel step logged (Analytics.ONBOARDING)
 }
 
 local TEMPLATE: PlayerData = {
@@ -124,6 +127,9 @@ local TEMPLATE: PlayerData = {
 	passes = {},
 	purchaseIds = {},
 	boosts = {},
+	codes = {},
+	groupRewarded = false,
+	onboarding = 0,
 }
 
 -- Studio reads and writes the live game's DataStores, so Studio sessions (debug

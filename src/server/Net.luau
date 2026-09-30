@@ -27,6 +27,9 @@ local requests: { [string]: RemoteEvent } = {
 	UpgradeBase = makeEvent("UpgradeBase"), -- ()
 	Theme = makeEvent("Theme"), -- (themeId: string) buy if needed, then apply
 	Security = makeEvent("Security"), -- () buy the next security upgrade
+	RedeemCode = makeEvent("RedeemCode"), -- (code: string)
+	ClaimGroup = makeEvent("ClaimGroup"), -- () after the Roblox group join prompt
+	WatchAd = makeEvent("WatchAd"), -- () show a rewarded video ad
 }
 
 folder.Parent = ReplicatedStorage

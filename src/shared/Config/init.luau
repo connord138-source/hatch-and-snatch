@@ -32,5 +32,6 @@ return {
 	Progression = Progression,
 	Zones = require(script.Zones),
 	Monetization = require(script.Monetization),
+	Codes = require(script.Codes),
 	Debug = require(script.Debug),
 }

@@ -251,8 +251,17 @@ Built 2026-09-30 (`Config/Monetization.luau`, `MonetizationService`). Prices are
 
   Instant Restock was dropped: the conveyor has no stock to restock.
 - **Receipts:** each purchase id is recorded in the player's data and only confirmed to Roblox after a save containing it, so a crash can't double-grant or lose a purchase. Pass ownership is checked with Roblox on join and also stored in data.
-- **Other income:** Premium Payouts (from long sessions), rewarded video ads ("watch an ad for a free egg"), private servers.
-- **Free promotion channels:** a like-goal code system, and a reward for joining the Roblox group.
+- **Free perks and rewards** (built 2026-09-30, `RewardsService`, Shop → Free rewards):
+  - **Codes** (`Config/Codes.luau`): once per player, paying spins, luck charge, cash or Essence, with an optional expiry date. Launch codes: HATCH (3 spins), MOONEGG (×3 luck), SNATCH ($1,000). Like-goal codes are added to the table when a goal is hit.
+  - **Roblox group:** members earn +5% cash, and joining pays 3 spins once. Joining uses the in-game prompt. The group id stays 0 until the group exists.
+  - **Roblox Premium:** +10% cash. Premium Payouts pay for Premium members' time in the game, so this perk helps keep them.
+  - **Rewarded video ad:** ×2 cash for 15 minutes a watch, stacking to 60 minutes (the `AdBoost` product). Changed from "a free egg" because Roblox forbids random ad rewards. Roblox only serves ads to public games with 2,000+ monthly visitors and an ID-verified owner, and the button stays hidden until then.
+- **Other income:** Premium Payouts (automatic), private servers.
+- **Analytics** (`src/server/Analytics.luau`, Creator Hub → Analytics):
+  - Economy: every cash source and sink, with an item SKU.
+  - Onboarding funnel: joined → bought an egg → placed it → hatched → collected cash → upgraded the base.
+  - Progression: Hatcher Level and base level.
+  - Custom events: Hatch (rarity, biome, finish), Steal, Rebirth, CodeRedeemed, GroupReward, AdWatched.
 
 ## 10. Technical plan
 

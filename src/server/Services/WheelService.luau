@@ -53,7 +53,7 @@ local function award(player: Player, index: number)
 		end
 	elseif segment.kind == "cash" then
 		local amount = math.max(500, math.floor(EconomyService.rate(player) * 60 * segment.value))
-		EconomyService.grant(player, amount)
+		EconomyService.grant(player, amount, "LuckWheel")
 		Net.notify(player, `Luck Wheel: +{Format.cash(amount)}!`, "good")
 	elseif segment.kind == "spin" then
 		data.spins += segment.value

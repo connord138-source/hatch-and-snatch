@@ -39,10 +39,14 @@ binding.
   - A single round-robin scheduler replaced the per-zone timers, which drifted together.
   - Trigger one with `game.ServerStorage.StudioDebug:Invoke("zone", "<BiomeId>")`.
 - **Round-robin confirmed** in Studio 2026-09-30 (gaps 46–58 s, in order). The Frost boulder glow was dimmed further at the owner's request.
-- **Monetization is built** (GDD §9, `Config/Monetization.luau`, `MonetizationService`, `ShopMenu`). Not yet tested in Studio.
+- **Monetization is built and confirmed in Studio** (a9beb37, PC fix 4b00361). See GDD §9, `Config/Monetization.luau`, `MonetizationService` and `ShopMenu`.
   - Test without Robux: `game.ServerStorage.StudioDebug:Invoke("pass", "<Key>")` or `Invoke("product", "<Key>")`.
-  - The owner still has to create the 6 passes and 5 products in Creator Hub and paste the ids into the config.
+  - **Blocked on the owner:** create the 6 passes and 6 products (5 plus AdBoost) in Creator Hub, and paste the ids into the config. The PC browser was signed in as Dillionaire2424, which has no access; the game belongs to **Dillionaire138**. Placeholder icons are ready on the PC.
   - Flag if asked: VIP is a tag + 10 storage + 10% cash (not +10 pedestals), and Instant Restock was dropped.
+- **Free rewards and analytics are built** (this batch, not yet tested in Studio). See `RewardsService`, `Config/Codes.luau`, `src/server/Analytics.luau`, `src/client/Ads.luau` and GDD §9.
+  - The rewarded ad gives ×2 cash rather than a free egg, because Roblox forbids random ad rewards.
+  - Debug: `Invoke("perk", "premium"|"group")`, `Invoke("codes")` to reset codes, and `Invoke("product", "AdBoost")`.
+  - The group perk needs a Roblox group (owner). Its id goes in `Monetization.tuning.group.id`.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left

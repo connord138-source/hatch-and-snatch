@@ -63,6 +63,7 @@ unrelated to the Polymarket worker.
 - **Monetization** (built 2026-09-30): 6 game passes and 5 developer products, with Server Luck as the headline product. See GDD §9.
   - VIP is a tag, +10 storage and +10% cash, because +10 pedestals doesn't fit the plots. Instant Restock was dropped.
   - Names, prices, descriptions, Creator Hub ids and tuning all live in `src/shared/Config/Monetization.luau`. An item with id 0 is hidden in the live Shop.
+  - Free rewards (`RewardsService`): codes (`Config/Codes.luau`), a Roblox group perk (id 0 until the group exists), a Premium perk, and a rewarded ad giving ×2 cash (ad rewards can't be random, so it isn't a free egg).
 - **Instructions for the owner's PC session must be written as a paste-ready prompt** (the owner asked for this).
 - **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 
@@ -128,8 +129,9 @@ How to prompt for concepts:
 - Tool versions are pinned in `rokit.toml`; lint with selene and format with StyLua.
 - Config is data-driven in `src/shared/Config/*`. New content means editing tables, not code.
 - The server is authoritative for cash, hatching, growth and stealing, since stealing games attract exploiters.
-- Player data: ProfileStore, vendored at `src/server/Packages` (Apache-2.0). It falls back to a mock store in unpublished Studio places.
+- Player data: ProfileStore, vendored at `src/server/Packages` (Apache-2.0). Studio sessions use the separate `PlayerData_Studio_v1` store, and live servers use `PlayerData_v2`, so Studio testing never touches real profiles. An unpublished place falls back to a mock store.
 - Purchases: `MonetizationService` owns ProcessReceipt. A product's effect is registered with `MonetizationService.onProduct(key, fn)` by the service that owns it, and `fn` may only change that player's data (it runs once per receipt, and the receipt is confirmed after a save). Check passes with `MonetizationService.hasPass(player, key)`.
+- Analytics: log through `src/server/Analytics.luau`. `EconomyService.spend` and `grant` take an item SKU for the economy dashboard, so keep SKUs to small fixed sets.
 - Services live in `src/server/Services`. The start order in `init.server.luau` matters: each service connects to `DataService.loaded` inside its `start()`, and DataService starts last.
 - **Verifying from a cloud session** (no Studio available): use `rojo sourcemap`, then `luau-lsp analyze --definitions=<globalTypes.d.luau> --sourcemap=... --ignore="**/Packages/**" src`, then `stylua --check src`. Pure config and economy logic can run in the plain `luau` runtime after swapping `script.Parent.X` requires for `./X` and stubbing `Color3`.
 - luau-lsp quirk: indexing `{ [Types.BiomeId]: T }` maps with values from other modules raises false singleton errors, so biome-keyed maps use `string` keys.

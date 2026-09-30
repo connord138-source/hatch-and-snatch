@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
+local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
 local DataService = require(script.Parent.DataService)
 
@@ -76,6 +77,7 @@ function ProgressionService.addXp(player: Player, amount: number)
 	local after = ProgressionService.level(data)
 	if after > before then
 		Net.notify(player, `Hatcher Level {after}!`, "rare")
+		Analytics.progress(player, "HatcherLevel", after)
 		if after % 5 == 0 then
 			Net.announce(`{player.DisplayName} reached Hatcher Level {after}!`, LEVEL_UP_COLOR)
 		end

@@ -228,7 +228,7 @@ local function applyBlessing(player: Player, data: PlayerData, biomeId: string)
 	local blessing = Zones.byBiome[biomeId].blessing
 	if blessing.kind == "cash" then
 		local amount = math.max(250, math.floor(EconomyService.rate(player) * blessing.value))
-		EconomyService.grant(player, amount)
+		EconomyService.grant(player, amount, `Blessing_{biomeId}`)
 		Net.notify(player, `{blessing.name}: +{Format.cash(amount)}!`, "good")
 	elseif blessing.kind == "spins" then
 		data.spins += blessing.value

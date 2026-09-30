@@ -14,6 +14,12 @@
 --       -- gives every player that game pass (DoubleCash, VIP, AutoCollect, ExtraNursery, LongerLock, OfflinePlus)
 --   game.ServerStorage.StudioDebug:Invoke("product", "ServerLuck")
 --       -- runs a developer product's effect for every player (ServerLuck, GrowthElixir, SkipHatch, CashSmall, CashLarge)
+--   game.ServerStorage.StudioDebug:Invoke("product", "AdBoost")
+--       -- the rewarded-ad reward (×2 cash for 15 min) without an ad
+--   game.ServerStorage.StudioDebug:Invoke("perk", "premium")
+--       -- toggles pretend Roblox Premium ("premium") or group membership ("group") for every player
+--   game.ServerStorage.StudioDebug:Invoke("codes")
+--       -- forgets which codes every player redeemed (Config.Codes), to test them again
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -111,6 +117,30 @@ local function pass(key: any): string
 	return `granted {key}`
 end
 
+local function perk(name: any): string
+	if name ~= "premium" and name ~= "group" then
+		return "perk is premium or group"
+	end
+	local on = false
+	for player in DataService.loadedPlayers() do
+		on = not (
+			if name == "premium"
+				then MonetizationService.isPremium(player)
+				else MonetizationService.inGroup(player)
+		)
+		MonetizationService.setDebugPerk(player, name, on)
+	end
+	return `{name} {if on then "on" else "off"}`
+end
+
+local function resetCodes(): string
+	for player, data in DataService.loadedPlayers() do
+		table.clear(data.codes)
+		DataService.markDirty(player)
+	end
+	return "codes can be redeemed again"
+end
+
 local function product(key: any): string
 	if typeof(key) ~= "string" or Config.Monetization.productsByKey[key] == nil then
 		return "unknown product"
@@ -148,8 +178,12 @@ function StudioDebug.start()
 			return pass(...)
 		elseif action == "product" then
 			return product(...)
+		elseif action == "perk" then
+			return perk(...)
+		elseif action == "codes" then
+			return resetCodes()
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), store()"
 	end
 	hook.Parent = ServerStorage
 end

@@ -1,11 +1,13 @@
 --!strict
 -- Cash: creatures on pedestals earn into the plot's collector every second;
 -- stepping on the collector pad banks it. Offline time pays out on rejoin (capped).
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
+local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
@@ -22,14 +24,25 @@ local passTuning = Config.Monetization.tuning
 
 local EconomyService = {}
 
--- Cash multiplier from game passes (2× Cash, VIP).
-function EconomyService.passMultiplier(player: Player): number
+-- Personal cash multiplier: game passes (2× Cash, VIP), Roblox Premium, the Roblox
+-- group and a rewarded-ad boost.
+function EconomyService.bonusMultiplier(player: Player): number
 	local multiplier = 1
 	if MonetizationService.hasPass(player, "DoubleCash") then
 		multiplier *= passTuning.doubleCash
 	end
 	if MonetizationService.hasPass(player, "VIP") then
 		multiplier *= passTuning.vipCash
+	end
+	if MonetizationService.isPremium(player) then
+		multiplier *= passTuning.premiumCash
+	end
+	if MonetizationService.inGroup(player) then
+		multiplier *= passTuning.group.cash
+	end
+	local data = DataService.get(player)
+	if data and (data.boosts.cash or 0) > Timing.now() then
+		multiplier *= passTuning.adBoost.multiplier
 	end
 	return multiplier
 end
@@ -49,7 +62,7 @@ local function baseRate(player: Player, data: PlayerData): number
 			total += EconomyService.creatureRate(data, record)
 		end
 	end
-	return total * EconomyService.passMultiplier(player)
+	return total * EconomyService.bonusMultiplier(player)
 end
 
 function EconomyService.rate(player: Player): number
@@ -84,8 +97,14 @@ function EconomyService.refresh(player: Player)
 	end
 end
 
--- Deducts `amount` if affordable. Returns whether it succeeded.
-function EconomyService.spend(player: Player, amount: number): boolean
+-- Deducts `amount` if affordable. Returns whether it succeeded. `sku` names what was
+-- bought for Analytics (keep it to a small fixed set, e.g. "Egg_Mossvale").
+function EconomyService.spend(
+	player: Player,
+	amount: number,
+	sku: string,
+	transaction: Analytics.Transaction?
+): boolean
 	local data = DataService.get(player)
 	if data == nil or amount < 0 or data.cash < amount then
 		return false
@@ -93,10 +112,17 @@ function EconomyService.spend(player: Player, amount: number): boolean
 	data.cash -= amount
 	updateLeaderstats(player, data)
 	DataService.markDirty(player)
+	Analytics.cash(player, false, amount, data.cash, transaction or "Shop", sku)
 	return true
 end
 
-function EconomyService.grant(player: Player, amount: number)
+-- Adds cash. `sku` names where it came from for Analytics.
+function EconomyService.grant(
+	player: Player,
+	amount: number,
+	sku: string,
+	transaction: Analytics.Transaction?
+)
 	local data = DataService.get(player)
 	if data == nil or amount <= 0 then
 		return
@@ -104,7 +130,12 @@ function EconomyService.grant(player: Player, amount: number)
 	data.cash += amount
 	updateLeaderstats(player, data)
 	DataService.markDirty(player)
+	Analytics.cash(player, true, amount, data.cash, transaction or "Gameplay", sku)
 end
+
+-- Auto-Collect banks every second; Analytics gets one event a minute instead
+local autoCollected: { [Player]: number } = {}
+local autoLoggedAt: { [Player]: number } = {}
 
 -- Banks the collector. `quiet` skips the toast (Auto-Collect does this every second).
 local function collect(player: Player, quiet: boolean?)
@@ -116,9 +147,18 @@ local function collect(player: Player, quiet: boolean?)
 	data.uncollected -= amount
 	data.cash += amount
 	updateLeaderstats(player, data)
-	if not quiet then
+	if quiet then
+		autoCollected[player] = (autoCollected[player] or 0) + amount
+		if os.clock() - (autoLoggedAt[player] or 0) >= 60 then
+			Analytics.cash(player, true, autoCollected[player], data.cash, "Gameplay", "AutoCollect")
+			autoCollected[player] = 0
+			autoLoggedAt[player] = os.clock()
+		end
+	else
 		Net.notify(player, `Collected {Format.cash(amount)}`, "good")
+		Analytics.cash(player, true, amount, data.cash, "Gameplay", "Collect")
 	end
+	Analytics.onboard(player, data, 5)
 	ProgressionService.bump(player, "earned", amount)
 	DataService.markDirty(player)
 end
@@ -154,6 +194,7 @@ function EconomyService.start()
 		rebirths.Parent = leaderstats
 		leaderstats.Parent = player
 		updateLeaderstats(player, data)
+		Analytics.onboard(player, data, 1)
 
 		-- Offline earnings (uses the rate the base has now; growth already caught up)
 		if data.lastSeen > 0 then
@@ -174,6 +215,10 @@ function EconomyService.start()
 	end)
 
 	PlotService.collectorTouched:connect(collect)
+	Players.PlayerRemoving:Connect(function(player)
+		autoCollected[player] = nil
+		autoLoggedAt[player] = nil
+	end)
 
 	-- Cash packs: minutes of the player's current income, with a floor for new players
 	for _, pack in
@@ -185,7 +230,7 @@ function EconomyService.start()
 		MonetizationService.onProduct(pack.key, function(player)
 			local amount =
 				math.max(pack.tune.minimum, math.floor(EconomyService.rate(player) * pack.tune.minutes * 60))
-			EconomyService.grant(player, amount)
+			EconomyService.grant(player, amount, pack.key, "IAP")
 			Net.notify(player, `+{Format.cash(amount)}! Thanks for your purchase.`, "rare")
 		end)
 	end

@@ -19,7 +19,7 @@ local function sell(player: Player, uid: string, record: DataService.CreatureRec
 	local value = Config.Economy.sellValue(CreatureService.stats(record))
 	local name = Config.CreaturesById[record.species].displayName
 	CreatureService.remove(player, uid)
-	EconomyService.grant(player, value)
+	EconomyService.grant(player, value, "Sell")
 	Net.notify(player, `Sold your {name} for {Format.cash(value)}.`, "good")
 end
 

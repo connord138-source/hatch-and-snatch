@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
@@ -62,12 +63,14 @@ function BaseService.upgrade(player: Player)
 		return
 	end
 	local cost = Config.Economy.baseLevel(nextLevel).cost
-	if not EconomyService.spend(player, cost) then
+	if not EconomyService.spend(player, cost, `BaseLevel{nextLevel}`) then
 		Net.notify(player, `You need {Format.cash(cost)} to upgrade your base.`, "bad")
 		return
 	end
 	data.baseLevel = nextLevel
 	apply(player, data)
+	Analytics.onboard(player, data, 6)
+	Analytics.progress(player, "BaseLevel", nextLevel)
 	Net.notify(player, `Base upgraded to level {nextLevel}! +5 pedestals and a bigger plot.`, "rare")
 	ProgressionService.addXp(player, Config.Progression.xp.baseUpgradePerLevel * nextLevel)
 	ProgressionService.bump(player, "baseUpgrades")
@@ -90,7 +93,7 @@ function BaseService.setTheme(player: Player, themeId: any)
 			Net.notify(player, `Unlock {Config.Biomes[themeId].displayName} first.`, "bad")
 			return
 		end
-		if not EconomyService.spend(player, theme.cost) then
+		if not EconomyService.spend(player, theme.cost, `Theme_{themeId}`) then
 			Net.notify(player, `You need {Format.cash(theme.cost)} for this theme.`, "bad")
 			return
 		end
@@ -113,7 +116,7 @@ function BaseService.buySecurity(player: Player)
 		Net.notify(player, "Your base security is maxed out!", "info")
 		return
 	end
-	if not EconomyService.spend(player, nextLevel.cost) then
+	if not EconomyService.spend(player, nextLevel.cost, `Security{data.security + 1}`) then
 		Net.notify(player, `You need {Format.cash(nextLevel.cost)} for the {nextLevel.name}.`, "bad")
 		return
 	end

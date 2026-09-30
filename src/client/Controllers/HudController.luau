@@ -1,6 +1,6 @@
 --!strict
 -- Placeholder HUD built from code: cash + rate, uncollected, Hatcher Level + XP,
--- Luck Wheel spins, incubator timers, Server Luck, carried-egg hint, moon event banner, toasts
+-- Luck Wheel spins, incubator timers, Server Luck, ad boost, carried-egg hint, moon event banner, toasts
 -- and server announcements. Presentation only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Ads = require(script.Parent.Parent.Ads)
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
 
@@ -134,6 +135,18 @@ function HudController.start()
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextColor3 = Color3.fromRGB(140, 255, 160),
 	})
+
+	-- Rewarded ad (under Server Luck): a Watch button while Roblox has an ad to show,
+	-- and the ×2 cash timer while the boost runs
+	local adTuning = Config.Monetization.tuning.adBoost
+	local adButton = Ui.button(gui, {
+		Size = UDim2.fromOffset(250, 34),
+		Position = UDim2.fromOffset(12, 284),
+		BackgroundColor3 = Ui.colors.good,
+		Visible = false,
+	})
+	adButton.Activated:Connect(Ads.watch)
+	local columnBottom = 284 -- where the left column continues below the incubators
 
 	-- Moon event banner (top-center)
 	local banner = panel(gui, {
@@ -270,7 +283,8 @@ function HudController.start()
 			end
 			local owned: number = current.incubatorSlots or 1
 			incubatorPanel.Size = UDim2.fromOffset(250, 40 + owned * 30)
-			luckPanel.Position = UDim2.fromOffset(12, 214 + 40 + owned * 30 + 8)
+			columnBottom = 214 + 40 + owned * 30 + 8
+			luckPanel.Position = UDim2.fromOffset(12, columnBottom)
 			for i, row in incubatorRows do
 				row.Visible = i <= owned
 				local egg = nil
@@ -337,6 +351,19 @@ function HudController.start()
 		else
 			luckPanel.Visible = false
 		end
+
+		local boostEnds: number = if current and current.boosts then current.boosts.cash or 0 else 0
+		local boosted = boostEnds > os.time()
+		adButton.Visible = Ads.available or boosted
+		adButton.Position = UDim2.fromOffset(12, columnBottom + (if luckPanel.Visible then 38 else 0))
+		adButton.AutoButtonColor = Ads.available
+		adButton.BackgroundColor3 = if Ads.available then Ui.colors.good else Ui.colors.disabled
+		adButton.Text = if boosted and Ads.available
+			then `📺 ×{adTuning.multiplier} cash {Format.duration(boostEnds - os.time())} · watch for +{adTuning.minutes} min`
+			elseif boosted then `📺 ×{adTuning.multiplier} cash: {Format.duration(
+				boostEnds - os.time()
+			)} left`
+			else `📺 Watch an ad: ×{adTuning.multiplier} cash for {adTuning.minutes} min`
 
 		local eventName = Workspace:GetAttribute("MoonEventName")
 		local endsAt = Workspace:GetAttribute("MoonEventEndsAt")

@@ -31,7 +31,7 @@ local function snapshot(player: Player): { [string]: any }?
 		})
 	end
 	local creatures = {}
-	local passMultiplier = EconomyService.passMultiplier(player)
+	local bonusMultiplier = EconomyService.bonusMultiplier(player)
 	for uid, record in data.creatures do
 		table.insert(creatures, {
 			uid = uid,
@@ -44,7 +44,7 @@ local function snapshot(player: Player): { [string]: any }?
 			stolenFrom = record.stolenFrom,
 			nextStageAt = CreatureService.nextStageAt(record),
 			carried = CreatureService.isCarried(player, uid),
-			rate = EconomyService.creatureRate(data, record) * passMultiplier,
+			rate = EconomyService.creatureRate(data, record) * bonusMultiplier,
 			value = Config.Economy.sellValue(CreatureService.stats(record)),
 		})
 	end
@@ -72,6 +72,9 @@ local function snapshot(player: Player): { [string]: any }?
 		storageSlots = CreatureService.storageSlots(data),
 		nurserySlots = CreatureService.nurserySlots(data),
 		passes = MonetizationService.ownedPasses(player),
+		premium = MonetizationService.isPremium(player),
+		inGroup = MonetizationService.inGroup(player),
+		groupRewarded = data.groupRewarded,
 		boosts = data.boosts,
 		index = data.index,
 		indexFinishes = data.indexFinishes,

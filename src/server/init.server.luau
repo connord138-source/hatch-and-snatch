@@ -66,6 +66,7 @@ local WheelService = require(Services.WheelService)
 local ZoneService = require(Services.ZoneService)
 local ZoneEventService = require(Services.ZoneEventService)
 local MonetizationService = require(Services.MonetizationService)
+local RewardsService = require(Services.RewardsService)
 local RebirthService = require(Services.RebirthService)
 local StateService = require(Services.StateService)
 local DataService = require(Services.DataService)
@@ -83,6 +84,7 @@ EggService.start()
 StealService.start()
 InventoryService.start() -- Creatures menu requests: store, place, nursery, sell
 RebirthService.start()
+RewardsService.start() -- codes, Roblox group, Premium, rewarded ads
 WheelService.start()
 ZoneService.start() -- biome zone gates, harvest nodes, shrines
 ZoneEventService.start() -- set-piece events in the zones, every few minutes each

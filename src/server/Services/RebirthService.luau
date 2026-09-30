@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -27,6 +28,15 @@ local function rebirth(player: Player)
 	end
 
 	data.rebirths += 1
+	Analytics.cash(
+		player,
+		false,
+		data.cash - Config.Economy.tunables.startingCash,
+		Config.Economy.tunables.startingCash,
+		"Shop",
+		"Rebirth"
+	)
+	Analytics.event(player, "Rebirth", data.rebirths)
 	data.cash = Config.Economy.tunables.startingCash
 	data.uncollected = 0
 	data.spins += REBIRTH_SPINS
