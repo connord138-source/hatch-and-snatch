@@ -977,7 +977,11 @@ type Zone = {
 	terrain: Enum.Material,
 	wall: Enum.Material,
 	wallColor: Color3,
+	-- Scattered inside the walls: imported WorldProps, or part-built decor from SetPieces
 	decor: { string },
+	-- Re-skins the imported decor in a plain material (Storm Peaks: weathered slate)
+	decorSkin: { material: Enum.Material, color: Color3 }?,
+	storm: boolean?, -- a storm overhead: cloud, rain, mist, lightning (SetPieces.stormSky)
 	-- Hero set pieces (SetPieces.luau): angle in degrees from the gate direction and
 	-- distance from the zone center, same layout as the harvest nodes
 	heroes: { { name: string, angle: number, distance: number, scale: number? } },
@@ -1039,11 +1043,15 @@ local ZONES: { Zone } = {
 	{
 		biome = "StormPeaks",
 		material = Enum.Material.Slate,
-		color = Color3.fromRGB(100, 105, 125),
+		color = Color3.fromRGB(82, 86, 98),
 		terrain = Enum.Material.Rock,
 		wall = Enum.Material.Slate,
-		wallColor = Color3.fromRGB(80, 85, 100),
-		decor = { "RockCluster", "PineTree", "RockCluster" },
+		wallColor = Color3.fromRGB(64, 68, 80),
+		-- Storm-worn, not green: jagged slate shards (the ice spire, re-skinned), bare
+		-- dead trees and lightning scorch marks
+		decor = { "IceSpire", "IceSpire", "RockCluster", "DeadTree", "DeadTree", "ScorchMark" },
+		decorSkin = { material = Enum.Material.Slate, color = Color3.fromRGB(92, 96, 108) },
+		storm = true,
 		heroes = {
 			{ name = "LightningCrag", angle = 180, distance = 7 },
 			{ name = "WindSpire", angle = 67.5, distance = 36 },
@@ -1307,10 +1315,19 @@ local function buildZones(folder: Folder)
 			table.insert(heroSpots, { position = position, radius = radius })
 		end
 
+		-- The weather blows around the ring; ZoneMoodController reads these attributes
+		local wind = outward:Cross(Vector3.yAxis)
+		if zone.storm then
+			SetPieces.stormSky(center, WALL_RADIUS, wind, zoneFolder)
+			zoneFolder:SetAttribute("Mood", "storm")
+		end
+		zoneFolder:SetAttribute("Center", center)
+		zoneFolder:SetAttribute("Radius", WALL_RADIUS)
+
 		-- Decor inside the walls, clear of the nodes, the shrine, the set pieces and the gate path
 		local available: { string } = {}
 		for _, name in zone.decor do
-			if Props.template("WorldProps", name) then
+			if Props.template("WorldProps", name) or SetPieces.has(name) then
 				table.insert(available, name)
 			end
 		end
@@ -1346,16 +1363,26 @@ local function buildZones(folder: Folder)
 				end
 				if not blocked then
 					local name = available[rng:NextInteger(1, #available)]
-					local height = if name == "MossTree" or name == "PineTree"
-						then 20
-						elseif name == "IceSpire" then 11
-						else 5
-					Props.spawn(
-						name,
-						CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0),
-						height * rng:NextNumber(0.8, 1.25),
-						zoneFolder
-					)
+					if SetPieces.has(name) then
+						-- Part-built decor leans downwind
+						local frame = CFrame.lookAt(position, position + wind)
+						SetPieces.build(name, frame, rng:NextNumber(0.85, 1.2), zoneFolder, rng)
+					else
+						local height = if name == "MossTree" or name == "PineTree"
+							then 20
+							elseif name == "IceSpire" then 11
+							else 5
+						local model = Props.spawn(
+							name,
+							CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0),
+							height * rng:NextNumber(0.8, 1.25),
+							zoneFolder
+						)
+						local skin = zone.decorSkin
+						if model and skin then
+							Props.reskin(model, skin.material, skin.color)
+						end
+					end
 					placed += 1
 				end
 			end

@@ -13,6 +13,7 @@ local MenuController = require(script.Controllers.MenuController)
 local PromptFilter = require(script.Controllers.PromptFilter)
 local RevealController = require(script.Controllers.RevealController)
 local ZoneGateController = require(script.Controllers.ZoneGateController)
+local ZoneMoodController = require(script.Controllers.ZoneMoodController)
 
 ClientState.start()
 HudController.start()
@@ -23,5 +24,6 @@ IncubatorController.start()
 task.spawn(LuckWheelController.start) -- waits for the world to replicate
 RevealController.start()
 task.spawn(ZoneGateController.start) -- waits for the world to replicate
+task.spawn(ZoneMoodController.start) -- waits for the world to replicate
 
 print(`[HatchAndSnatch] Client ready — {#Config.Creatures} creatures in config`)

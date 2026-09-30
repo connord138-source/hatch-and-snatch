@@ -4,6 +4,10 @@
 -- (ReplicatedStorage.WorldProps.<Name>, see Props.luau) when there is one, and a
 -- stand-in built from parts otherwise. Lights, particles and the storm crag's
 -- lightning are added either way. WorldService decides where they stand.
+-- Also here: part-built zone decor (dead trees, scorch marks) and the storm
+-- over Storm Peaks (SetPieces.stormSky).
+local Lighting = game:GetService("Lighting")
+
 local Props = require(script.Parent.Props)
 
 local SetPieces = {}
@@ -119,11 +123,12 @@ local function fade(from: number, to: number): NumberSequence
 	return NumberSequence.new(from, to)
 end
 
--- A jagged bolt from the sky down to `tip`, flashed twice, then removed.
+-- A jagged bolt from the storm cloud (SetPieces.stormSky) down to `tip`, flashed
+-- twice, then removed.
 local function strike(tip: Vector3, model: Model, flash: PointLight, rng: Random)
 	local bolt = Instance.new("Folder")
 	bolt.Name = "Bolt"
-	local points = { tip + Vector3.new(rng:NextNumber(-8, 8), 90, rng:NextNumber(-8, 8)) }
+	local points = { tip + Vector3.new(rng:NextNumber(-6, 6), 30, rng:NextNumber(-6, 6)) }
 	for i = 1, 6 do
 		local t = i / 7
 		local along = points[1]:Lerp(tip, t)
@@ -592,6 +597,110 @@ SPECS.WindSpire = {
 	end,
 }
 
+-- Zone decor (WorldService scatters these like imported props).
+
+-- A dead tree bent by the storm wind: a charred trunk leaning downwind (the frame's
+-- look direction) with a few bare branches, and on some a glowing lightning scar.
+SPECS.DeadTree = {
+	size = Vector3.new(8, 13, 8),
+	radius = 3,
+	build = function(model, frame, s, rng)
+		local bark = Color3.fromRGB(66, 60, 57):Lerp(Color3.fromRGB(40, 38, 41), rng:NextNumber())
+		-- A round limb from `base` along its up direction; returns the tip
+		local function limb(base: CFrame, length: number, thickness: number): CFrame
+			part({
+				Name = "Limb",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(length + thickness * 0.5, thickness, thickness),
+				CFrame = base * CFrame.new(0, length / 2, 0) * CFrame.Angles(0, 0, math.rad(90)),
+				Material = Enum.Material.Wood,
+				Color = bark,
+				CanCollide = false,
+				Parent = model,
+			})
+			return base * CFrame.new(0, length, 0)
+		end
+		local lean = math.rad(rng:NextNumber(6, 11))
+		local scarred = rng:NextNumber() < 0.5
+		local at = frame
+		for i = 1, 3 do
+			local thickness = (2.2 - i * 0.45) * s
+			local length = (6.4 - i * 1.4) * s
+			local base = at * CFrame.Angles(-lean, 0, 0) -- each segment bends further downwind
+			at = limb(base, length, thickness)
+			if scarred and i < 3 then
+				part({
+					Name = "Scar",
+					Size = Vector3.new(0.22 * s, length * 0.85, 0.15),
+					CFrame = base * CFrame.new(0, length / 2, thickness * 0.45),
+					Material = Enum.Material.Neon,
+					Color = Color3.fromRGB(150, 205, 255),
+					CanCollide = false,
+					Parent = model,
+				})
+			end
+			for _ = 1, if i == 1 then 1 else 2 do
+				local sweep = CFrame.Angles(0, math.rad(rng:NextNumber(-80, 80)), 0)
+					* CFrame.Angles(-math.rad(rng:NextNumber(45, 70)), 0, 0)
+				local fork = base * CFrame.new(0, length * rng:NextNumber(0.55, 0.95), 0) * sweep
+				local tip = limb(fork, rng:NextNumber(2.2, 3.8) * s, thickness * 0.35)
+				if rng:NextNumber() < 0.5 then
+					local bend =
+						CFrame.Angles(math.rad(rng:NextNumber(-35, 35)), 0, math.rad(rng:NextNumber(-35, 35)))
+					limb(tip * bend, rng:NextNumber(1, 1.8) * s, thickness * 0.22)
+				end
+			end
+		end
+		for i = 1, 3 do
+			part({
+				Name = "Root",
+				Size = Vector3.new(0.9, 1.3, 2.2) * s,
+				CFrame = frame
+					* CFrame.Angles(0, i * 2.1 + rng:NextNumber(-0.3, 0.3), 0)
+					* CFrame.new(0, 0.65 * s, -1.6 * s),
+				Material = Enum.Material.Wood,
+				Color = bark,
+				CanCollide = false,
+				Parent = model,
+			}, "WedgePart")
+		end
+	end,
+}
+
+-- Ground scorched by a lightning strike: a dark burn with glowing cracks.
+SPECS.ScorchMark = {
+	size = Vector3.new(8, 0.4, 8),
+	radius = 2,
+	walkable = true,
+	build = function(model, frame, s, rng)
+		-- The zone's ground is 0.15 above the frame
+		part({
+			Name = "Burn",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.1, 7 * s, 7 * s),
+			CFrame = frame * CFrame.new(0, 0.2, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			Material = Enum.Material.Basalt,
+			Color = Color3.fromRGB(36, 34, 38),
+			CanCollide = false,
+			Parent = model,
+		})
+		for i = 1, 5 do
+			local length = rng:NextNumber(1.8, 3.4) * s
+			part({
+				Name = "Crack",
+				Size = Vector3.new(0.16, 0.06, length),
+				CFrame = frame
+					* CFrame.Angles(0, i * 1.26 + rng:NextNumber(-0.3, 0.3), 0)
+					* CFrame.new(0, 0.27, -(0.4 * s + length / 2)),
+				Material = Enum.Material.Neon,
+				Color = Color3.fromRGB(140, 200, 255),
+				CanCollide = false,
+				Parent = model,
+			})
+		end
+	end,
+}
+
 local function moonCrystal(): { [string]: any }
 	return { Material = Enum.Material.Glass, Color = Color3.fromRGB(190, 165, 240), Transparency = 0.1 }
 end
@@ -798,6 +907,128 @@ function SetPieces.build(name: string, frame: CFrame, scale: number, parent: Ins
 	end
 	-- A model fitted by height can come out wider than its box
 	return math.max(spec.radius * scale, math.max(size.X, size.Z) / 2)
+end
+
+-- True when `name` is something SetPieces.build can make (imported or not).
+function SetPieces.has(name: string): boolean
+	return SPECS[name] ~= nil
+end
+
+local CLOUD_HEIGHT = 38
+local CLOUD_COLOR = Color3.fromRGB(52, 56, 66)
+local CLOUD_TOP = Color3.fromRGB(98, 102, 114)
+local FLASH_COLOR = Color3.fromRGB(175, 200, 245)
+
+-- The storm over a zone `radius` studs across the middle: a low bank of dark cloud
+-- (set off toward the sun, so its shadow falls on the zone), rain, mist blowing
+-- along `wind`, and lightning flickering inside the cloud. The lightning crag's
+-- bolts come down out of it.
+function SetPieces.stormSky(center: Vector3, radius: number, wind: Vector3, parent: Instance)
+	local rng = Random.new(1717)
+	local sky = Instance.new("Model")
+	sky.Name = "StormSky"
+	local sun = Lighting:GetSunDirection()
+	local shift = if sun.Y > 0.25 then Vector3.new(sun.X, 0, sun.Z) * (CLOUD_HEIGHT / sun.Y) else Vector3.zero
+	if shift.Magnitude > 45 then
+		shift = shift.Unit * 45
+	end
+	local bank = center + shift + Vector3.new(0, CLOUD_HEIGHT, 0)
+	-- A flat, dark base with billows heaped on top (matte, so it doesn't shine like plastic)
+	local puffs: { BasePart } = {}
+	for i = 1, 30 do
+		local base = i <= 9
+		local angle = rng:NextNumber() * 2 * math.pi
+		local distance = math.sqrt(rng:NextNumber()) * radius * (if base then 0.9 else 0.75)
+		local width = if base then rng:NextNumber(26, 36) else rng:NextNumber(13, 24)
+		local height = if base then width * 0.2 else width * rng:NextNumber(0.55, 0.8)
+		local offset = Vector3.new(
+			math.cos(angle) * distance,
+			if base then 0 else rng:NextNumber(2, 8),
+			math.sin(angle) * distance
+		)
+		local puff = blob({
+			Name = "Cloud",
+			Size = Vector3.new(width, height, width * rng:NextNumber(0.75, 1)),
+			CFrame = CFrame.new(bank + offset) * CFrame.Angles(0, rng:NextNumber() * math.pi, 0),
+			Material = Enum.Material.Fabric,
+			Color = if base then CLOUD_COLOR else CLOUD_COLOR:Lerp(CLOUD_TOP, rng:NextNumber()),
+			CanCollide = false,
+			Parent = sky,
+		})
+		table.insert(puffs, puff)
+	end
+
+	-- Rain over the whole zone (the client adds heavier rain around the player
+	-- inside it, see ZoneMoodController)
+	local rain = anchor(
+		sky,
+		CFrame.new(center + Vector3.new(0, CLOUD_HEIGHT - 8, 0)),
+		Vector3.new(radius * 2, 1, radius * 2)
+	)
+	emitter(rain, {
+		Texture = SPARKLE,
+		Color = ColorSequence.new(Color3.fromRGB(205, 215, 235)),
+		LightEmission = 0.2,
+		EmissionDirection = Enum.NormalId.Bottom,
+		Rate = 450,
+		Lifetime = NumberRange.new(0.5, 0.6),
+		Speed = NumberRange.new(55, 65),
+		Acceleration = wind * 12,
+		Size = NumberSequence.new(0.55),
+		Squash = NumberSequence.new(2.5),
+		Transparency = NumberSequence.new(0.3),
+	})
+
+	-- Low mist drifting through on the wind
+	local mist =
+		anchor(sky, CFrame.new(center + Vector3.new(0, 2.5, 0)), Vector3.new(radius * 1.7, 2, radius * 1.7))
+	emitter(mist, {
+		Texture = SMOKE,
+		Color = ColorSequence.new(Color3.fromRGB(165, 172, 186)),
+		LightEmission = 0,
+		Rate = 4,
+		Lifetime = NumberRange.new(7, 10),
+		Speed = NumberRange.new(0.5, 1.5),
+		Acceleration = wind * 1.5,
+		RotSpeed = NumberRange.new(-8, 8),
+		Size = NumberSequence.new(7, 13),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.3, 0.8),
+			NumberSequenceKeypoint.new(0.75, 0.85),
+			NumberSequenceKeypoint.new(1, 1),
+		}),
+	})
+
+	-- Sheet lightning: the cloud lights up from inside and the zone flickers
+	local glow = light(
+		anchor(sky, CFrame.new(center + Vector3.new(0, CLOUD_HEIGHT - 10, 0)), Vector3.new(1, 1, 1)),
+		FLASH_COLOR,
+		0,
+		60
+	)
+	sky.Parent = parent
+	task.spawn(function()
+		local beat = Random.new()
+		while sky.Parent do
+			task.wait(beat:NextNumber(4, 11))
+			local lit = { puffs[beat:NextInteger(1, #puffs)], puffs[beat:NextInteger(1, #puffs)] }
+			local colors = { lit[1].Color, lit[2].Color }
+			for _, puff in lit do
+				puff.Material = Enum.Material.Neon
+				puff.Color = FLASH_COLOR
+			end
+			for _, step in { { 3, 0.07 }, { 0.3, 0.08 }, { 5, 0.12 } } do
+				glow.Brightness = step[1]
+				task.wait(step[2])
+			end
+			glow.Brightness = 0
+			for i, puff in lit do
+				puff.Material = Enum.Material.Fabric
+				puff.Color = colors[i]
+			end
+		end
+	end)
 end
 
 -- Every model name a set piece can import (tools/studio/organize_imports.luau files these).

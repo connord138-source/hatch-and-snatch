@@ -108,6 +108,19 @@ function Props.spawn(name: string, cframe: CFrame, height: number, parent: Insta
 	return model
 end
 
+-- Re-skins `model` in a plain material and color, dropping its imported textures
+-- (tinting a texture can only darken it, not change its hue).
+function Props.reskin(model: Model, material: Enum.Material, color: Color3)
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("SurfaceAppearance") then
+			descendant:Destroy()
+		elseif descendant:IsA("BasePart") then
+			descendant.Material = material
+			descendant.Color = color
+		end
+	end
+end
+
 -- A biome's egg model, unanchored and unpositioned (callers weld or place it).
 -- Uses EggModels.<BiomeId> as-is, or the generic EggModels.Egg tinted per biome.
 function Props.egg(biomeId: string, height: number): Model?
