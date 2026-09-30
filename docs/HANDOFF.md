@@ -55,7 +55,7 @@ binding.
 
 ### Credits left
 
-- **Tripo API: 25** (logo, moon thumbnail and 2 icons used 40). Enough for 2 textured models, kept as a buffer for redos after the playtest. 935 were spent on 20 Juveniles, 12 props and concepts.
+- **Tripo API: 25** (the logo, the moon thumbnail and 2 icons used 40). That is less than one textured model (30), so top up before any model work. 935 were spent on 20 Juveniles, 12 props and concepts.
 - **Higgsfield: 0.25.** Needs a top-up for any `gpt_image_2_5` concepts (0.5 each at medium).
 
 ## Next steps
