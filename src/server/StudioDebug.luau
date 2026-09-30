@@ -8,6 +8,8 @@
 --       -- starts a moon event now
 --   game.ServerStorage.StudioDebug:Invoke("essence", "MagmaRift", 50)
 --       -- gives every player that biome's Essence (shrine testing)
+--   game.ServerStorage.StudioDebug:Invoke("store")
+--       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
 -- It is a BindableFunction, so only server code and the Studio Command Bar can
 -- reach it (never clients), and it is only created in Studio.
@@ -45,6 +47,22 @@ local function grant(species: any, finish: any, stage: any): string
 	return `gave {finishId} {stageId} {species} to {given} player(s)`
 end
 
+-- Moves every creature on a pedestal into storage, so fresh grants land on pedestals.
+local function storeAll(): string
+	local moved = 0
+	for player, data in DataService.loadedPlayers() do
+		for uid, record in data.creatures do
+			if record.slot ~= nil then
+				CreatureService.store(player, uid)
+				if record.slot == nil then
+					moved += 1
+				end
+			end
+		end
+	end
+	return `moved {moved} creature(s) to storage`
+end
+
 local function startEvent(id: any): string
 	for _, event in Config.MoonEvents do
 		if event.id == id then
@@ -79,8 +97,10 @@ function StudioDebug.start()
 			return startEvent(...)
 		elseif action == "essence" then
 			return essence(...)
+		elseif action == "store" then
+			return storeAll()
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?)"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), store()"
 	end
 	hook.Parent = ServerStorage
 end
