@@ -1,18 +1,22 @@
 --!strict
 -- Client-side creature motion. Visual only; the server's CFrame is the anchor.
 --
---  * On a pedestal a creature SITS: back legs folded, rear lowered, breathing,
---    looking around now and then, tail swishing. No hopping in place.
+--  * On a pedestal a creature SITS: body tilted nose-up about its front feet, hind
+--    legs folded down to the ground, breathing, looking around now and then, tail
+--    swishing. No hopping in place.
 --  * A walked creature (Walking attribute, FollowUserId) follows its owner's
 --    character and runs with the slow bounding hop only while it's moving; when
 --    it catches up it sits down beside them.
 --
 -- Models rigged by tools/blender/rig_creature.py pose their named bones (legs,
--- spine, neck, head, tail) for both; unrigged models tilt/hop the whole body.
+-- spine, neck, head, tail) for both, and CreatureGrounding keeps their feet on the
+-- ground whatever the legs are doing; unrigged models tilt/hop the whole body.
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+
+local CreatureGrounding = require(script.Parent.Parent.CreatureGrounding)
 
 type Tracked = {
 	model: Model,
@@ -20,6 +24,8 @@ type Tracked = {
 	seed: number,
 	bones: { [string]: Bone },
 	rigged: boolean,
+	rig: CreatureGrounding.Rig?, -- measured once the leg bones are in
+	rigChecked: boolean,
 	pivotToBox: CFrame,
 	halfHeight: number,
 	-- following state
@@ -73,39 +79,49 @@ local function lerp(a: number, b: number, t: number): number
 	return a + (b - a) * t
 end
 
--- Blends a sitting pose (moving = 0) with the bounding run (moving = 1).
+-- One leg's bounding-run swing and knee bend at this point of the stride.
+local function gait(front: boolean, phase: number, m: number): (number, number)
+	local stride = math.sin(phase) * m
+	if front then
+		return stride * 0.55, -math.max(0, math.cos(phase)) * 0.7 * m
+	end
+	return -stride * 0.5, math.max(0, -math.cos(phase)) * 0.7 * m
+end
+
+-- Blends a sitting pose (moving = 0) with the bounding run (moving = 1). The sit's
+-- leg angles come from CreatureGrounding, which also tilts the body and keeps the
+-- feet down; the Hips aren't pitched, since that swung the front legs off the ground.
 local function poseBones(info: Tracked, t: number)
 	local bones = info.bones
 	local m = info.moving
 	local phase = info.phase
-	local stride = math.sin(phase) * m
 	local breath = math.sin(t * 1.6 + info.seed) * 0.03 * (1 - m)
-	for _, side in { "L", "R" } do
-		local front, back = bones[`LegF{side}_Upper`], bones[`LegB{side}_Upper`]
-		local frontKnee, backKnee = bones[`LegF{side}_Lower`], bones[`LegB{side}_Lower`]
-		-- Sitting: front legs straight, back legs folded under the body
-		if front then
-			front.Transform = pitch(stride * 0.55 + lerp(-0.1, 0, m))
+	local rig = info.rig
+	if rig then
+		for _, leg in rig.legs do
+			local swing, knee = gait(leg.front, phase, m)
+			leg.upper.Transform = pitch(swing + leg.sitUpper * (1 - m))
+			leg.lower.Transform = pitch(knee + leg.sitLower * (1 - m))
 		end
-		if frontKnee then
-			frontKnee.Transform = pitch(-math.max(0, math.cos(phase)) * 0.7 * m)
-		end
-		if back then
-			back.Transform = pitch(-stride * 0.5 + lerp(0.95, 0, m))
-		end
-		if backKnee then
-			backKnee.Transform = pitch(math.max(0, -math.cos(phase)) * 0.7 * m + lerp(-1.5, 0, m))
+	else
+		-- Not every leg bone came in: run with what there is, stand straight when idle
+		for _, key in { "FL", "FR", "BL", "BR" } do
+			local swing, knee = gait(string.sub(key, 1, 1) == "F", phase, m)
+			local upper, lower = bones[`Leg{key}_Upper`], bones[`Leg{key}_Lower`]
+			if upper then
+				upper.Transform = pitch(swing)
+			end
+			if lower then
+				lower.Transform = pitch(knee)
+			end
 		end
 	end
 	local flex = math.sin(phase * 2) * m
-	if bones.Hips then
-		bones.Hips.Transform = pitch(lerp(0.32, 0, m)) -- rear down when sitting
-	end
 	if bones.Spine then
 		bones.Spine.Transform = pitch(flex * 0.08 + breath)
 	end
 	if bones.Chest then
-		bones.Chest.Transform = pitch(-flex * 0.06 - breath + lerp(-0.12, 0, m))
+		bones.Chest.Transform = pitch(-flex * 0.06 - breath)
 	end
 	if bones.Neck then
 		bones.Neck.Transform = pitch(-flex * 0.05) * yaw(info.lookYaw * 0.5 * (1 - m))
@@ -179,6 +195,7 @@ local function track(instance: Instance)
 			if descendant:IsA("Bone") then
 				info.bones = collectBones(instance)
 				info.rigged = true
+				info.rigChecked = false -- measure again with the new bone
 			elseif descendant.Name == "GalaxyPlanet" and descendant:IsA("BasePart") then
 				info.planet = descendant
 			end
@@ -189,6 +206,8 @@ local function track(instance: Instance)
 			seed = seed,
 			bones = bones,
 			rigged = next(bones) ~= nil,
+			rig = nil,
+			rigChecked = false,
 			pivotToBox = pivot:ToObjectSpace(boxCFrame),
 			halfHeight = boxSize.Y / 2,
 			position = nil,
@@ -294,8 +313,9 @@ function CreatureAnimator.start()
 			end
 			info.lookYaw = lerp(info.lookYaw, info.lookTarget, math.min(1, dt * 2.5))
 
+			local pivot: CFrame
 			if root then
-				model:PivotTo(follow(info, dt, root))
+				pivot = follow(info, dt, root)
 			else
 				-- Sitting on the pedestal. Unrigged models lean back a little to read as sitting.
 				-- Slow display turntable: the creature turns around its own middle
@@ -303,16 +323,35 @@ function CreatureAnimator.start()
 				local boxCFrame = info.base * info.pivotToBox
 				local spin = CFrame.Angles(0, (t * TURNTABLE_SPEED + info.seed) % (2 * math.pi), 0)
 				local turned = CFrame.new(boxCFrame.Position) * spin * boxCFrame.Rotation
-				local pivot = turned * info.pivotToBox:Inverse()
+				pivot = turned * info.pivotToBox:Inverse()
 				if not info.rigged then
 					local breath = math.sin(t * 1.6 + info.seed) * 0.03
 					pivot *= CFrame.Angles(math.rad(-6) + breath * 0.3, 0, 0)
 				end
-				model:PivotTo(pivot)
 			end
-			if info.rigged and distance <= BONE_DISTANCE then
-				poseBones(info, t)
+			if info.rigged then
+				if not info.rigChecked then
+					info.rigChecked = true
+					local bodyPlan = model:GetAttribute("BodyPlan")
+					info.rig = CreatureGrounding.build(
+						model,
+						info.bones,
+						if typeof(bodyPlan) == "string" then bodyPlan else nil
+					)
+				end
+				if distance <= BONE_DISTANCE then
+					poseBones(info, t)
+				end
+				local rig = info.rig
+				if rig then
+					-- Sit tilt, then drop (or raise) the body until the lowest foot touches down
+					local tilt = CreatureGrounding.tilt(rig, 1 - info.moving)
+					local lift =
+						math.clamp(CreatureGrounding.lift(rig, tilt), -info.halfHeight, info.halfHeight)
+					pivot = pivot * CFrame.new(0, -lift, 0) * tilt
+				end
 			end
+			model:PivotTo(pivot)
 			local body = model.PrimaryPart
 			if info.planet and body then
 				-- Measured from the body each frame: the model may still have been

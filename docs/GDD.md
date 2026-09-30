@@ -80,7 +80,7 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
 ### 4.2 Movement
 
-- **On a pedestal, creatures sit:** back legs folded, rear lowered, breathing, looking around and swishing their tail. They don't hop in place.
+- **On a pedestal, creatures sit:** the body tilts nose-up about the front feet, the back legs fold down so the rear rests low, and they breathe, look around and swish their tail. They don't hop in place. Feet always stay on the ground: the pose is solved per model (`src/client/CreatureGrounding.luau`), and the lowest foot is clamped to the ground every frame, including mid-run landings.
 - **Walks:** you can take one creature for a walk (R, or Walk in the Creatures menu). It follows you with the bounding run while you move and sits beside you when you stop. A walked creature can't be stolen and grows 2× faster; it still earns from its pedestal.
 - **The run itself is a slow bound with a hop:** front paws reach together, back legs push off together, there's a short airborne arc, and a squash on landing.
 

@@ -11,33 +11,29 @@ binding.
 - Full permission for this project, including Higgsfield and Tripo spend. Report costs as you go.
 - Repo `connord138-source/hatch-and-snatch`, branch **`claude/core-systems`**.
 
-## State at handoff (2026-09-29)
+## State at handoff (2026-09-30)
 
-### Done this session (pushed; the PC session hasn't imported or playtested it yet)
+### Round 3 playtest (owner, 2026-09-29), all pushed
 
-- **20 new Juvenile models:** every Common–Legendary species now has `<SpeciesId>_Juvenile` (23 of 41 including Mossmunk, Brambloar and Hivebadger). They're listed in `tools/assets_manifest.json` → `juveniles`.
-- **12 biome set pieces**, in `src/server/SetPieces.luau`, wired in by `WorldService.buildZones` (the `heroes` list per zone):
-  - HollowStump and a GlowcapRing of GiantGlowcaps in Mossvale.
-  - TideArch and GiantClam in Coral Coast.
-  - LavaVent and ObsidianSpikes in Magma Rift.
-  - IceArch and FrozenBoulder in Frost Shelf.
-  - LightningCrag and 2 WindSpires in Storm Peaks. The crag gets struck by lightning every 6–14 s.
-  - MoonMonolith ×2 and CraterRim in Moonfall.
-  - Each uses its GLB when imported (`WorldProps.<Name>`) and a part-built stand-in otherwise. Lights and particles are added either way.
-  - GDD §7.3 lists them.
-- **Rig fixes, found by auditing all 105 creature models headless with bpy:**
-  - Tripo bodies come in 20–35° off-axis, so `rig_creature.py` now squares them up with PCA.
-  - The head guess was wrong on 23 models, including **16 adults that ran tail-first**: Emberlynx, Coalby, Slagodon, Frostbun, Squallcoon, Novapanda, Nebulion, Lunaris, Grillgator, Bassdog, Pyrodrake, Solarion, Quasarfox, Nullcat, Mossmunk and Tidalotl.
-  - The fixes are per-stage `"flip"` overrides in `bodyplans.json`: `front`, `frontBaby`, `frontJuvenile`.
-  - `tools/blender/facing_check.py` draws colored side and top views for checking.
-  - The PC session must **re-rig and re-import every creature** to get the fixes.
-- **Pipeline:**
-  - `tools/tripo.py` drives the Tripo API directly. `tools/tripo_jobs.json` records exactly what was made, and `tools/tripo_log.json` holds the task ids and credits.
-  - GLBs are hosted permanently on Higgsfield file storage (`d2ol7oe51mr4n9.cloudfront.net`). See `docs/ASSETS.md`.
+- **Confirmed working:**
+  - Creature facing: the 8 checked adults and 5 Juveniles run head-first.
+  - The Juveniles look right.
+  - Arches and the glowcap ring are walkable, and the crag lightning fires.
+  - Every node, shrine and zone middle can be reached from its gate.
+- **Changes from the PC session:**
+  - Set pieces size by height or footprint.
+  - Storm Peaks got a storm-worn look: dead trees, slate shards, scorch marks, and a storm cloud with rain and lightning (`ZoneMoodController`).
+  - StudioDebug gained a "store" action.
+- **Owner's complaint:** most creatures hovered above the ground. The cause was the idle sit pose: it pitched `Hips`, the parent of the whole skeleton, which swung the front legs up, and folded the hind legs without lowering the body.
+  - The fix is `src/client/CreatureGrounding.luau` (forward kinematics over the bones, solved per model), wired into `CreatureAnimator`.
+  - The sit now tilts the body nose-up about the front feet, folds the hind legs to meet the ground, and keeps the front legs upright.
+  - Every frame, the lowest foot is clamped to the ground, so mid-run landings touch down too.
+  - Tested on toy rigs (`tools/tests/run_grounding.sh`) and previewed on real rigs in Blender. **Not yet seen in Studio.**
 
-### Also still pending from before
+### Open
 
-The Luck Wheel, security upgrades, upper deck, zones, Release and Index photos (commit 47fa53e) still await the owner's playtest.
+- Max Players = 6 has to be set in Creator Hub (owner).
+- **What players do inside the biomes is thin:** 7 shared nodes → Essence → shrine egg (15) or blessing (8). The owner asked about it; options are in the chat reply and a decision is pending. The recommendation is wild nests (a rare wild egg spawns in a zone, gets announced, and players race to carry it home, where it can be stolen on the way), then biome events tied to the set pieces.
 
 ### Credits left
 
@@ -46,8 +42,9 @@ The Luck Wheel, security upgrades, upper deck, zones, Release and Index photos (
 
 ## Next steps
 
-1. Wait for the owner's playtest notes: Juveniles, set-piece placement and size, facing after the re-rig, and the older features.
-   - Fix what they report. Set-piece sizes are the `size` boxes in `SetPieces.luau`. Positions are the `heroes` angle and distance in `WorldService` (same layout as the harvest nodes: angle 0 = gate direction).
+1. Wait for the owner's check of the grounding fix: pedestal sits, sitting beside the owner, and run landings. If a species sits oddly, the per-body-plan tilt is `SIT_TILT` in `CreatureGrounding.luau`.
+   - Then build whichever biome activity the owner picks.
+   - For set pieces: Set-piece sizes are the `size` boxes in `SetPieces.luau`. Positions are the `heroes` angle and distance in `WorldService` (same layout as the harvest nodes: angle 0 = gate direction).
 2. The remaining 18 Juveniles need about 35 credits each (5 for the concept, 30 for the model), about 630 in all. Top up first.
    - Ultra-rares: Sylvanox, Capybaron, Lurehound, Pyrodrake, Solarion, Glacierion, Stormgriff, Halosaur, Lunaris, Quasarfox, Singularis, Nullcat.
    - Junk: Toastoise, Fridgehog, Grillgator, Laundrophant, Lawnmoose, Bassdog.

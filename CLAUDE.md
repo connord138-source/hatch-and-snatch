@@ -96,6 +96,7 @@ How to prompt for concepts:
   - Tripo keeps the concept's three-quarter turn, so the rig squares each body up (PCA) before guessing the head end.
   - The head guess (higher end = head) fails on raised tail clubs, tufts and swirls. Wrong ones carry `"flip"` in `bodyplans.json`, under `front`, `frontBaby` or `frontJuvenile` (each GLB has its own orientation).
   - After adding models, check them with `tools/blender/facing_check.py`: colored side and top views, head should be on the left.
+  - Grounding: `src/client/CreatureGrounding.luau` does forward kinematics on the bones, solves the sit per model (tilt about the front feet, hind legs folded to the ground) and keeps the lowest foot on the ground. Don't pitch `Hips` for poses: it's the parent of the whole skeleton and swings the front legs off the ground. Test: `bash tools/tests/run_grounding.sh` (luau CLI).
 
 ## Tooling notes
 
