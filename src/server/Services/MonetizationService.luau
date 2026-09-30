@@ -268,9 +268,10 @@ function MonetizationService.start()
 		end
 		for _, pass in Monetization.passes do
 			if pass.id == passId and pass.id ~= 0 then
-				-- Confirm with Roblox first: this event alone isn't proof of purchase
+				-- Confirm with Roblox first: this event alone isn't proof of purchase.
+				-- (Studio test purchases never show up as owned, so Studio trusts them.)
 				task.spawn(function()
-					if ownsOnRoblox(player, pass.id) == false then
+					if not RunService:IsStudio() and ownsOnRoblox(player, pass.id) == false then
 						warn(
 							`[MonetizationService] {player.Name}: purchase of {pass.key} not confirmed by Roblox`
 						)
