@@ -139,7 +139,9 @@ function IndexMenu.build(content: Frame)
 			TextScaled = false,
 			TextSize = 18,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Text = if biome.order == 0 then `{biome.displayName} (moon events only)` else biome.displayName,
+			Text = if biome.order == 0
+				then `{biome.displayName} Egg (moon events only)`
+				else biome.displayName,
 			LayoutOrder = 1,
 		})
 		local grid = Instance.new("Frame")

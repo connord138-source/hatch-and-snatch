@@ -49,7 +49,7 @@ local Biomes: { [string]: Types.Biome } = {
 	},
 	Junk = {
 		id = "Junk",
-		displayName = "Junk Egg",
+		displayName = "Junk", -- "Junk Egg — $38.4K", "Carrying a Junk egg"
 		order = 0,
 		eggPriceMultiplier = 256,
 		earningsMultiplier = 1,

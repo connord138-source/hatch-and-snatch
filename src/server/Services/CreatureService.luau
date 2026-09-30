@@ -976,7 +976,8 @@ local function tick()
 					grown:SetAttribute("GrewAt", Workspace:GetServerTimeNow()) -- client plays the grow-up burst
 				end
 				local name = Config.CreaturesById[record.species].displayName
-				Net.notify(player, `Your {name} grew into a {record.stage}!`, "good")
+				local article = if string.find(record.stage, "^[AEIOU]") then "an" else "a"
+				Net.notify(player, `Your {name} grew into {article} {record.stage}!`, "good")
 				DataService.markDirty(player)
 			end
 		end
