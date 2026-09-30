@@ -1,4 +1,4 @@
-# Session handoff: after the monetization batch
+# Session handoff: after the economy retune
 
 Start a new session with **"read docs/HANDOFF.md and continue"**. Read `CLAUDE.md`
 first: it holds the owner's preferences and the art-direction lessons, and they are
@@ -43,10 +43,10 @@ binding.
   - Test without Robux: `game.ServerStorage.StudioDebug:Invoke("pass", "<Key>")` or `Invoke("product", "<Key>")`.
   - **Blocked on the owner:** create the 6 passes and 6 products (5 plus AdBoost) in Creator Hub, and paste the ids into the config. The PC browser was signed in as Dillionaire2424, which has no access; the game belongs to **Dillionaire138**. Placeholder icons are ready on the PC.
   - Flag if asked: VIP is a tag + 10 storage + 10% cash (not +10 pedestals), and Instant Restock was dropped.
-- **Free rewards and analytics are built** (this batch, not yet tested in Studio). See `RewardsService`, `Config/Codes.luau`, `src/server/Analytics.luau`, `src/client/Ads.luau` and GDD §9.
-  - The rewarded ad gives ×2 cash rather than a free egg, because Roblox forbids random ad rewards.
-  - Debug: `Invoke("perk", "premium"|"group")`, `Invoke("codes")` to reset codes, and `Invoke("product", "AdBoost")`.
-  - The group perk needs a Roblox group (owner). Its id goes in `Monetization.tuning.group.id`.
+- **Free rewards and analytics are confirmed in Studio** (467f78f, PC ids 76c4fd0, ad fix ea9f578). All 6 passes and 6 products have Creator Hub ids. Group skipped (it costs 100 Robux; `tuning.group.id` stays 0). Max Players = 6 is set.
+- **Economy retuned** (d49dbaa) after the owner asked that nobody maxes their base on day 1. See GDD §7 "Pacing" and `tools/sim/economy_sim.luau`. Rerun the sim after any economy change.
+- **v1 launches with every biome** (owner): no two-biome soft launch; unlocks come from Hatcher Level and base level.
+- **First-session guide** (`GuideController`): a banner plus a beam to the next objective, driven by `data.onboarding`. Not yet tested in Studio. `StudioDebug:Invoke("guide")` restarts it.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left

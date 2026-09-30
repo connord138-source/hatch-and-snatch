@@ -7,6 +7,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Ads = require(script.Ads)
 local ClientState = require(script.ClientState)
 local CreatureAnimator = require(script.Controllers.CreatureAnimator)
+local GuideController = require(script.Controllers.GuideController)
 local HudController = require(script.Controllers.HudController)
 local IncubatorController = require(script.Controllers.IncubatorController)
 local LuckWheelController = require(script.Controllers.LuckWheelController)
@@ -26,6 +27,7 @@ task.spawn(LuckWheelController.start) -- waits for the world to replicate
 RevealController.start()
 task.spawn(ZoneGateController.start) -- waits for the world to replicate
 task.spawn(ZoneMoodController.start) -- waits for the world to replicate
+task.spawn(GuideController.start) -- waits for the world to replicate
 task.spawn(Ads.start) -- checks every minute whether a rewarded ad can play
 
 print(`[HatchAndSnatch] Client ready — {#Config.Creatures} creatures in config`)

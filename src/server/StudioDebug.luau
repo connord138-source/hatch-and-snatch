@@ -22,6 +22,8 @@
 --       -- forgets which codes every player redeemed (Config.Codes), to test them again
 --   game.ServerStorage.StudioDebug:Invoke("cash", 1e12)
 --       -- gives every player that much cash (late-game upgrades cost billions)
+--   game.ServerStorage.StudioDebug:Invoke("guide")
+--       -- restarts the first-session guide for every player (from "buy an egg")
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -146,6 +148,14 @@ local function cash(amount: any): string
 	return `gave {amount}`
 end
 
+local function restartGuide(): string
+	for player, data in DataService.loadedPlayers() do
+		data.onboarding = 1
+		DataService.markDirty(player)
+	end
+	return "guide restarted"
+end
+
 local function resetCodes(): string
 	for player, data in DataService.loadedPlayers() do
 		table.clear(data.codes)
@@ -197,8 +207,10 @@ function StudioDebug.start()
 			return resetCodes()
 		elseif action == "cash" then
 			return cash(...)
+		elseif action == "guide" then
+			return restartGuide()
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), cash(amount), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), cash(amount), guide(), store()"
 	end
 	hook.Parent = ServerStorage
 end

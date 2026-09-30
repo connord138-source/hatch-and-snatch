@@ -75,6 +75,7 @@ local function snapshot(player: Player): { [string]: any }?
 		premium = MonetizationService.isPremium(player),
 		inGroup = MonetizationService.inGroup(player),
 		groupRewarded = data.groupRewarded,
+		onboarding = data.onboarding, -- first-session guide step (GuideController)
 		boosts = data.boosts,
 		index = data.index,
 		indexFinishes = data.indexFinishes,

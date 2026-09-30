@@ -194,6 +194,10 @@ function EconomyService.start()
 		rebirths.Parent = leaderstats
 		leaderstats.Parent = player
 		updateLeaderstats(player, data)
+		-- Profiles from before the guide existed have already played: skip it for them
+		if data.onboarding == 0 and data.stats.hatched > 0 then
+			data.onboarding = #Analytics.ONBOARDING
+		end
 		Analytics.onboard(player, data, 1)
 
 		-- Offline earnings (uses the rate the base has now; growth already caught up)
