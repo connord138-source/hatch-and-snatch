@@ -187,10 +187,10 @@ function GuideController.start()
 		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		local from = if root and root:IsA("BasePart") then root.Position else Vector3.zero
 
-		local message: string
+		local message: string? = nil
 		local target: BasePart? = nil
 		if state.heldEgg then
-			message = "Carry your egg home and place it in your incubator (E)"
+			-- The HUD's egg banner already says this; the beam just points home
 			target = incubator(plot, false)
 		elseif step <= 1 then
 			message = "Buy an egg from the conveyor belt in the middle (E)"
@@ -230,8 +230,10 @@ function GuideController.start()
 					`Next goal: upgrade your base ({Format.cash(state.cash)} / {Format.cash(cost)}). Keep hatching!`
 			end
 		end
-		text.Text = message
-		banner.Visible = true
+		if message then
+			text.Text = message
+		end
+		banner.Visible = message ~= nil
 		point(target)
 	end)
 end
