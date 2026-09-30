@@ -762,6 +762,9 @@ SPECS.CraterRim = {
 	size = Vector3.new(16, 5, 16),
 	radius = 9,
 	fit = "footprint",
+	-- The imported mesh's collision fills the bowl into a solid mound; players must
+	-- be able to run straight in for the Moonfall meteor's moonstone (ZoneEventService)
+	walkable = true,
 	build = function(model, frame, s, rng)
 		part({
 			Name = "Bowl",
