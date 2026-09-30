@@ -1,4 +1,4 @@
-# Session handoff: after the Juvenile and set-piece batch
+# Session handoff: after the monetization batch
 
 Start a new session with **"read docs/HANDOFF.md and continue"**. Read `CLAUDE.md`
 first: it holds the owner's preferences and the art-direction lessons, and they are
@@ -36,8 +36,13 @@ binding.
 - **Zone set-piece events** are built (`ZoneEventService`, GDD §7.3). The owner picked these over wild nests.
   - **All six were confirmed in Studio 2026-09-30.** They pay out as designed, the heads-ups arrive 10 s ahead, and there were no errors.
   - The PC session made the crater walkable (7891fae).
-  - Follow-up (this session): one round-robin scheduler, since per-zone timers drifted together, and a softer boulder shatter, which whited out the screen. The round-robin still needs a check in Studio.
+  - A single round-robin scheduler replaced the per-zone timers, which drifted together.
   - Trigger one with `game.ServerStorage.StudioDebug:Invoke("zone", "<BiomeId>")`.
+- **Round-robin confirmed** in Studio 2026-09-30 (gaps 46–58 s, in order). The Frost boulder glow was dimmed further at the owner's request.
+- **Monetization is built** (GDD §9, `Config/Monetization.luau`, `MonetizationService`, `ShopMenu`). Not yet tested in Studio.
+  - Test without Robux: `game.ServerStorage.StudioDebug:Invoke("pass", "<Key>")` or `Invoke("product", "<Key>")`.
+  - The owner still has to create the 6 passes and 5 products in Creator Hub and paste the ids into the config.
+  - Flag if asked: VIP is a tag + 10 storage + 10% cash (not +10 pedestals), and Instant Restock was dropped.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left

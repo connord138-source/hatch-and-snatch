@@ -22,6 +22,7 @@ local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local EventService = require(script.Parent.EventService)
+local MonetizationService = require(script.Parent.MonetizationService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
@@ -183,7 +184,7 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 	if CreatureService.isCarried(owner, uid) then
 		return
 	end
-	if CreatureService.isNursery(record.slot) then
+	if CreatureService.isNursery(ownerData :: DataService.PlayerData, record.slot) then
 		Net.notify(thief, "Creatures in a nursery can't be stolen.", "bad")
 		return
 	end
@@ -317,6 +318,11 @@ local function tryLock(player: Player, plot: WorldService.PlotLayout, automatic:
 	local bonus = if data then Config.Economy.baseLevel(data.baseLevel).lockBonusSeconds else 0
 	local duration = (tunables.lockDurationSeconds + bonus)
 		* (if event then event.lockDurationMultiplier else 1)
+		* (
+			if MonetizationService.hasPass(player, "LongerLock")
+				then Config.Monetization.tuning.lockMultiplier
+				else 1
+		)
 	locks[plot.index] =
 		{ lockedUntil = now + duration, cooldownUntil = now + duration + tunables.lockCooldownSeconds }
 	Net.notify(

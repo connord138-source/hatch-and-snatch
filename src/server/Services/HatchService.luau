@@ -22,6 +22,7 @@ local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local EventService = require(script.Parent.EventService)
+local MonetizationService = require(script.Parent.MonetizationService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
@@ -257,12 +258,15 @@ function HatchService.giveEgg(player: Player, biomeId: string)
 	if data == nil then
 		return
 	end
-	-- A luck charge from the Luck Wheel is spent on this egg (Junk eggs ignore luck)
-	local luck = if data.luckCharge > 1 and biomeId ~= "Junk" then data.luckCharge else nil
-	local species = Config.Eggs.rollSpecies(biomeId, rng, EventService.activeId() ~= nil, luck)
-	if luck then
+	-- A luck charge from the Luck Wheel is spent on this egg, and a Server Luck boost
+	-- multiplies it (Junk eggs ignore luck)
+	local charge = if data.luckCharge > 1 then data.luckCharge else nil
+	local luck = if biomeId ~= "Junk" then (charge or 1) * MonetizationService.serverLuck() else 1
+	local species =
+		Config.Eggs.rollSpecies(biomeId, rng, EventService.activeId() ~= nil, if luck > 1 then luck else nil)
+	if charge and biomeId ~= "Junk" then
 		data.luckCharge = 1
-		Net.notify(player, `Your ×{luck} Luck Wheel charge was used on this egg!`, "rare")
+		Net.notify(player, `Your ×{charge} Luck Wheel charge was used on this egg!`, "rare")
 	end
 	data.heldEgg = { biome = biomeId, species = species }
 	data.stats.eggsBought += 1
@@ -288,11 +292,17 @@ local function place(player: Player, slot: number)
 	end
 	local rarity = Config.Rarities[Config.CreaturesById[held.species].rarity]
 	local now = Timing.now()
+	local hatchAt = now + Timing.scaled(rarity.hatchSeconds) / Progression.incubatorTiers[tier].speed
+	-- A Skip Hatch bought with no egg incubating is kept for the next egg placed
+	if (data.boosts.instantHatch or 0) > 0 then
+		data.boosts.instantHatch -= 1
+		hatchAt = now + 3
+	end
 	table.insert(data.incubators, {
 		biome = held.biome,
 		species = held.species,
 		startedAt = now,
-		hatchAt = now + Timing.scaled(rarity.hatchSeconds) / Progression.incubatorTiers[tier].speed,
+		hatchAt = hatchAt,
 		slot = slot,
 	})
 	data.heldEgg = nil
@@ -490,6 +500,21 @@ local function tick()
 end
 
 function HatchService.start()
+	-- Skip Hatch: every incubating egg hatches on the next tick; with none
+	-- incubating, the next egg placed hatches right away
+	MonetizationService.onProduct("SkipHatch", function(player, data)
+		if #data.incubators > 0 then
+			local now = Timing.now()
+			for _, egg in data.incubators do
+				egg.hatchAt = math.min(egg.hatchAt, now)
+			end
+			HatchService.refresh(player, data)
+			Net.notify(player, "Skip Hatch: your eggs are hatching now!", "rare")
+		else
+			data.boosts.instantHatch = (data.boosts.instantHatch or 0) + 1
+			Net.notify(player, "Skip Hatch: the next egg you place hatches instantly!", "rare")
+		end
+	end)
 	-- Prompts on every bay; each checks that the triggering player owns the plot
 	for _, plot in WorldService.plots do
 		for slot, part in plot.incubators do

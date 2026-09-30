@@ -16,6 +16,7 @@ local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Net = require(script.Parent.Parent.Net)
 local DataService = require(script.Parent.DataService)
+local MonetizationService = require(script.Parent.MonetizationService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local PlotService = require(script.Parent.PlotService)
 
@@ -31,7 +32,7 @@ local carried: { [Player]: { [string]: boolean? } } = {}
 local walking: { [Player]: string } = {}
 
 local tunables = Config.Economy.tunables
-local nurserySlots = tunables.nurserySlotsBase
+local passTuning = Config.Monetization.tuning
 local STEAL_HOLD: { [string]: number } = { Baby = 1.2, Juvenile = 1.6, Adult = 2.0 }
 
 local CreatureService = {
@@ -39,8 +40,19 @@ local CreatureService = {
 	stealRequested = Signal.new(),
 }
 
-function CreatureService.isNursery(slot: number?): boolean
-	return slot ~= nil and slot <= nurserySlots
+-- Protected nursery pedestals (the first ones): 1, +1 with the Extra Nursery pass.
+-- Passes live in the save (MonetizationService), so the data alone says.
+function CreatureService.nurserySlots(data: PlayerData): number
+	return tunables.nurserySlotsBase + (if data.passes.ExtraNursery then passTuning.extraNursery else 0)
+end
+
+-- Off-pedestal storage: 40, +10 with VIP.
+function CreatureService.storageSlots(data: PlayerData): number
+	return tunables.storageSlots + (if data.passes.VIP then passTuning.vipStorage else 0)
+end
+
+function CreatureService.isNursery(data: PlayerData, slot: number?): boolean
+	return slot ~= nil and slot <= CreatureService.nurserySlots(data)
 end
 
 local function stageIndex(stage: string): number
@@ -89,7 +101,7 @@ function CreatureService.hasRoom(data: PlayerData): boolean
 	for _ in data.creatures do
 		owned += 1
 	end
-	return owned < pedestalCount(data) + tunables.storageSlots
+	return owned < pedestalCount(data) + CreatureService.storageSlots(data)
 end
 
 -- Absolute unix time the creature reaches its next stage (nil when Adult).
@@ -646,7 +658,8 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	local model = buildModel(player, uid, record, plot.pedestals[slot])
 	local primary = model.PrimaryPart :: BasePart
 	local name = Config.CreaturesById[record.species].displayName
-	local inNursery = CreatureService.isNursery(slot)
+	local data = DataService.get(player)
+	local inNursery = data ~= nil and CreatureService.isNursery(data, slot)
 
 	local steal = addPrompt(primary, "Steal", "Steal", name, STEAL_HOLD[record.stage] or 1.5, "others")
 	steal:SetAttribute("Protected", inNursery)
@@ -790,6 +803,7 @@ local function freeSlot(data: PlayerData): number?
 		end
 	end
 	-- Regular pedestals first; the nursery is filled only on request (or as a last resort)
+	local nurserySlots = CreatureService.nurserySlots(data)
 	for slot = nurserySlots + 1, pedestalCount(data) do
 		if not used[slot] then
 			return slot
@@ -816,7 +830,7 @@ function CreatureService.store(player: Player, uid: string)
 			stored += 1
 		end
 	end
-	if stored >= tunables.storageSlots then
+	if stored >= CreatureService.storageSlots(data) then
 		Net.notify(player, "Your storage is full. Sell a creature first.", "bad")
 		return
 	end
@@ -850,7 +864,8 @@ function CreatureService.toggleNursery(player: Player, uid: string)
 		return
 	end
 	local target: number? = nil
-	if CreatureService.isNursery(record.slot) then
+	local nurserySlots = CreatureService.nurserySlots(data)
+	if CreatureService.isNursery(data, record.slot) then
 		for slot = nurserySlots + 1, pedestalCount(data) do
 			local taken = false
 			for _, other in data.creatures do
@@ -868,7 +883,20 @@ function CreatureService.toggleNursery(player: Player, uid: string)
 			return
 		end
 	else
+		-- An empty nursery pedestal if there is one, else swap with the first
 		target = 1
+		for slot = 1, nurserySlots do
+			local taken = false
+			for _, other in data.creatures do
+				if other.slot == slot then
+					taken = true
+				end
+			end
+			if not taken then
+				target = slot
+				break
+			end
+		end
 	end
 	-- Swap with whatever currently occupies the target slot
 	for otherUid, other in data.creatures do
@@ -919,7 +947,12 @@ end
 local function tick()
 	local now = Timing.now()
 	for player, data in DataService.loadedPlayers() do
+		-- Growth Elixir: every creature grows faster while it lasts (on top of walking)
+		local elixir = (data.boosts.growth or 0) > now
 		for uid, record in data.creatures do
+			if elixir then
+				record.stageStartedAt -= passTuning.growthElixir.multiplier - 1
+			end
 			if walking[player] == uid then
 				-- Walked creatures grow faster
 				record.stageStartedAt -= tunables.walkGrowthMultiplier - 1
@@ -969,6 +1002,29 @@ function CreatureService.start()
 		end
 		carried[player] = nil
 		walking[player] = nil
+	end)
+	-- Extra Nursery: whatever stands on the new nursery pedestal is protected at once
+	MonetizationService.passAdded:connect(function(player: Player, key: string)
+		local data = DataService.get(player)
+		if key ~= "ExtraNursery" or data == nil then
+			return
+		end
+		for uid, record in data.creatures do
+			if CreatureService.isNursery(data, record.slot) then
+				spawn(player, uid, record)
+			end
+		end
+		DataService.markDirty(player)
+	end)
+	MonetizationService.onProduct("GrowthElixir", function(player, data)
+		local tune = passTuning.growthElixir
+		local now = Timing.now()
+		data.boosts.growth = math.max(data.boosts.growth or 0, now) + tune.minutes * 60
+		Net.notify(
+			player,
+			`Growth Elixir: your creatures grow ×{tune.multiplier} faster for {tune.minutes} minutes!`,
+			"rare"
+		)
 	end)
 	task.spawn(function()
 		while true do

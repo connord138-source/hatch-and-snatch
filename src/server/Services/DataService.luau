@@ -75,6 +75,11 @@ export type PlayerData = {
 	luckCharge: number, -- luck multiplier waiting for the next egg bought (1 = none)
 	spinProgress: number, -- seconds played toward the next free spin
 	essence: { [string]: number }, -- per biome, from harvest nodes and releases (Config.Zones)
+	-- Monetization (MonetizationService). Game passes are checked with Roblox on
+	-- join; this also keeps passes bought or granted this session.
+	passes: { [string]: boolean },
+	purchaseIds: { string }, -- developer-product receipts already granted (newest last)
+	boosts: { [string]: number }, -- personal timed boosts: Unix time each runs out
 }
 
 local TEMPLATE: PlayerData = {
@@ -116,6 +121,9 @@ local TEMPLATE: PlayerData = {
 	luckCharge = 1,
 	spinProgress = 0,
 	essence = {},
+	passes = {},
+	purchaseIds = {},
+	boosts = {},
 }
 
 -- Studio reads and writes the live game's DataStores, so Studio sessions (debug
@@ -157,6 +165,60 @@ function DataService.takeDirty(): { Player }
 	end
 	table.clear(dirty)
 	return list
+end
+
+local PURCHASE_ID_CACHE = 100
+
+-- Grants a developer product exactly once, the way ProfileStore recommends: the
+-- receipt's PurchaseId is recorded in the save alongside the grant, and Roblox is
+-- only told "granted" once a save containing it has gone through. If the server
+-- dies first, Roblox retries the receipt later and the recorded id stops a double
+-- grant. `grant` changes the player's data; it runs at most once per PurchaseId.
+function DataService.processPurchase(
+	player: Player,
+	purchaseId: string,
+	grant: (PlayerData) -> ()
+): Enum.ProductPurchaseDecision
+	local profile = profiles[player]
+	if profile == nil or not profile:IsActive() then
+		return Enum.ProductPurchaseDecision.NotProcessedYet
+	end
+	local data = profile.Data :: PlayerData
+	if table.find(data.purchaseIds, purchaseId) == nil then
+		local ok, problem = pcall(function(): any
+			grant(data)
+			return nil
+		end)
+		if not ok then
+			warn(`[DataService] purchase {purchaseId} failed to grant: {problem}`)
+			return Enum.ProductPurchaseDecision.NotProcessedYet
+		end
+		while #data.purchaseIds >= PURCHASE_ID_CACHE do
+			table.remove(data.purchaseIds, 1)
+		end
+		table.insert(data.purchaseIds, purchaseId)
+		dirty[player] = true
+	end
+	-- Wait for a save that includes it
+	local decision: Enum.ProductPurchaseDecision? = nil
+	local function check()
+		local saved = profile.LastSavedData
+		if saved and saved.purchaseIds and table.find(saved.purchaseIds, purchaseId) then
+			decision = Enum.ProductPurchaseDecision.PurchaseGranted
+		end
+	end
+	check()
+	if decision then
+		return decision
+	end
+	local connection = profile.OnAfterSave:Connect(check)
+	profile:Save()
+	local deadline = os.clock() + 30
+	while decision == nil and profile:IsActive() and os.clock() < deadline do
+		task.wait()
+	end
+	connection:Disconnect()
+	return decision or Enum.ProductPurchaseDecision.NotProcessedYet
 end
 
 function DataService.newUid(data: PlayerData): string

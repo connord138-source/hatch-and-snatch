@@ -7,8 +7,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Net = require(script.Parent.Parent.Net)
+local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local MonetizationService = require(script.Parent.MonetizationService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
@@ -32,6 +34,10 @@ local function apply(player: Player, data: PlayerData)
 		plot,
 		Config.Progression.themesById[data.baseTheme] or Config.Progression.themes[1]
 	)
+	WorldService.setNursery(plot, CreatureService.nurserySlots(data))
+	local vip = MonetizationService.hasPass(player, "VIP")
+	plot.label.Text = if vip then `⭐ VIP · {player.DisplayName}'s Base` else `{player.DisplayName}'s Base`
+	plot.label.TextColor3 = if vip then Color3.fromRGB(255, 215, 90) else Color3.new(1, 1, 1)
 	local nextLevel = data.baseLevel + 1
 	if nextLevel <= maxLevel() then
 		local cost = Config.Economy.baseLevel(nextLevel).cost
@@ -119,6 +125,13 @@ end
 
 function BaseService.start()
 	DataService.loaded:connect(apply) -- after PlotService assigned the plot
+	-- VIP sign, Extra Nursery pedestals
+	MonetizationService.passAdded:connect(function(player: Player)
+		local data = DataService.get(player)
+		if data then
+			apply(player, data)
+		end
+	end)
 	for _, plot in WorldService.plots do
 		plot.upgradePrompt.Triggered:Connect(function(player)
 			if PlotService.ownerOf(plot) == player then

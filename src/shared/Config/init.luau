@@ -31,5 +31,6 @@ return {
 	Eggs = require(script.Eggs),
 	Progression = Progression,
 	Zones = require(script.Zones),
+	Monetization = require(script.Monetization),
 	Debug = require(script.Debug),
 }

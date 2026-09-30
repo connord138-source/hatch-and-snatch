@@ -68,11 +68,13 @@ local function release(player: Player)
 	owners[plot.index] = nil
 	plotOf[player] = nil
 	plot.label.Text = "Free plot"
+	plot.label.TextColor3 = Color3.new(1, 1, 1)
 	plot.collectorLabel.Text = "$0"
 	plot.model:SetAttribute("OwnerUserId", nil)
 	-- Back to a starter plot for the next owner
 	WorldService.setLevel(plot, 1)
 	WorldService.applyTheme(plot, Config.Progression.themes[1])
+	WorldService.setNursery(plot, Config.Economy.tunables.nurserySlotsBase)
 	PlotService.released:fire(plot)
 	local connection = characterConnections[player]
 	if connection then

@@ -65,12 +65,14 @@ local BaseService = require(Services.BaseService)
 local WheelService = require(Services.WheelService)
 local ZoneService = require(Services.ZoneService)
 local ZoneEventService = require(Services.ZoneEventService)
+local MonetizationService = require(Services.MonetizationService)
 local RebirthService = require(Services.RebirthService)
 local StateService = require(Services.StateService)
 local DataService = require(Services.DataService)
 
 WorldService.start() -- builds plots before anyone is assigned one
 EventService.start()
+MonetizationService.start() -- receipts + pass checks on join; services register their products in start()
 PlotService.start() -- loaded: assign plot + teleport
 ProgressionService.start() -- loaded: level → which biomes are unlocked
 BaseService.start() -- loaded: plot size + theme for the owner's base level

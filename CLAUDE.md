@@ -60,6 +60,9 @@ unrelated to the Polymarket worker.
 - **World:** walled, level-gated biome zones between plots, each with harvest nodes (biome Essence) and a shrine (forge an egg or take the biome's blessing); round island, beach and sea. Releasing creatures also pays Essence. See GDD §7.3 and `Config/Zones.luau`.
 - **Zone set-piece events** (approved 2026-09-30): bloom, pearl, eruption, boulder, strike and meteor, each paying Essence, spins or a luck charge. See GDD §7.3.
   - Later, per the owner: taming, training, biome shops and larger biomes.
+- **Monetization** (built 2026-09-30): 6 game passes and 5 developer products, with Server Luck as the headline product. See GDD §9.
+  - VIP is a tag, +10 storage and +10% cash, because +10 pedestals doesn't fit the plots. Instant Restock was dropped.
+  - Names, prices, descriptions, Creator Hub ids and tuning all live in `src/shared/Config/Monetization.luau`. An item with id 0 is hidden in the live Shop.
 - **Instructions for the owner's PC session must be written as a paste-ready prompt** (the owner asked for this).
 - **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 
@@ -126,6 +129,7 @@ How to prompt for concepts:
 - Config is data-driven in `src/shared/Config/*`. New content means editing tables, not code.
 - The server is authoritative for cash, hatching, growth and stealing, since stealing games attract exploiters.
 - Player data: ProfileStore, vendored at `src/server/Packages` (Apache-2.0). It falls back to a mock store in unpublished Studio places.
+- Purchases: `MonetizationService` owns ProcessReceipt. A product's effect is registered with `MonetizationService.onProduct(key, fn)` by the service that owns it, and `fn` may only change that player's data (it runs once per receipt, and the receipt is confirmed after a save). Check passes with `MonetizationService.hasPass(player, key)`.
 - Services live in `src/server/Services`. The start order in `init.server.luau` matters: each service connects to `DataService.loaded` inside its `start()`, and DataService starts last.
 - **Verifying from a cloud session** (no Studio available): use `rojo sourcemap`, then `luau-lsp analyze --definitions=<globalTypes.d.luau> --sourcemap=... --ignore="**/Packages/**" src`, then `stylua --check src`. Pure config and economy logic can run in the plain `luau` runtime after swapping `script.Parent.X` requires for `./X` and stubbing `Color3`.
 - luau-lsp quirk: indexing `{ [Types.BiomeId]: T }` maps with values from other modules raises false singleton errors, so biome-keyed maps use `string` keys.

@@ -10,6 +10,7 @@ local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EventService = require(script.Parent.EventService)
+local MonetizationService = require(script.Parent.MonetizationService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 
@@ -17,8 +18,21 @@ type CreatureRecord = DataService.CreatureRecord
 type PlayerData = DataService.PlayerData
 
 local tunables = Config.Economy.tunables
+local passTuning = Config.Monetization.tuning
 
 local EconomyService = {}
+
+-- Cash multiplier from game passes (2× Cash, VIP).
+function EconomyService.passMultiplier(player: Player): number
+	local multiplier = 1
+	if MonetizationService.hasPass(player, "DoubleCash") then
+		multiplier *= passTuning.doubleCash
+	end
+	if MonetizationService.hasPass(player, "VIP") then
+		multiplier *= passTuning.vipCash
+	end
+	return multiplier
+end
 
 -- Cash per second one creature earns on a pedestal (rebirth bonus included, moon events not).
 function EconomyService.creatureRate(data: PlayerData, record: CreatureRecord): number
@@ -35,7 +49,7 @@ local function baseRate(player: Player, data: PlayerData): number
 			total += EconomyService.creatureRate(data, record)
 		end
 	end
-	return total
+	return total * EconomyService.passMultiplier(player)
 end
 
 function EconomyService.rate(player: Player): number
@@ -92,7 +106,8 @@ function EconomyService.grant(player: Player, amount: number)
 	DataService.markDirty(player)
 end
 
-local function collect(player: Player)
+-- Banks the collector. `quiet` skips the toast (Auto-Collect does this every second).
+local function collect(player: Player, quiet: boolean?)
 	local data = DataService.get(player)
 	if data == nil or data.uncollected < 1 then
 		return
@@ -101,7 +116,9 @@ local function collect(player: Player)
 	data.uncollected -= amount
 	data.cash += amount
 	updateLeaderstats(player, data)
-	Net.notify(player, `Collected {Format.cash(amount)}`, "good")
+	if not quiet then
+		Net.notify(player, `Collected {Format.cash(amount)}`, "good")
+	end
 	ProgressionService.bump(player, "earned", amount)
 	DataService.markDirty(player)
 end
@@ -113,6 +130,9 @@ local function tick()
 		if rate > 0 then
 			data.uncollected += rate
 			DataService.markDirty(player)
+		end
+		if MonetizationService.hasPass(player, "AutoCollect") then
+			collect(player, true)
 		end
 		data.lastSeen = now
 		local plot = PlotService.get(player)
@@ -137,7 +157,13 @@ function EconomyService.start()
 
 		-- Offline earnings (uses the rate the base has now; growth already caught up)
 		if data.lastSeen > 0 then
-			local away = math.clamp(Timing.now() - data.lastSeen, 0, tunables.offlineCapSeconds)
+			local cap = tunables.offlineCapSeconds
+				+ (
+					if MonetizationService.hasPass(player, "OfflinePlus")
+						then passTuning.offlineBonusSeconds
+						else 0
+				)
+			local away = math.clamp(Timing.now() - data.lastSeen, 0, cap)
 			local earned = math.floor(baseRate(player, data) * away)
 			if earned > 0 then
 				data.uncollected += earned
@@ -148,6 +174,21 @@ function EconomyService.start()
 	end)
 
 	PlotService.collectorTouched:connect(collect)
+
+	-- Cash packs: minutes of the player's current income, with a floor for new players
+	for _, pack in
+		{
+			{ key = "CashSmall", tune = passTuning.cashSmall },
+			{ key = "CashLarge", tune = passTuning.cashLarge },
+		}
+	do
+		MonetizationService.onProduct(pack.key, function(player)
+			local amount =
+				math.max(pack.tune.minimum, math.floor(EconomyService.rate(player) * pack.tune.minutes * 60))
+			EconomyService.grant(player, amount)
+			Net.notify(player, `+{Format.cash(amount)}! Thanks for your purchase.`, "rare")
+		end)
+	end
 
 	task.spawn(function()
 		while true do

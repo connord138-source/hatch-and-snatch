@@ -42,7 +42,11 @@ local walkingUid: string? = nil
 local CreaturesMenu = {}
 
 local function isNursery(slot: number?): boolean
-	return slot ~= nil and slot <= Config.Economy.tunables.nurserySlotsBase
+	local state = ClientState.current
+	local nursery: number = if state and state.nurserySlots
+		then state.nurserySlots
+		else Config.Economy.tunables.nurserySlotsBase
+	return slot ~= nil and slot <= nursery
 end
 
 local function fullName(creature: Creature): string

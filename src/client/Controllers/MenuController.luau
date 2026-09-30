@@ -11,6 +11,7 @@ local IndexMenu = require(script.Parent.Parent.Menus.IndexMenu)
 local RebirthMenu = require(script.Parent.Parent.Menus.RebirthMenu)
 local ProgressMenu = require(script.Parent.Parent.Menus.ProgressMenu)
 local BaseMenu = require(script.Parent.Parent.Menus.BaseMenu)
+local ShopMenu = require(script.Parent.Parent.Menus.ShopMenu)
 
 type Menu = {
 	build: (content: Frame) -> (),
@@ -23,6 +24,7 @@ local MENUS: { { id: string, title: string, menu: Menu } } = {
 	{ id = "Base", title = "Your Base", menu = BaseMenu },
 	{ id = "Index", title = "Collection Index", menu = IndexMenu },
 	{ id = "Rebirth", title = "Rebirth", menu = RebirthMenu },
+	{ id = "Shop", title = "Shop", menu = ShopMenu },
 }
 
 local BUTTON_W, BUTTON_GAP = 96, 8
@@ -103,6 +105,9 @@ function MenuController.start()
 			Size = UDim2.fromOffset(BUTTON_W, 38),
 			Text = entry.id,
 		})
+		if entry.id == "Shop" then
+			button.BackgroundColor3 = Color3.fromRGB(190, 140, 30)
+		end
 		button.Activated:Connect(function()
 			show(if open == entry.id then nil else entry.id)
 		end)

@@ -9,6 +9,7 @@ local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local MonetizationService = require(script.Parent.MonetizationService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local StealService = require(script.Parent.StealService)
 
@@ -30,6 +31,7 @@ local function snapshot(player: Player): { [string]: any }?
 		})
 	end
 	local creatures = {}
+	local passMultiplier = EconomyService.passMultiplier(player)
 	for uid, record in data.creatures do
 		table.insert(creatures, {
 			uid = uid,
@@ -42,7 +44,7 @@ local function snapshot(player: Player): { [string]: any }?
 			stolenFrom = record.stolenFrom,
 			nextStageAt = CreatureService.nextStageAt(record),
 			carried = CreatureService.isCarried(player, uid),
-			rate = EconomyService.creatureRate(data, record),
+			rate = EconomyService.creatureRate(data, record) * passMultiplier,
 			value = Config.Economy.sellValue(CreatureService.stats(record)),
 		})
 	end
@@ -67,7 +69,10 @@ local function snapshot(player: Player): { [string]: any }?
 		heldEgg = if data.heldEgg then data.heldEgg.biome else nil,
 		walking = CreatureService.walkingUid(player),
 		incubatorTiers = data.incubatorTiers,
-		storageSlots = Config.Economy.tunables.storageSlots,
+		storageSlots = CreatureService.storageSlots(data),
+		nurserySlots = CreatureService.nurserySlots(data),
+		passes = MonetizationService.ownedPasses(player),
+		boosts = data.boosts,
 		index = data.index,
 		indexFinishes = data.indexFinishes,
 		indexAdults = data.indexAdults,

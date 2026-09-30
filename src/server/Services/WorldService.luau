@@ -596,6 +596,7 @@ local function buildPlot(index: number): PlotLayout
 			Parent = model,
 		})
 		pedestal:SetAttribute("Index", i)
+		pedestal:SetAttribute("Nursery", isNursery)
 		if isNursery then
 			-- Nursery pedestal: nothing standing here can be stolen
 			local nurseryLabel = billboard(pedestal, Vector3.new(0, 3, 0), UDim2.fromOffset(120, 30), 60)
@@ -909,6 +910,40 @@ function WorldService.setLevel(plot: PlotLayout, level: number)
 		if gui then
 			gui.Enabled = shown
 		end
+	end
+end
+
+-- Makes the first `count` pedestals nursery pedestals (blue fabric, nest, "Nursery"
+-- sign) and the rest of the first few regular ones: the owner's nursery size.
+function WorldService.setNursery(plot: PlotLayout, count: number)
+	for i = 1, math.min(Config.Economy.tunables.nurserySlotsMax, #plot.pedestalParts) do
+		local pedestal = plot.pedestalParts[i]
+		local nursery = i <= count
+		if pedestal:GetAttribute("Nursery") == nursery then
+			continue
+		end
+		pedestal:SetAttribute("Nursery", nursery)
+		pedestal.Name = if nursery then `Nursery{i}` else `Pedestal{i}`
+		pedestal.Material = if nursery then Enum.Material.Fabric else Enum.Material.Slate
+		pedestal.Color = if nursery then Color3.fromRGB(120, 180, 255) else Color3.fromRGB(110, 110, 118)
+		local sign = pedestal:FindFirstChildOfClass("BillboardGui")
+		if nursery and sign == nil then
+			local nurseryLabel = billboard(pedestal, Vector3.new(0, 3, 0), UDim2.fromOffset(120, 30), 60)
+			nurseryLabel.Text = "Nursery"
+			nurseryLabel.TextColor3 = Color3.fromRGB(150, 200, 255)
+		elseif not nursery and sign then
+			sign:Destroy()
+		end
+		local old = plot.pedestalProps[i]
+		if old then
+			old:Destroy()
+		end
+		pedestal.Transparency = 0
+		plot.pedestalProps[i] = Props.dress(pedestal, if nursery then "NurseryNest" else "Pedestal", {
+			cframe = plot.pedestals[i] * CFrame.new(0, -0.7, 0),
+			size = Vector3.new(6.4, 1.4, 6.4),
+			stretch = true,
+		})
 	end
 end
 

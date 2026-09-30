@@ -225,10 +225,32 @@ A **weekly update at a fixed time**, with an admin-hosted live event, runs on to
 
 The rule: everything that matters can be earned. Paying buys speed, convenience, protection or cosmetics. Eggs that can be bought with Robux are never the only way to get a creature. Odds must be shown for any random item bought with Robux, as Roblox policy requires.
 
-- **Game passes (bought once):** 2× Cash, VIP Plot (+10 pedestals and a VIP tag), Auto-Collect, Extra Nursery, Longer Lock, Offline Cap +8h.
+Built 2026-09-30 (`Config/Monetization.luau`, `MonetizationService`). Prices are suggestions; ids stay 0 until each item is created in Creator Hub, and items with id 0 don't show in the live Shop.
+
+- **Game passes (bought once):**
+
+  | Pass | R$ | Effect |
+  |---|---|---|
+  | 2× Cash | 249 | Every creature earns ×2 |
+  | VIP | 349 | Gold VIP tag over the base, +10 storage, +10% cash |
+  | Auto-Collect | 149 | Earnings go straight to the wallet |
+  | Extra Nursery | 99 | +1 protected nursery slot at every base level |
+  | Longer Lock | 99 | Laser lock lasts ×2 |
+  | Offline +8h | 79 | Offline cap 8 h → 16 h |
+
+  VIP changed from "VIP Plot (+10 pedestals)": pedestal count is set by base level and plot size, and 10 more don't fit a low-level plot, so VIP gives storage and cash instead.
 - **Developer products (bought repeatedly):**
-  - **Server Luck Boost:** the whole server benefits, the buyer's name is announced, and it stacks. This is the headline product.
-  - Instant Restock, Growth Elixir, Skip Hatch, Cash packs.
+
+  | Product | R$ | Effect |
+  |---|---|---|
+  | Server Luck | 99 | Headline product. Epic+ odds ×2 on every egg rolled in the server for 15 min, buyer announced. Each repeat adds 15 min (max 60 left) and +1 (max ×5) |
+  | Growth Elixir | 49 | Your creatures grow ×2 for 30 min, stacking with walking |
+  | Skip Hatch | 29 | Hatches every incubating egg now; with none incubating, the next egg placed hatches instantly |
+  | Cash Pouch | 29 | 10 min of income, at least $1,000 |
+  | Cash Chest | 149 | 90 min of income, at least $10,000 |
+
+  Instant Restock was dropped: the conveyor has no stock to restock.
+- **Receipts:** each purchase id is recorded in the player's data and only confirmed to Roblox after a save containing it, so a crash can't double-grant or lose a purchase. Pass ownership is checked with Roblox on join and also stored in data.
 - **Other income:** Premium Payouts (from long sessions), rewarded video ads ("watch an ad for a free egg"), private servers.
 - **Free promotion channels:** a like-goal code system, and a reward for joining the Roblox group.
 

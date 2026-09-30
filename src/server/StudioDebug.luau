@@ -10,6 +10,10 @@
 --       -- gives every player that biome's Essence (shrine testing)
 --   game.ServerStorage.StudioDebug:Invoke("zone", "MagmaRift")
 --       -- runs that zone's set-piece event now (bloom, clam, eruption, boulder, strike, meteor)
+--   game.ServerStorage.StudioDebug:Invoke("pass", "VIP")
+--       -- gives every player that game pass (DoubleCash, VIP, AutoCollect, ExtraNursery, LongerLock, OfflinePlus)
+--   game.ServerStorage.StudioDebug:Invoke("product", "ServerLuck")
+--       -- runs a developer product's effect for every player (ServerLuck, GrowthElixir, SkipHatch, CashSmall, CashLarge)
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -24,6 +28,7 @@ local Timing = require(ReplicatedStorage.Shared.Timing)
 local CreatureService = require(script.Parent.Services.CreatureService)
 local DataService = require(script.Parent.Services.DataService)
 local EventService = require(script.Parent.Services.EventService)
+local MonetizationService = require(script.Parent.Services.MonetizationService)
 local ZoneEventService = require(script.Parent.Services.ZoneEventService)
 local ZoneService = require(script.Parent.Services.ZoneService)
 
@@ -96,6 +101,32 @@ local function zoneEvent(biomeId: any): string
 	return `running the {biomeId} event`
 end
 
+local function pass(key: any): string
+	if typeof(key) ~= "string" or Config.Monetization.passesByKey[key] == nil then
+		return "unknown pass"
+	end
+	for player in DataService.loadedPlayers() do
+		MonetizationService.grantPass(player, key)
+	end
+	return `granted {key}`
+end
+
+local function product(key: any): string
+	if typeof(key) ~= "string" or Config.Monetization.productsByKey[key] == nil then
+		return "unknown product"
+	end
+	local count = 0
+	for player in DataService.loadedPlayers() do
+		if MonetizationService.grantProduct(player, key) then
+			count += 1
+		end
+		if key == "ServerLuck" then
+			break -- server-wide: once is enough
+		end
+	end
+	return `ran {key} for {count} player(s)`
+end
+
 function StudioDebug.start()
 	if not RunService:IsStudio() then
 		return
@@ -113,8 +144,12 @@ function StudioDebug.start()
 			return storeAll()
 		elseif action == "zone" then
 			return zoneEvent(...)
+		elseif action == "pass" then
+			return pass(...)
+		elseif action == "product" then
+			return product(...)
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), store()"
 	end
 	hook.Parent = ServerStorage
 end

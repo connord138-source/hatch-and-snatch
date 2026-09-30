@@ -1,6 +1,6 @@
 --!strict
 -- Placeholder HUD built from code: cash + rate, uncollected, Hatcher Level + XP,
--- Luck Wheel spins, incubator timers, carried-egg hint, moon event banner, toasts
+-- Luck Wheel spins, incubator timers, Server Luck, carried-egg hint, moon event banner, toasts
 -- and server announcements. Presentation only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -121,6 +121,19 @@ function HudController.start()
 			Text = `{i}. empty`,
 		})
 	end
+
+	-- Server Luck (under the incubators while a Server Luck purchase is running)
+	local luckPanel = panel(gui, {
+		Size = UDim2.fromOffset(250, 30),
+		Position = UDim2.fromOffset(12, 284),
+		Visible = false,
+	})
+	local luckLabel = label(luckPanel, {
+		Size = UDim2.new(1, -20, 1, -8),
+		Position = UDim2.fromOffset(10, 4),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = Color3.fromRGB(140, 255, 160),
+	})
 
 	-- Moon event banner (top-center)
 	local banner = panel(gui, {
@@ -257,6 +270,7 @@ function HudController.start()
 			end
 			local owned: number = current.incubatorSlots or 1
 			incubatorPanel.Size = UDim2.fromOffset(250, 40 + owned * 30)
+			luckPanel.Position = UDim2.fromOffset(12, 214 + 40 + owned * 30 + 8)
 			for i, row in incubatorRows do
 				row.Visible = i <= owned
 				local egg = nil
@@ -308,6 +322,20 @@ function HudController.start()
 			else
 				eggBanner.Visible = false
 			end
+		end
+
+		local serverLuck = Workspace:GetAttribute("ServerLuck")
+		local serverLuckUntil = Workspace:GetAttribute("ServerLuckUntil")
+		if
+			typeof(serverLuck) == "number"
+			and serverLuck > 1
+			and typeof(serverLuckUntil) == "number"
+			and serverLuckUntil > now
+		then
+			luckPanel.Visible = true
+			luckLabel.Text = `🍀 Server Luck ×{serverLuck} — {Format.duration(serverLuckUntil - now)}`
+		else
+			luckPanel.Visible = false
 		end
 
 		local eventName = Workspace:GetAttribute("MoonEventName")

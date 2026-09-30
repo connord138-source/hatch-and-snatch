@@ -410,7 +410,8 @@ local function boulder(zone: Zone, landmark: Landmark)
 		Transparency = 1,
 		Parent = zone.folder,
 	})
-	local glow = light(core, Color3.fromRGB(170, 230, 255), 1, landmark.radius * 2.5)
+	-- Kept dim: on white snow with bloom, any real brightness washes the screen out
+	local glow = light(core, Color3.fromRGB(150, 210, 255), 0.4, landmark.radius * 1.6)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Break the ice"
 	prompt.ObjectText = "Frozen Boulder"
@@ -430,7 +431,7 @@ local function boulder(zone: Zone, landmark: Landmark)
 		end
 		helpers[player] = true
 		hits += 1
-		glow.Brightness = 0.8 + hits * 0.25
+		glow.Brightness = 0.4 + hits * 0.1
 		-- A glowing crack for every hit
 		local angle = rng:NextNumber() * 2 * math.pi
 		local reach = math.min(landmark.size.X, landmark.size.Z) * 0.48
@@ -458,9 +459,9 @@ local function boulder(zone: Zone, landmark: Landmark)
 	if hits >= tune.hits then
 		local burst = emitter(core, {
 			Texture = SPARKLE,
-			Color = ColorSequence.new(Color3.fromRGB(210, 245, 255)),
+			Color = ColorSequence.new(Color3.fromRGB(190, 225, 245)),
 			Rate = 0,
-			LightEmission = 0.4,
+			LightEmission = 0.15,
 			Lifetime = NumberRange.new(0.6, 1.2),
 			Speed = NumberRange.new(12, 24),
 			SpreadAngle = Vector2.new(180, 180),
@@ -468,7 +469,7 @@ local function boulder(zone: Zone, landmark: Landmark)
 			Size = NumberSequence.new(0.6, 0),
 		})
 		burst:Emit(50)
-		glow.Brightness = 3
+		glow.Brightness = 1.5
 		for player in helpers do
 			local data = DataService.get(player)
 			if data == nil then
