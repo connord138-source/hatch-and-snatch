@@ -43,7 +43,7 @@ end
 
 local function row(list: Instance, order: number, name: string, description: string): (Frame, TextButton)
 	local frame = Ui.panel(list, {
-		Size = UDim2.new(1, -10, 0, 64),
+		Size = UDim2.new(1, -10, 0, 78), -- room for a three-line description (Server Luck)
 		BackgroundColor3 = Ui.colors.row,
 		BackgroundTransparency = 0,
 		LayoutOrder = order,
@@ -56,7 +56,7 @@ local function row(list: Instance, order: number, name: string, description: str
 	})
 	text(frame, {
 		Position = UDim2.fromOffset(12, 28),
-		Size = UDim2.new(1, -160, 0, 32),
+		Size = UDim2.new(1, -160, 0, 46),
 		TextSize = 13,
 		TextWrapped = true,
 		TextYAlignment = Enum.TextYAlignment.Top,
@@ -150,12 +150,14 @@ function ShopMenu.refresh(state: { [string]: any })
 			then Monetization.passesByKey[entry.key]
 			else Monetization.productsByKey[entry.key]
 		local button = entry.button
-		if item.id == 0 then
-			button.Text = "Not set up"
+		-- Ownership first: a pass granted in Studio (or bought) is owned even before
+		-- it has a Creator Hub id
+		if entry.pass and owned[entry.key] then
+			button.Text = "Owned ✓"
 			button.BackgroundColor3 = Ui.colors.disabled
 			button.AutoButtonColor = false
-		elseif entry.pass and owned[entry.key] then
-			button.Text = "Owned ✓"
+		elseif item.id == 0 then
+			button.Text = "Not set up"
 			button.BackgroundColor3 = Ui.colors.disabled
 			button.AutoButtonColor = false
 		else
