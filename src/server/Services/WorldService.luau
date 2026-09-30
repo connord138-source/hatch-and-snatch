@@ -505,7 +505,9 @@ local function buildLuckWheel()
 		})
 	end
 	disc.PrimaryPart = hub
-	disc.WorldPivot = base
+	-- A model with a PrimaryPart ignores WorldPivot and pivots on the primary part,
+	-- so move the hub's pivot to the wheel's center (the hub itself is turned 90°)
+	hub.PivotOffset = hub.CFrame:ToObjectSpace(base)
 	disc:SetAttribute("BaseCFrame", base)
 	disc:SetAttribute("Angle", 0)
 	disc.Parent = folder
