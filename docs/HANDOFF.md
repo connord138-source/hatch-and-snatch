@@ -48,6 +48,11 @@ binding.
 - **v1 launches with every biome** (owner): no two-biome soft launch; unlocks come from Hatcher Level and base level.
 - **First-session guide** (`GuideController`): a goal card on the right edge plus a beam to the next objective, driven by `data.onboarding`. Confirmed in Studio (ff7e9a6, PC fixes 62e9ee5 and 3ec745d). The card moved off top-center afterwards because it stacked with the moon-event and carry banners and hid the ⬇ over distant eggs. `StudioDebug:Invoke("guide")` restarts it.
 - **Economy numbers confirmed in the UI** (all prices, B/T/Qa formatting, rebirth at $1T).
+- **Batches A, B and C (2026-09-30), not yet tested in Studio:**
+  - A: security fixes from three audits (GDD §6, CLAUDE.md → Tech), UI auto-scaling for phones, animation LOD, changed-fields-only state sync, client-side belt animation.
+  - B: store art in `marketing/` (`docs/STORE_PAGE.md`). The owner uploads it.
+  - C: daily login streak and quests (GDD §7.4). `StudioDebug:Invoke("daily")` fakes a new day.
+- **Open design question (from the audit):** a walked creature can't be stolen and keeps earning, so an AFK player can protect their best one forever. Options: no earnings while walked, or a walk time limit. Ask the owner.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.
 
 ### Credits left

@@ -10,6 +10,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
+local DailyService = require(script.Parent.DailyService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local MonetizationService = require(script.Parent.MonetizationService)
@@ -117,6 +118,7 @@ local function snapshot(player: Player): { [string]: any }?
 		inGroup = MonetizationService.inGroup(player),
 		groupRewarded = data.groupRewarded,
 		onboarding = data.onboarding, -- first-session guide step (GuideController)
+		daily = DailyService.snapshot(player, data),
 		boosts = data.boosts,
 		index = data.index,
 		indexFinishes = data.indexFinishes,

@@ -111,6 +111,7 @@ local function harvest(player: Player, zone: WorldService.ZoneLayout, node: Mode
 	end
 	ZoneService.grantEssence(player, zone.biome, amount)
 	ProgressionService.addXp(player, 5 * Config.Biomes[zone.biome].order)
+	ProgressionService.bump(player, "harvests")
 	Net.notify(
 		player,
 		`{if boosted then "⚡ " else ""}+{amount} {essenceName(zone.biome)} ({ZoneService.essence(

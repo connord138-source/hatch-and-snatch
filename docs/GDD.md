@@ -236,6 +236,21 @@ Before the retune, a 3 h/day player had bought everything in about 3 hours of pl
   - **Release:** unwanted or duplicate creatures can be released from the Creatures menu for their biome's Essence (by rarity × stage: Baby ×1, Juvenile ×2, Adult ×3), plus Luck Wheel spins for Legendary and up. Selling for cash is still there.
 - **Lighting:** atmosphere, bloom, sun rays, clouds and a slight color grade. During moon events the whole world is tinted in the moon's color, and the banner says what the event does.
 
+### 7.4 Daily rewards (retention)
+
+Built 2026-09-30: `Config/Daily.luau`, `DailyService`, and the Daily menu (a red dot while a reward is waiting; it opens by itself once per session). Days are UTC days.
+
+- **Login streak (7-day cycle):**
+
+  | Day | 1 | 2 | 3 | 4 | 5 | 6 | 7 ★ |
+  |---|---|---|---|---|---|---|---|
+  | Reward | 2 spins | 10 min of cash | ×3 luck | 20 min of cash | 3 spins | 15 min ×2 growth | ×10 luck + 5 spins |
+
+  Claiming on consecutive days walks the cycle, then it repeats. Missing a day restarts at day 1. Cash rewards are minutes of the player's own income (at least $500), so they stay useful at every stage.
+- **Daily quests:** 3 a day, picked by weight from: hatch 8 eggs, buy 10 eggs, spin the wheel 3 times, walk a creature 5 minutes, collect 20 minutes' worth of income, harvest 6 Essence nodes, raise a creature to Adult, steal a creature.
+  - Progress is the growth of a lifetime stat since the quest was given, so every way of doing it counts. Rewards pay the moment a quest is done.
+  - Finishing all three pays +2 spins and ×5 luck. One swap per day replaces a quest you don't want (a peaceful player can swap out the steal).
+
 ## 8. Moon events (server-wide, hourly)
 
 | Moon | Effect | Lasts |

@@ -12,6 +12,7 @@ local RebirthMenu = require(script.Parent.Parent.Menus.RebirthMenu)
 local ProgressMenu = require(script.Parent.Parent.Menus.ProgressMenu)
 local BaseMenu = require(script.Parent.Parent.Menus.BaseMenu)
 local ShopMenu = require(script.Parent.Parent.Menus.ShopMenu)
+local DailyMenu = require(script.Parent.Parent.Menus.DailyMenu)
 
 type Menu = {
 	build: (content: Frame) -> (),
@@ -24,6 +25,7 @@ local MENUS: { { id: string, title: string, menu: Menu } } = {
 	{ id = "Base", title = "Your Base", menu = BaseMenu },
 	{ id = "Index", title = "Collection Index", menu = IndexMenu },
 	{ id = "Rebirth", title = "Rebirth", menu = RebirthMenu },
+	{ id = "Daily", title = "Daily Rewards", menu = DailyMenu },
 	{ id = "Shop", title = "Shop", menu = ShopMenu },
 }
 
@@ -63,6 +65,7 @@ function MenuController.start()
 	})
 
 	local contents: { [string]: Frame } = {}
+	local buttons: { [string]: TextButton } = {}
 	local open: string? = nil
 
 	local function refreshOpen()
@@ -109,6 +112,7 @@ function MenuController.start()
 		if entry.id == "Shop" then
 			button.BackgroundColor3 = Color3.fromRGB(190, 140, 30)
 		end
+		buttons[entry.id] = button
 		button.Activated:Connect(function()
 			show(if open == entry.id then nil else entry.id)
 		end)
@@ -118,6 +122,30 @@ function MenuController.start()
 	end)
 
 	ClientState.changed:connect(refreshOpen)
+
+	-- Daily: a red dot while today's login reward is waiting, and the menu opens by
+	-- itself once per session (after the first-session guide's early steps)
+	local dailyButton = buttons.Daily
+	local badge = Instance.new("Frame")
+	badge.Name = "Badge"
+	badge.AnchorPoint = Vector2.new(0.5, 0.5)
+	badge.Position = UDim2.new(1, -4, 0, 4)
+	badge.Size = UDim2.fromOffset(16, 16)
+	badge.BackgroundColor3 = Color3.fromRGB(235, 50, 50)
+	badge.Visible = false
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(1, 0)
+	round.Parent = badge
+	badge.Parent = dailyButton
+	local autoOpened = false
+	ClientState.changed:connect(function(state: { [string]: any })
+		local claimable = state.daily ~= nil and state.daily.claimable == true
+		badge.Visible = claimable
+		if claimable and not autoOpened and (state.onboarding or 0) >= 5 and open == nil then
+			autoOpened = true
+			show("Daily")
+		end
+	end)
 end
 
 return MenuController

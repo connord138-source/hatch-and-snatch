@@ -63,6 +63,7 @@ export type PlayerData = {
 		walkSeconds: number,
 		spinsUsed: number,
 		earned: number,
+		harvests: number,
 	},
 	xp: number, -- lifetime XP; the Hatcher Level is derived from it
 	achievements: { [string]: boolean },
@@ -84,6 +85,23 @@ export type PlayerData = {
 	codes: { [string]: boolean }, -- codes already redeemed (Config.Codes, upper case)
 	groupRewarded: boolean, -- got the one-time Roblox group reward
 	onboarding: number, -- furthest onboarding funnel step logged (Analytics.ONBOARDING)
+	daily: DailyData, -- login streak and daily quests (DailyService)
+}
+
+export type DailyQuest = {
+	id: string, -- Config.Daily.quests id
+	goal: number,
+	base: number, -- the stat's value when the quest was given
+	done: boolean,
+}
+
+export type DailyData = {
+	loginDay: number, -- UTC day number of the last login reward claimed (0 = never)
+	streak: number, -- consecutive days claimed
+	questDay: number, -- UTC day the quests below were given
+	quests: { DailyQuest },
+	rerolls: number, -- used today
+	bonusPaid: boolean, -- all-quests bonus paid today
 }
 
 local TEMPLATE: PlayerData = {
@@ -112,6 +130,7 @@ local TEMPLATE: PlayerData = {
 		walkSeconds = 0,
 		spinsUsed = 0,
 		earned = 0,
+		harvests = 0,
 	},
 	xp = 0,
 	achievements = {},
@@ -131,6 +150,14 @@ local TEMPLATE: PlayerData = {
 	codes = {},
 	groupRewarded = false,
 	onboarding = 0,
+	daily = {
+		loginDay = 0,
+		streak = 0,
+		questDay = 0,
+		quests = {},
+		rerolls = 0,
+		bonusPaid = false,
+	},
 }
 
 -- Studio reads and writes the live game's DataStores, so Studio sessions (debug

@@ -33,5 +33,6 @@ return {
 	Zones = require(script.Zones),
 	Monetization = require(script.Monetization),
 	Codes = require(script.Codes),
+	Daily = require(script.Daily),
 	Debug = require(script.Debug),
 }

@@ -24,6 +24,8 @@
 --       -- gives every player that much cash (late-game upgrades cost billions)
 --   game.ServerStorage.StudioDebug:Invoke("guide")
 --       -- restarts the first-session guide for every player (from "buy an egg")
+--   game.ServerStorage.StudioDebug:Invoke("daily")
+--       -- pretends a day passed: the login reward and new daily quests come back
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -36,6 +38,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local CreatureService = require(script.Parent.Services.CreatureService)
+local DailyService = require(script.Parent.Services.DailyService)
 local DataService = require(script.Parent.Services.DataService)
 local EconomyService = require(script.Parent.Services.EconomyService)
 local EventService = require(script.Parent.Services.EventService)
@@ -209,8 +212,13 @@ function StudioDebug.start()
 			return cash(...)
 		elseif action == "guide" then
 			return restartGuide()
+		elseif action == "daily" then
+			for player in DataService.loadedPlayers() do
+				DailyService.debugNextDay(player)
+			end
+			return "a day passed (for the Daily menu)"
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), cash(amount), guide(), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), cash(amount), guide(), daily(), store()"
 	end
 	hook.Parent = ServerStorage
 end

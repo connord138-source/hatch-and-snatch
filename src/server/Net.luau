@@ -30,6 +30,8 @@ local requests: { [string]: RemoteEvent } = {
 	RedeemCode = makeEvent("RedeemCode"), -- (code: string)
 	ClaimGroup = makeEvent("ClaimGroup"), -- () after the Roblox group join prompt
 	WatchAd = makeEvent("WatchAd"), -- () show a rewarded video ad
+	ClaimDaily = makeEvent("ClaimDaily"), -- () today's login streak reward
+	RerollQuest = makeEvent("RerollQuest"), -- (index: number) swap one daily quest
 }
 
 folder.Parent = ReplicatedStorage

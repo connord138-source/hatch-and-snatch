@@ -116,6 +116,7 @@ local function tryBuy(egg: Egg, player: Player)
 	egg.sold = true
 	egg.part:Destroy()
 	HatchService.giveEgg(player, egg.biome)
+	ProgressionService.bump(player, "eggsBought")
 	Analytics.onboard(player, data, 2)
 	Net.notify(player, `Got a {biome.displayName} egg! Carry it home and place it in an incubator.`, "good")
 end
