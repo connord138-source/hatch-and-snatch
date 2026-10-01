@@ -385,7 +385,7 @@ local function addRarityLook(model: Model, species: string, rarity: string, fini
 	if look.light then
 		local light = Instance.new("PointLight")
 		light.Name = "RarityLight"
-		light.Color = color
+		light.Color = RarityLooks.lightFor(species, rarity)
 		light.Brightness = look.light
 		light.Range = math.max(extents.X, extents.Z) * 0.8 + 4
 		light.Parent = primary

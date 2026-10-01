@@ -73,7 +73,7 @@ unrelated to the Polymarket worker.
 - **Daily rewards** (built 2026-09-30): a 7-day login streak and 3 daily quests (GDD §7.4, `Config/Daily.luau`).
 - **Store page** (built 2026-09-30): the files to upload are in `marketing/`, and the copy is in `docs/STORE_PAGE.md`. Rebuild with `python3 tools/marketing/compose.py`. Store art must be attention-grabbing (owner).
 - **Instructions for the owner's PC session must be written as a paste-ready prompt** (the owner asked for this).
-- **Rarity looks** (owner, 2026-10-01): every creature has a rarity-colored halo plus stardust that grows each tier; Mythic and up are also tinted toward their rarity color (`Shared/RarityLooks.luau`, GDD §5). A species whose own colors fight the tint gets an override in `SPECIES_TINT`: Glacierion has none, so it stays white ice, and Solarion uses warm gold.
+- **Rarity looks** (owner, 2026-10-01): every creature has a rarity-colored halo plus stardust that grows each tier; Mythic and up are also tinted toward their rarity color (`Shared/RarityLooks.luau`, GDD §5). A species whose own colors fight the tint gets an override in `SPECIES_TINT`: Glacierion has none (and a white light), so it stays white ice, and Solarion uses warm gold.
 - **Eggs:** each biome gets its own egg design (`EggModels.<BiomeId>`), and the generic tinted `Egg` is the fallback. Incubators glow in the rarity color for Epic and up as the egg nears hatching.
 
 ## Art direction lessons (learned the hard way)

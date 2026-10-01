@@ -106,7 +106,8 @@ local LOOKS: { [string]: Look } = {
 -- Species whose own colors fight their rarity tint (PC round 9da730a): the
 -- Mythic crimson turned the white-ice Glacierion red, and the Celestial pale blue
 -- turned Solarion's gold mane olive. `false` keeps the creature's own colors; a
--- color tints with that instead. Their halo and stardust keep the rarity color.
+-- color tints with that instead. Their halo and stardust keep the rarity color
+-- (and a `false` species gets a white light, see lightFor).
 local SPECIES_TINT: { [string]: Color3 | false } = {
 	Glacierion = false,
 	Solarion = Color3.fromRGB(255, 232, 180), -- warmer gold, still a step up from its texture
@@ -135,6 +136,16 @@ function RarityLooks.tintFor(species: string, rarity: string): Color3?
 		return override
 	end
 	return RarityLooks.get(rarity).tint
+end
+
+-- The color of the rarer tiers' light: the rarity color, but white for a species
+-- that keeps its own colors. The crimson Mythic light still turned Glacierion pink
+-- wherever the sun didn't reach (PC round 91c65b4).
+function RarityLooks.lightFor(species: string, rarity: string): Color3
+	if SPECIES_TINT[species] == false then
+		return Color3.new(1, 1, 1)
+	end
+	return RarityLooks.color(rarity)
 end
 
 -- Tints every textured part of `model` with `color` (SurfaceAppearance.Color
