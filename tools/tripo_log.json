@@ -1372,6 +1372,16 @@
   "task_id": "c9c95566-8cec-4874-8572-f5d6e5a5023d",
   "type": "text_to_model"
  },
+ "rework/Capybaron_Baby": {
+  "credits": 30,
+  "files": [
+   "Capybaron_Baby.glb",
+   "Capybaron_Baby_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "6d430f33-3f85-4b80-8b73-0c9838f0bead",
+  "type": "image_to_model"
+ },
  "rework/Capybaron_Juvenile": {
   "credits": 30,
   "files": [
