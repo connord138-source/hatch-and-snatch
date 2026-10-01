@@ -21,6 +21,7 @@ local stateUpdate = makeEvent("StateUpdate")
 local notify = makeEvent("Notify")
 local announce = makeEvent("Announce")
 local hatchReveal = makeEvent("HatchReveal") -- (reveal table, see Net.hatchReveal)
+local teleport = makeEvent("Teleport") -- (cframe) move your own character there
 local requests: { [string]: RemoteEvent } = {
 	CreatureAction = makeEvent("CreatureAction"), -- (action: string, uid: string, target: string?)
 	Rebirth = makeEvent("Rebirth"), -- ()
@@ -70,6 +71,18 @@ function Net.hatchReveal(player: Player, reveal: { [string]: any })
 end
 
 -- Handles one kind of client request. The handler gets the raw, untrusted arguments.
+-- Moves a player's character, on the server and on their own client. The client
+-- owns its character's physics, so a server-only move could be undone by the
+-- player still walking in (the auto-lock push "didn't stick" 2 times in 4, PC
+-- round 473db78).
+function Net.teleport(player: Player, cframe: CFrame)
+	local character = player.Character
+	if character then
+		character:PivotTo(cframe)
+	end
+	teleport:FireClient(player, cframe)
+end
+
 function Net.onRequest(name: string, handler: (Player, ...any) -> ())
 	requests[name].OnServerEvent:Connect(function(player: Player, ...: any)
 		local now = os.clock()

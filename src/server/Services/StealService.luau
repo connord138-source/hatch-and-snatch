@@ -584,7 +584,7 @@ local function tryLockVault(player: Player, plot: WorldService.PlotLayout, vault
 			if carry and carry.owner == player then
 				endCarry(carry, "takenBack")
 			end
-			(other.Character :: Model):PivotTo(WorldService.vaultOutside(plot, vault))
+			Net.teleport(other, WorldService.vaultOutside(plot, vault))
 			Net.notify(other, "The vault door shut you out!", "bad")
 		end
 	end
@@ -900,7 +900,7 @@ local function tick()
 					for _, player in Players:GetPlayers() do
 						local _, root = humanoidOf(player)
 						if player ~= owner and root and WorldService.inVault(plot, vault, root.Position) then
-							(player.Character :: Model):PivotTo(WorldService.vaultOutside(plot, vault))
+							Net.teleport(player, WorldService.vaultOutside(plot, vault))
 						end
 					end
 				end
@@ -917,7 +917,7 @@ local function tick()
 						if carry and carry.owner == owner then
 							endCarry(carry, "takenBack")
 						end
-						(player.Character :: Model):PivotTo(WorldService.outsideFront(plot))
+						Net.teleport(player, WorldService.outsideFront(plot))
 						Net.notify(player, "The laser gate pushed you out!", "bad")
 					end
 				end

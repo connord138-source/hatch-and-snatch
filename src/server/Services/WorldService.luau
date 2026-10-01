@@ -1492,8 +1492,21 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	local layout =
 		Fortress.build(plot.model, plot.origin, plot.level, plot.width, plot.depth, PLOT_FRONT, theme)
 	plot.fortress = layout
+	local gatehouse = Fortress.style(plot.level).gatehouse
 	if plot.arch then
-		plot.arch.Parent = if Fortress.style(plot.level).gatehouse then nil else plot.model
+		plot.arch.Parent = if gatehouse then nil else plot.model
+	end
+	-- The owner's name floats over the gate, above a gatehouse once there is one
+	-- (it overlapped the lock button's label under the gatehouse)
+	local signGui = plot.label.Parent
+	local sign = signGui and signGui.Parent
+	if sign and sign:IsA("BasePart") then
+		sign.CFrame = plot.origin
+			* CFrame.new(
+				0,
+				if gatehouse then layout.height + 14 else TOP + 6,
+				if gatehouse then layout.front else PLOT_FRONT + 1
+			)
 	end
 
 	local existing = plot.model:FindFirstChild("ThemeDecor")

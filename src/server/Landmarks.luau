@@ -350,6 +350,111 @@ local function standInSign(folder: Instance, base: CFrame)
 end
 
 ---------------------------------------------------------------------------
+-- Running water (owner, 2026-10-01: the waterfall looked still)
+---------------------------------------------------------------------------
+
+local SMOKE = "rbxasset://textures/particles/smoke_main.dds"
+local WATER_WHITE = Color3.fromRGB(235, 248, 255)
+local WATER_BLUE = Color3.fromRGB(150, 205, 245)
+
+local function emitter(parent: BasePart, props: { [string]: any }): ParticleEmitter
+	local e = Instance.new("ParticleEmitter")
+	e.Texture = SMOKE
+	e.LightEmission = 0.15
+	e.LightInfluence = 0.8
+	for key, value in props do
+		(e :: any)[key] = value
+	end
+	e.Parent = parent
+	return e
+end
+
+-- A curtain of falling water from `lip` (the top of the falls, facing the way the
+-- water spills), with mist where it lands `drop` studs below.
+local function falls(folder: Instance, lip: CFrame, width: number, drop: number)
+	local top = trim(folder, {
+		Name = "FallsLip",
+		Size = Vector3.new(width, 0.4, 1),
+		CFrame = lip,
+		Transparency = 1,
+	})
+	-- Time to fall `drop` studs starting at 10 studs/s, pulled down at 40
+	local fallTime = (-10 + math.sqrt(100 + 80 * drop)) / 40
+	emitter(top, {
+		Name = "FallingWater",
+		Shape = Enum.ParticleEmitterShape.Box,
+		ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Bottom,
+		Speed = NumberRange.new(9, 11),
+		Acceleration = Vector3.new(0, -40, 0),
+		Lifetime = NumberRange.new(fallTime * 0.95, fallTime * 1.05),
+		Rate = 22 * width,
+		Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.9),
+			NumberSequenceKeypoint.new(1, 1.8),
+		}),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.35),
+			NumberSequenceKeypoint.new(0.8, 0.5),
+			NumberSequenceKeypoint.new(1, 1),
+		}),
+		Color = ColorSequence.new(WATER_WHITE, WATER_BLUE),
+		SpreadAngle = Vector2.new(4, 4),
+	})
+	local pool = trim(folder, {
+		Name = "FallsSplash",
+		Size = Vector3.new(width + 2, 0.4, 3),
+		CFrame = lip * CFrame.new(0, -drop + 0.6, -1.5),
+		Transparency = 1,
+	})
+	emitter(pool, {
+		Name = "Mist",
+		Shape = Enum.ParticleEmitterShape.Box,
+		EmissionDirection = Enum.NormalId.Top,
+		Speed = NumberRange.new(2, 5),
+		Lifetime = NumberRange.new(1.4, 2.4),
+		Rate = 14,
+		Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 2.5),
+			NumberSequenceKeypoint.new(1, 7),
+		}),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.55),
+			NumberSequenceKeypoint.new(1, 1),
+		}),
+		Color = ColorSequence.new(WATER_WHITE),
+		SpreadAngle = Vector2.new(35, 35),
+		RotSpeed = NumberRange.new(-20, 20),
+	})
+end
+
+-- Foam drifting downstream along a water strip (its -Z points downstream).
+local function flow(strip: BasePart, speed: number)
+	local length = strip.Size.Z
+	emitter(strip, {
+		Name = "Flow",
+		Shape = Enum.ParticleEmitterShape.Box,
+		ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Front,
+		Speed = NumberRange.new(speed * 0.85, speed * 1.15),
+		Lifetime = NumberRange.new(1.5, 3),
+		Rate = math.clamp(length / 2.5, 6, 40),
+		Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.5),
+			NumberSequenceKeypoint.new(1, 0.9),
+		}),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.2, 0.45),
+			NumberSequenceKeypoint.new(0.8, 0.55),
+			NumberSequenceKeypoint.new(1, 1),
+		}),
+		Color = ColorSequence.new(WATER_WHITE),
+		LightEmission = 0.3,
+	})
+end
+
+---------------------------------------------------------------------------
 -- Paths
 ---------------------------------------------------------------------------
 
@@ -765,7 +870,7 @@ function Landmarks.build(parent: Instance, options: Options): Result
 	-- The imported cliff's waterfall is on the back of the model, so it is turned
 	-- round to pour toward the hub (into the stream's pool) like the stand-in's falls
 	local halfTurn = CFrame.Angles(0, math.pi, 0)
-	prop(
+	local cliffModel = prop(
 		"WaterfallCliff",
 		folder,
 		CFrame.lookAt(cliff, Vector3.new(0, y, 0)) * halfTurn,
@@ -774,6 +879,23 @@ function Landmarks.build(parent: Instance, options: Options): Result
 			standInCliff(standIn, base * halfTurn)
 		end
 	)
+	-- The falls run: a particle curtain over the model's (or stand-in's) still water.
+	-- Its lip sits partway out toward the hub and most of the way up; nudge these
+	-- fractions if the curtain doesn't line up with the imported model's falls.
+	local FALLS_OUT, FALLS_UP, FALLS_WIDTH = 0.42, 0.8, 5
+	local toHub = CFrame.lookAt(cliff, Vector3.new(0, y, 0)) -- -Z faces the hub
+	if cliffModel then
+		local _, size = cliffModel:GetBoundingBox()
+		local reach = math.max(size.X, size.Z) / 2
+		falls(
+			folder,
+			toHub * CFrame.new(0, size.Y * FALLS_UP, -reach * FALLS_OUT),
+			FALLS_WIDTH,
+			size.Y * FALLS_UP - 1
+		)
+	else
+		falls(folder, toHub * CFrame.new(0, 25, -10.2), 6.5, 24)
+	end
 	-- The stream: from the waterfall's pool it runs along the coast, then out to sea
 	-- (the island ground is one solid part, so the water is a strip of parts)
 	local water = {
@@ -791,7 +913,7 @@ function Landmarks.build(parent: Instance, options: Options): Result
 		local from, to = bends[i], bends[i + 1]
 		local frame = CFrame.lookAt((from + to) / 2, to)
 		local length = (to - from).Magnitude + 8
-		trim(folder, {
+		local stream = trim(folder, {
 			Name = "Stream",
 			Size = Vector3.new(8, 0.2, length),
 			CFrame = frame * CFrame.new(0, 0.12, 0),
@@ -800,6 +922,7 @@ function Landmarks.build(parent: Instance, options: Options): Result
 			Transparency = water.Transparency,
 			Reflectance = water.Reflectance,
 		})
+		flow(stream, 6)
 		trim(folder, {
 			Name = "StreamBank",
 			Size = Vector3.new(10.5, 0.16, length),

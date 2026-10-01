@@ -324,7 +324,6 @@ function BaseMenu.refresh(state: { [string]: any })
 			end
 		else
 			row.ready = false
-			local floors: number = state.floors or 1
 			row.button.Text = if level < item.baseLevel
 				then `Needs base Lv {item.baseLevel}`
 				elseif floors < (item.floors or 1) then "Needs the Second Floor"

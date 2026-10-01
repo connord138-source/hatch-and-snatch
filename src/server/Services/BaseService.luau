@@ -451,6 +451,29 @@ end
 -- Watches each base owner's feet: standing on a pad for a moment buys it, once
 -- per visit (step off to buy again). Pad colors follow the owner's cash.
 local standing: { [Player]: { pad: number, since: number, done: boolean } } = {}
+local statuesShown: { [Player]: string } = {} -- the species the Guardian Statues show
+
+-- The Guardian Statues follow the owner's two rarest creatures as they change
+-- (they only updated on a full base refresh before; PC round 473db78).
+local function refreshStatues(owner: Player, data: PlayerData)
+	if not data.builds.GuardianStatues or data.hiddenBuilds.GuardianStatues then
+		statuesShown[owner] = nil
+		return
+	end
+	local species = rarestSpecies(data)
+	local key = table.concat(species, ",")
+	if statuesShown[owner] == key then
+		return
+	end
+	local first = statuesShown[owner] == nil
+	statuesShown[owner] = key
+	local plot = PlotService.get(owner)
+	if plot and not first then
+		local decor = ownedBuilds(data)
+		local theme = Config.Progression.themesById[data.baseTheme] or Config.Progression.themes[1]
+		WorldService.setBuilds(plot, decor, theme, species)
+	end
+end
 local function watchPads()
 	local elapsed, recolor = 0, 0
 	RunService.Heartbeat:Connect(function(dt)
@@ -472,6 +495,7 @@ local function watchPads()
 			local data = DataService.get(owner)
 			if data and refresh then
 				refreshPads(owner, data)
+				refreshStatues(owner, data)
 			end
 			local character = owner.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -521,6 +545,7 @@ function BaseService.start()
 	watchPads()
 	Players.PlayerRemoving:Connect(function(player)
 		standing[player] = nil
+		statuesShown[player] = nil
 	end)
 	Net.onRequest("ToggleBuild", BaseService.toggleBuild)
 	Net.onRequest("UpgradeBase", BaseService.upgrade)

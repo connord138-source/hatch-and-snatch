@@ -522,8 +522,15 @@ local function gatehouse(folder: Instance, origin: CFrame, layout: Layout, style
 				descendant.Massless = true
 			end
 		end
-		local size = Vector3.new(gateWidth, gateWidth * 0.8, gateWidth * 0.5)
-		Props.place(model, base * CFrame.new(0, size.Y / 2, 0), size)
+		-- Whichever way the model was imported, its long side spans the wall (an
+		-- arch that faced sideways along the wall was the PC's round-473db78 find)
+		local extents = model:GetExtentsSize()
+		local turned = extents.Z > extents.X
+		local frame = if turned then base * CFrame.Angles(0, math.pi / 2, 0) else base
+		local size = if turned
+			then Vector3.new(gateWidth * 0.5, gateWidth * 0.8, gateWidth)
+			else Vector3.new(gateWidth, gateWidth * 0.8, gateWidth * 0.5)
+		Props.place(model, frame * CFrame.new(0, size.Y / 2, 0), size)
 		model.Parent = folder
 		local opening = 4.5
 		local reach = GATE_HALF + 4.5
