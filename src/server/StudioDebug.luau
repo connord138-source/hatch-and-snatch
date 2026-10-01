@@ -33,6 +33,8 @@
 --   game.ServerStorage.StudioDebug:Invoke("build")
 --       -- maxes every player's base: level 5, both floors, all 4 vaults, security,
 --       -- the 4 hiding spots and every decor and security item
+--   game.ServerStorage.StudioDebug:Invoke("designs")
+--       -- gives every player every Castle Designer option (Rainbow needs a rebirth)
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -251,13 +253,23 @@ function StudioDebug.start()
 				DataService.markDirty(player)
 			end
 			return "every base maxed: level 5, both floors, all vaults, security, hiding spots and every build"
+		elseif action == "designs" then
+			for player, data in DataService.loadedPlayers() do
+				for slot, options in Config.CastleDesigns.options do
+					for id in options do
+						data.ownedDesigns[`{slot}:{id}`] = true
+					end
+				end
+				DataService.markDirty(player)
+			end
+			return "every Castle Designer option owned (pick them in the Base menu)"
 		elseif action == "daily" then
 			for player in DataService.loadedPlayers() do
 				DailyService.debugNextDay(player)
 			end
 			return "a day passed (for the Daily menu)"
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store(), build(), reveal(species, finish?)"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store(), build(), designs(), reveal(species, finish?)"
 	end
 	hook.Parent = ServerStorage
 end

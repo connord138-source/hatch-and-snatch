@@ -24,9 +24,10 @@ Color3 = {
 }
 
 local function enumGroup(name)
-	return setmetatable({}, { __index = function(_, k) return { Name = k, EnumType = name } end })
+	-- Cached so items compare equal, as Roblox enum items do
+	return setmetatable({}, { __index = function(t, k) local item = { Name = k, EnumType = name }; rawset(t, k, item); return item end })
 end
-Enum = setmetatable({}, { __index = function(_, k) return enumGroup(k) end })
+Enum = setmetatable({}, { __index = function(t, k) local group = enumGroup(k); rawset(t, k, group); return group end })
 
 local DEFAULTS = {
 	Part = { Shape = { Name = "Block" }, Size = Vector3.new(4, 1, 2), Color = Color3.fromRGB(163, 162, 165), Material = { Name = "Plastic" }, Transparency = 0 },
@@ -47,6 +48,12 @@ Inst.__index = function(self, k)
 	if k == "FindFirstChildWhichIsA" then
 		return function(me, class)
 			for _, c in rawget(me, "_children") do if c.ClassName == class or (class == "BasePart" and c.IsPart) then return c end end
+			return nil
+		end
+	end
+	if k == "FindFirstChildOfClass" then
+		return function(me, class)
+			for _, c in rawget(me, "_children") do if c.ClassName == class then return c end end
 			return nil
 		end
 	end
@@ -90,7 +97,12 @@ Instance = {
 }
 Vector3.yAxis = Vector3.new(0, 1, 0)
 UDim2 = { new = function(...) return { ... } end, fromScale = function(...) return { ... } end, fromOffset = function(...) return { ... } end }
-game = { GetService = function(_, name) return Instance.new(name) end }
+local collection = { AddTag = function() end, RemoveTag = function() end, HasTag = function() return false end }
+game = {
+	GetService = function(_, name)
+		return if name == "CollectionService" then collection else Instance.new(name)
+	end,
+}
 
 -- One line per part: name|shape|size|position|right|up|back|color|material|transparency|light
 function dumpParts(root)

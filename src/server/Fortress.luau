@@ -11,6 +11,7 @@
 -- one, and an invisible collider keeps its footprint solid. From the Stockade up
 -- the walls are too tall to jump, so the gate (where the laser lock is) is the way
 -- in. Everything is plot-local: -Z faces the hub, y 0 is the ground.
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -120,6 +121,8 @@ local WOOD_DARK = Color3.fromRGB(92, 64, 42)
 local STONE = Color3.fromRGB(140, 134, 126)
 local PALE = Color3.fromRGB(236, 226, 206)
 local GOLD = Color3.fromRGB(240, 195, 70)
+-- The Citadel's gold trim, which a custom design recolors (see build)
+local GILDED = { GoldBand = true, WallCap = true, GateTrim = true, RoofCap = true }
 local IRON = Color3.fromRGB(55, 55, 62)
 
 type Look = {
@@ -344,9 +347,9 @@ local function flag(folder: Instance, top: CFrame, color: Color3)
 end
 
 -- A tower standing at `base` (plot-local frame on the ground, -Z facing outward).
-local function tower(folder: Instance, base: CFrame, style: Style, look: Look)
+local function tower(folder: Instance, base: CFrame, style: Style, look: Look, models: boolean)
 	local r, h = style.towerRadius, style.towerHeight
-	if style.towerProp and Props.template("WorldProps", style.towerProp) then
+	if models and style.towerProp and Props.template("WorldProps", style.towerProp) then
 		local roof = if style.tower == "roofed" or style.tower == "spire" then r * 2.4 else 0
 		local model = Props.spawn(style.towerProp, base, h + roof, folder)
 		if model then
@@ -501,12 +504,19 @@ end
 
 -- The way in at the front: a timber arch (Camp, Stockade; WorldService's PlotArch),
 -- a stone gatehouse from the Keep up.
-local function gatehouse(folder: Instance, origin: CFrame, layout: Layout, style: Style, look: Look)
+local function gatehouse(
+	folder: Instance,
+	origin: CFrame,
+	layout: Layout,
+	style: Style,
+	look: Look,
+	models: boolean
+)
 	local z = layout.front
 	local h = GATE_CLEAR + 3.5
 	local width = GATE_HALF * 2 + 9
 	local base = origin * CFrame.new(0, 0, z)
-	local template = if style.gateProp then Props.template("WorldProps", style.gateProp) else nil
+	local template = if models and style.gateProp then Props.template("WorldProps", style.gateProp) else nil
 	if template and style.gateProp then
 		-- Fitted by width: the model's arch is the way in (a 9-stud opening between
 		-- invisible colliders that run out to the wall ends). The Citadel's gate is
@@ -652,9 +662,13 @@ function Fortress.build(
 			elseif style.pale then Enum.Material.Limestone
 			else Enum.Material.Cobblestone,
 		color = if wall then wall.color elseif style.pale then PALE else STONE,
-		roof = theme.trimColor:Lerp(Color3.new(0, 0, 0), 0.15),
-		flag = theme.laserColor,
+		roof = theme.roofColor or theme.trimColor:Lerp(Color3.new(0, 0, 0), 0.15),
+		flag = theme.bannerColor or theme.laserColor,
 	}
+	-- Imported tower and gatehouse models carry the Classic look (gray or pale
+	-- stone, blue roofs and banners) in their textures, so a custom design builds
+	-- them from parts in its own colors instead
+	local models = not theme.customTowers
 
 	local x, f, b, g = layout.halfW, layout.front, layout.back, layout.gateHalf
 	local runs = {
@@ -679,15 +693,50 @@ function Fortress.build(
 			-- Face outward, away from the plot's middle
 			local outward = Vector3.new(corner.X, 0, corner.Z - (f + b) / 2)
 			local base = origin * CFrame.lookAt(corner, corner + outward)
-			tower(folder, base, style, look)
+			tower(folder, base, style, look, models)
 		end
 	end
 	if style.gatehouse then
-		gatehouse(folder, origin, layout, style, look)
+		gatehouse(folder, origin, layout, style, look, models)
 	end
 	if style.braziers then
 		for _, side in { -1, 1 } do
 			brazier(folder, origin * CFrame.new(side * (g + 8), 0, f - 8.5)) -- clear of a moat (BaseDecor)
+		end
+	end
+	-- The designer's finishing touches: gold roofs or banners, banner-colored bands,
+	-- the glow color on the spire crystals, and rainbow parts for the client to cycle (RainbowController)
+	local rainbow = theme.rainbow
+	for _, descendant in folder:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			local kind = if descendant.Name == "Roof"
+				then "roof"
+				elseif descendant.Name == "Flag" or descendant.Name == "TowerBanner" then "banner"
+				elseif descendant.Name == "SpireCrystal" then "glow"
+				elseif
+					GILDED[descendant.Name]
+					and descendant.Material == Enum.Material.Foil
+					and theme.customTowers
+				then "band"
+				else nil
+			if kind == "band" then
+				-- The Citadel's gold trim takes the banner color (still metallic)
+				descendant.Color = look.flag
+				kind = "banner"
+			elseif kind == "roof" and theme.roofMaterial then
+				descendant.Material = theme.roofMaterial
+			elseif kind == "banner" and theme.bannerMaterial then
+				descendant.Material = theme.bannerMaterial
+			elseif kind == "glow" then
+				descendant.Color = theme.laserColor
+				local light = descendant:FindFirstChildOfClass("PointLight")
+				if light then
+					light.Color = theme.laserColor
+				end
+			end
+			if kind and rainbow and (rainbow :: any)[kind] then
+				CollectionService:AddTag(descendant, "Rainbow")
+			end
 		end
 	end
 	folder.Parent = parent

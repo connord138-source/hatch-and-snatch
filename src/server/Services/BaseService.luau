@@ -46,6 +46,28 @@ end
 
 type Offer = { key: string, title: string, cost: number }
 
+local Designs = Config.CastleDesigns
+
+-- The look the player's Castle Designer picks give their base.
+local function lookOf(data: PlayerData): Config.BaseTheme
+	return Designs.resolve(data.design)
+end
+
+local function biomeOrder(id: string): number
+	local biome = Config.Biomes[id :: any]
+	return if biome then biome.order else math.huge
+end
+
+local function progressOf(data: PlayerData): Config.DesignProgress
+	return {
+		unlockedBiome = data.unlockedBiome,
+		baseLevel = data.baseLevel,
+		floors = data.floors,
+		vaults = data.vaults,
+		rebirths = data.rebirths,
+	}
+end
+
 local PAD_REACH = 2.6 -- how close to a pad's middle counts as standing on it
 
 -- The owner's two rarest species, for the Guardian Statues.
@@ -164,7 +186,7 @@ local function apply(player: Player, data: PlayerData)
 	if plot == nil then
 		return
 	end
-	local theme = Config.Progression.themesById[data.baseTheme] or Config.Progression.themes[1]
+	local theme = lookOf(data)
 	WorldService.setLevel(plot, data.baseLevel)
 	WorldService.setFloors(plot, data.floors, data.vaults)
 	WorldService.applyTheme(plot, theme)
@@ -226,36 +248,72 @@ function BaseService.upgrade(player: Player)
 	DataService.markDirty(player)
 end
 
--- Buys the theme if not owned (needs its biome unlocked), then applies it.
-function BaseService.setTheme(player: Player, themeId: any)
-	if typeof(themeId) ~= "string" then
+-- Castle Designer: picks an option for a slot, buying it first if needed (it has
+-- to be unlocked: its biome, base progress or a rebirth).
+function BaseService.designPick(player: Player, slot: any, id: any)
+	if typeof(slot) ~= "string" or typeof(id) ~= "string" then
 		return
 	end
 	local data = DataService.get(player)
-	local theme = Config.Progression.themesById[themeId]
-	if data == nil or theme == nil then
+	local option = Designs.options[slot] and Designs.options[slot][id]
+	if data == nil or option == nil then
 		return
 	end
-	local name = Config.Progression.themeName(theme)
-	if not data.ownedThemes[themeId] then
-		if theme.requires then
-			if not Config.Progression.themeBuilt(theme, data.floors, data.vaults) then
-				Net.notify(player, `Build up your base to unlock {name} first.`, "bad")
+	if not Designs.owns(data.ownedDesigns, slot, id) then
+		local open, needs = Designs.unlocked(option, progressOf(data), biomeOrder)
+		if not open then
+			Net.notify(player, `{option.name} needs {needs} first.`, "bad")
+			return
+		end
+		if not EconomyService.spend(player, option.cost, `Design_{slot}`) then
+			Net.notify(player, `You need {Format.cash(option.cost)} for {option.name}.`, "bad")
+			return
+		end
+		data.ownedDesigns[`{slot}:{id}`] = true
+		Net.notify(player, `{option.name} unlocked for your castle!`, "rare")
+	end
+	data.design[slot] = id
+	apply(player, data)
+	DataService.markDirty(player)
+end
+
+-- Castle Designer: sets every slot from a preset, buying what it needs in one go
+-- (all of it has to be unlocked).
+function BaseService.designPreset(player: Player, presetId: any)
+	if typeof(presetId) ~= "string" then
+		return
+	end
+	local data = DataService.get(player)
+	local preset = Designs.presetsById[presetId]
+	if data == nil or preset == nil then
+		return
+	end
+	local total = 0
+	local buying: { string } = {}
+	for slot, id in preset.picks do
+		local option = Designs.options[slot][id]
+		if option and not Designs.owns(data.ownedDesigns, slot, id) then
+			local open, needs = Designs.unlocked(option, progressOf(data), biomeOrder)
+			if not open then
+				Net.notify(player, `{preset.name} needs {needs} first ({option.name}).`, "bad")
 				return
 			end
-		elseif not ProgressionService.canBuyBiome(data, themeId) then
-			Net.notify(player, `Unlock {name} first.`, "bad")
-			return
+			total += option.cost
+			table.insert(buying, `{slot}:{id}`)
 		end
-		if not EconomyService.spend(player, theme.cost, `Theme_{themeId}`) then
-			Net.notify(player, `You need {Format.cash(theme.cost)} for this theme.`, "bad")
-			return
-		end
-		data.ownedThemes[themeId] = true
-		Net.notify(player, `{name} base theme unlocked!`, "rare")
 	end
-	data.baseTheme = themeId
+	if total > 0 and not EconomyService.spend(player, total, "DesignPreset") then
+		Net.notify(player, `You need {Format.cash(total)} for {preset.name}.`, "bad")
+		return
+	end
+	for _, key in buying do
+		data.ownedDesigns[key] = true
+	end
+	for slot, id in preset.picks do
+		data.design[slot] = id
+	end
 	apply(player, data)
+	Net.notify(player, `{preset.name} applied!`, if total > 0 then "rare" else "info")
 	DataService.markDirty(player)
 end
 
@@ -470,8 +528,7 @@ local function refreshStatues(owner: Player, data: PlayerData)
 	local plot = PlotService.get(owner)
 	if plot and not first then
 		local decor = ownedBuilds(data)
-		local theme = Config.Progression.themesById[data.baseTheme] or Config.Progression.themes[1]
-		WorldService.setBuilds(plot, decor, theme, species)
+		WorldService.setBuilds(plot, decor, lookOf(data), species)
 	end
 end
 local function watchPads()
@@ -549,7 +606,8 @@ function BaseService.start()
 	end)
 	Net.onRequest("ToggleBuild", BaseService.toggleBuild)
 	Net.onRequest("UpgradeBase", BaseService.upgrade)
-	Net.onRequest("Theme", BaseService.setTheme)
+	Net.onRequest("DesignPick", BaseService.designPick)
+	Net.onRequest("DesignPreset", BaseService.designPreset)
 	Net.onRequest("Security", BaseService.buySecurity)
 	Net.onRequest("BuyFloor", BaseService.buyFloor)
 	Net.onRequest("BuyVault", BaseService.buyVault)

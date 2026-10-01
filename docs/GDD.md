@@ -39,7 +39,7 @@ doing so.
 buy egg from the belt → carry it home → place it in an incubator (optional Luck Wheel spin)
     → hatch reveal → creature sits on a pedestal earning cash/sec → grows Baby → Juvenile → Adult
     → XP from all of it raises your Hatcher Level → new biome eggs unlock
-    → spend cash on more/better incubators, base upgrades, base themes, pricier eggs
+    → spend cash on more/better incubators, base upgrades, castle designs, pricier eggs
     ↘ steal other players' creatures / defend your own ↙        (rebirth = prestige)
 ```
 
@@ -141,17 +141,17 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 - A locked gate that pushes a thief out takes the owner's creature back.
 - Both saves are written right after a delivery.
 
-### 6.1 Base upgrades and themes
+### 6.1 Base upgrades and the Castle Designer
 
 - **Buying:** every upgrade is a walk-over **buy pad** in the front yard (owner, 2026-10-01; `BaseKit.luau`, `BaseService`). Stand on one for 0.6 s to buy; step off to buy again, so walking past never buys anything. Eight pads, one each for the next base level, security level, floor, vault and hiding spot, then the three cheapest decor or security items open to you. A pad only shows once its step is open, green when you can afford it, red when not.
-- **Command Terminal:** a console with a monitor by the lock button (it replaced the old upgrade gem). Its screen shows the base's tier and counts, and its prompt opens the **Base menu** (it has no menu-bar button): status and what's next, decor switched on or off, the security items, and themes.
+- **Command Terminal:** a console with a monitor by the lock button (it replaced the old upgrade gem). Its screen shows the base's tier and counts, and its prompt opens the **Base menu** (it has no menu-bar button): status and what's next, decor switched on or off, the security items, and the Castle Designer.
 - **The fortress** (`Fortress.luau`; owner, 2026-10-01): the walls round the plot grow with the base level, free with each upgrade. From the Stockade up the walls are too tall to jump, so the gate (where the laser lock is) is the only way in.
   1. **Camp:** a picket fence and a timber arch.
   2. **Stockade:** log palisade walls and wooden watchtowers at the back corners.
   3. **Keep:** stone walls with battlements, round stone towers at the back and a stone gatehouse.
   4. **Fortress:** taller walls, four towers with slate cone roofs and flags, braziers at the gate.
   5. **Citadel:** pale stone and gold, crystal-tipped spires.
-  - The theme sets the stone (its `wall` material and color), the roof color (trim) and the flags (laser color). Tower and gatehouse models replace the part-built ones when imported (a 9-stud walk-through arch between invisible colliders).
+  - The Castle Designer sets the stone, the roofs, the banners and the glow (below). Tower and gatehouse models replace the part-built ones when imported (a 9-stud walk-through arch between invisible colliders); they carry the Classic look in their textures, so they are used only for the Classic design and any other design builds its towers from parts in its own colors. The gatehouse model is turned to face out whichever way it was imported. At the Citadel a custom design also recolors the gold trim (tower bands, wall caps, gate trim) to its banner color.
   - The floors above are a **stone keep**: solid stone walls (the glass boxes looked see-through and unfinished), an arched front with balustrades so the creatures show, stone pillars, battlements on the Top Floor.
 - **Base level 1 to 5:** 60K, 25M, 5B and 500B. Each level:
   - widens and deepens the plot (60×48 up to 76×68 studs), so thieves have a longer run out;
@@ -179,7 +179,16 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
   - Hidden **Mythic and rarer** creatures give themselves away with a burst of sparkles in their rarity color every ~12 s, so an ultra-rare is never hidden for good.
   - Hiding spots aren't auto-filled and Rarest up top leaves them alone; moving a creature in or out isn't allowed while an intruder is in the base.
 - **Decor** (pads; switch each on or off at the terminal; `BaseDecor.luau`): Camp Supplies 15K, Wall Torches 40K, Campfire 150K, Flower Planters 600K, Banners 2.5M (theme colors), Training Yard 8M, Stone Well 40M, Lantern Path 150M, Fountain 900M, Guardian Statues 4B (stone statues of your two rarest creatures by the gate), Moat & Drawbridge 30B, Royal Gold Trim 350B (base 5).
-- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 100K, Magma 25M, Frost 5B, Storm 500B, Moonfall 50T). Building up unlocks three more looks: **Stone Fortress** (Second Floor, 2B), **Sky Palace** (Top Floor, 150B) and **Royal Vault** (all 4 vaults, 1T). Themes also restyle the fortress, the keep's stone, the ramps and the vault doors. Owned themes can be switched freely.
+- **Castle Designer** (owner, 2026-10-01: "ice, fire, light, dark, red, blue, green, rainbow, tons of combos"; `Config/CastleDesigns.luau`, Base menu at the terminal). It replaced the nine fixed base themes. A base's look is six picks that mix and match:
+  - **Stone** (walls, towers, keep): Classic (gray, pale and gold at the Citadel), Mossy 25K, Sandstone 120K, Basalt 30M, Obsidian 120M, Ice 6B, Storm Slate 600B, Moonstone 60T; Fortress Stone 2B (Second Floor), Marble 150B (Top Floor), Royal Granite 1T (all 4 vaults), Solid Gold 150T (1 rebirth).
+  - **Roofs** and **Banners** (the same 14 colors each): Blue, Red and Green free; Sunflower 40K, Lagoon Teal 150K, Coral Pink 250K, Ember Orange 30M, Charcoal 60M, Snow White 6B, Ice Blue 8B, Thunder Yellow 600B, Void Purple 60T; Gold foil 400B (base 5); Rainbow 100T (1 rebirth, the color cycles).
+  - **Glow** (laser gate, vault doors, spire and royal crystals): Laser Red free, Toxic 50K, Ocean 150K, Fire 30M, Ice 6B, Light 8B (base 4), Lightning 600B, Dark 60T, Royal Gold 1T (all 4 vaults), Rainbow 100T (1 rebirth).
+  - **Floor:** Wood free, Sand 100K, Basalt 25M, Glacier 5B, Slate 500B, Moon Pebble 50T; Cobblestone 1B, Marble 100B, Dark Granite 800B (floors and vaults as above).
+  - **Grounds** (the plants and rocks round the walls): Forest free, Meadow 60K, Coral Shore 100K, Volcanic 25M, Frozen 5B, Stormy Crags 500B, Lunar 50T; Rocky 1B, Crystal Garden 150B.
+  - Biome options open with that biome's eggs (Mossvale, Coral, Magma, Frost, Storm, Moonfall), the rest with base progress or a rebirth. Each is bought once and can be picked freely after; free options count as owned.
+  - **12 presets** set every slot at once and buy whatever is missing in one payment (all of it must be unlocked): Classic, Red Bastion, Green Hold, Coral Fort, Fire Keep, Ice Castle, Light Citadel, Storm Spire, Dark Fortress, Moon Palace, Royal Vault, Rainbow Castle.
+  - Old saves migrate: every theme a player owned becomes its stone, floor, glow and grounds options, and their active theme becomes their design (`DataService`, `fromTheme`).
+  - Preview: `bash tools/preview/run_designs.sh <dir> [Preset ...]` renders the Citadel in each preset; `bash tools/tests/run_designs.sh` checks the presets, options and unlocks.
 - **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.
 
 ## 7. Economy (retuned 2026-09-30 for multi-week pacing; tune in playtests)
@@ -254,7 +263,7 @@ Before the retune, a 3 h/day player had bought everything in about 3 hours of pl
 - **The island** (rebuilt 2026-10-01 to the owner-approved concept; `WorldService`, `Landmarks.luau`): a round grass island 410 studs across the radius, with a sandy beach and the open sea around it. The sea is the border: an invisible wall at the beach's edge keeps players out of the water, with a gap only for the pier, where boats to future islands will tie up.
   - **Rings:** the hub and belt (plaza out to 56 studs, with a dirt ring path); the six fortresses (128 studs out); a ring road past the zone gates (196); the biome ring (205–295); an outer loop path through the open land (~334); the beach.
   - **Main paths** run north and south from the plaza, through the two gaps in the biome ring, out to the beach, with lanterns and signposts. Spur paths lead to the landmarks.
-  - **Landmarks:** a striped lighthouse, a fishing hut and a walled pier on the northwest beach; a windmill, a stone circle and crumbling ruins in the north; a cliff waterfall in the northeast whose stream runs along the coast to the sea under a footbridge, with a campsite beyond; a second stone circle and palms to the southeast; a campsite and pines to the south; a beached shipwreck on the southwest beach; oak and pine woods in the west; meadows and boulders everywhere. Each uses its imported model and has a part-built stand-in.
+  - **Landmarks:** a striped lighthouse, a fishing hut and a walled pier on the northwest beach; a windmill, a stone circle and crumbling ruins in the north; a cliff waterfall in the northeast (running water: a falling particle curtain with mist, and foam drifting down the stream) whose stream runs along the coast to the sea under a footbridge, with a campsite beyond; a second stone circle and palms to the southeast; a campsite and pines to the south; a beached shipwreck on the southwest beach; oak and pine woods in the west; meadows and boulders everywhere. Each uses its imported model and has a part-built stand-in.
   - **North Commons:** the Luck Wheel, the Quest Board (opens Daily quests) and the Daily Chest (opens Daily rewards), with market stalls.
   - **South Event Grounds:** a board showing the moon event now on, or when the next one rises, with stalls and a campfire.
 - **Hub:** the hatchery tunnel over the belt, with 12 egg-lantern lamp posts around the loop.

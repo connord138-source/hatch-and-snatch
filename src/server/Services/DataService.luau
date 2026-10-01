@@ -73,8 +73,11 @@ export type PlayerData = {
 	achievements: { [string]: boolean },
 	incubatorTiers: { number }, -- one entry per owned incubator (its tier)
 	heldEgg: HeldEgg?,
-	baseTheme: string,
-	ownedThemes: { [string]: boolean },
+	baseTheme: string, -- retired: the Castle Designer's `design` replaced themes
+	ownedThemes: { [string]: boolean }, -- retired (kept so old saves migrate)
+	design: { [string]: string }, -- the Castle Designer's pick per slot (Config.CastleDesigns)
+	ownedDesigns: { [string]: boolean }, -- "slot:id" options bought (free ones aren't listed)
+	designMigrated: boolean,
 	baseLevel: number, -- Config.Economy.tunables.baseLevels index
 	security: number, -- how many of Config.Economy.tunables.securityLevels are bought
 	floors: number, -- floors the base has, counting the ground (1-3, Config.Economy.tunables.floors)
@@ -148,6 +151,9 @@ local TEMPLATE: PlayerData = {
 	heldEgg = nil,
 	baseTheme = "Mossvale",
 	ownedThemes = { Mossvale = true },
+	design = {},
+	ownedDesigns = {},
+	designMigrated = false,
 	baseLevel = 1,
 	security = 0,
 	floors = 1,
@@ -352,6 +358,27 @@ local function onPlayerAdded(player: Player)
 		if data.baseLevel >= 4 then
 			data.floors =
 				math.max(data.floors, math.min(data.baseLevel - 2, #Config.Economy.tunables.floors + 1))
+		end
+	end
+	-- Saves from before the Castle Designer (2026-10-01): every old base theme they
+	-- owned becomes its stone, floor, glow and grounds options, and the active one
+	-- becomes their design
+	if not data.designMigrated then
+		data.designMigrated = true
+		local designs = Config.CastleDesigns
+		for themeId in data.ownedThemes do
+			local picks = designs.fromTheme[themeId]
+			if picks then
+				for slot, id in picks do
+					data.ownedDesigns[`{slot}:{id}`] = true
+				end
+			end
+		end
+		local active = designs.fromTheme[data.baseTheme]
+		if active then
+			for slot, id in active do
+				data.design[slot] = id
+			end
 		end
 	end
 	local discovered = 0

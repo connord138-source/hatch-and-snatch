@@ -8,6 +8,7 @@
 -- prop is imported (ReplicatedStorage.WorldProps, see Props.luau) the prop is
 -- fitted over it. Gameplay only depends on the parts/CFrames exposed here.
 local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
@@ -1466,8 +1467,18 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	for _, trim in plot.trim do
 		trim.Color = theme.trimColor
 	end
+	-- The glow: lasers and vault doors (a rainbow glow cycles on the client)
+	local rainbowGlow = theme.rainbow ~= nil and theme.rainbow.glow
+	local function glow(part: BasePart)
+		part.Color = theme.laserColor
+		if rainbowGlow then
+			CollectionService:AddTag(part, "Rainbow")
+		else
+			CollectionService:RemoveTag(part, "Rainbow")
+		end
+	end
 	for _, laser in plot.lasers do
-		laser.Color = theme.laserColor
+		glow(laser)
 	end
 	-- The floors above take the theme too: the fortress's stone on their walls,
 	-- arches and pillars, its floor on slabs and ramps, its laser color on the doors
@@ -1485,7 +1496,7 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 		end
 	end
 	for _, room in plot.vaults do
-		room.door.Color = theme.laserColor
+		glow(room.door)
 	end
 
 	-- The fortress around the plot follows the level and takes the theme's colors
@@ -2266,7 +2277,7 @@ function WorldService.start()
 		table.insert(WorldService.plots, plot)
 		WorldService.setLevel(plot, 1)
 		WorldService.setFloors(plot, 1, 0)
-		WorldService.applyTheme(plot, Config.Progression.themes[1])
+		WorldService.applyTheme(plot, Config.CastleDesigns.resolve({}))
 		WorldService.setHides(plot, 0)
 		WorldService.setSecurity(plot, {}, false)
 	end

@@ -75,11 +75,11 @@ local function release(player: Player)
 	-- Back to a starter plot for the next owner
 	WorldService.setLevel(plot, 1)
 	WorldService.setFloors(plot, 1, 0)
-	WorldService.applyTheme(plot, Config.Progression.themes[1])
+	WorldService.applyTheme(plot, Config.CastleDesigns.resolve({}))
 	WorldService.setNursery(plot, Config.Economy.tunables.nurserySlotsBase)
 	WorldService.setHides(plot, 0)
 	WorldService.setSecurity(plot, {}, false)
-	WorldService.setBuilds(plot, {}, Config.Progression.themes[1], {})
+	WorldService.setBuilds(plot, {}, Config.CastleDesigns.resolve({}), {})
 	WorldService.clearPads(plot)
 	plot.terminalScreen.Text = "BASE TERMINAL"
 	PlotService.released:fire(plot)

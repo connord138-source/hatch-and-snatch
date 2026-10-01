@@ -7,6 +7,7 @@
 -- the gate, a moat with a drawbridge, and gold trim with crystals for the Citadel.
 -- Imported models (WorldProps) where there are some, parts otherwise. Rebuilt
 -- whole into a Folder "Builds" whenever what's shown changes.
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -225,8 +226,8 @@ function BaseDecor.build(
 	end
 
 	if shown.Banners then
-		local banner = theme.laserColor
-		local stripe = theme.trimColor
+		local banner = theme.bannerColor or theme.laserColor
+		local stripe = theme.roofColor or theme.trimColor
 		for _, px in { -g - 7.5, g + 7.5, -x + 8, x - 8 } do
 			local top = if low then 8 else layout.height - 0.5
 			local base = at(px, f - face - 0.3)
@@ -243,7 +244,7 @@ function BaseDecor.build(
 				Name = "Banner",
 				Size = Vector3.new(2.6, 5.5, 0.12),
 				CFrame = base * CFrame.new(0, top - 2.75, 0),
-				Material = Enum.Material.Fabric,
+				Material = theme.bannerMaterial or Enum.Material.Fabric,
 				Color = banner,
 			})
 			part(folder, {
@@ -482,7 +483,7 @@ function BaseDecor.build(
 					* CFrame.new(corner.X, style.towerHeight + style.towerRadius * 3 + 6, corner.Z)
 					* CFrame.Angles(math.rad(45), math.rad(35), math.rad(45)),
 				Material = Enum.Material.Neon,
-				Color = Color3.fromRGB(255, 220, 110),
+				Color = theme.laserColor,
 			})
 			local light = Instance.new("PointLight")
 			light.Color = crystal.Color
@@ -492,6 +493,18 @@ function BaseDecor.build(
 		end
 	end
 
+	-- Rainbow designs: the client cycles these through the colors
+	local rainbow = theme.rainbow
+	if rainbow then
+		for _, descendant in folder:GetDescendants() do
+			if
+				(rainbow.banner and descendant.Name == "Banner")
+				or (rainbow.glow and descendant.Name == "RoyalCrystal")
+			then
+				CollectionService:AddTag(descendant, "Rainbow")
+			end
+		end
+	end
 	folder.Parent = parent
 end
 

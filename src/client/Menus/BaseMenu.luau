@@ -12,12 +12,10 @@ local Format = require(ReplicatedStorage.Shared.Format)
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
 
-local Progression = Config.Progression
 local tunables = Config.Economy.tunables
 local levels = tunables.baseLevels
 local securityLevels = tunables.securityLevels
 
-type ThemeRow = { frame: Frame, status: TextLabel, button: TextButton }
 type BuyRow = { title: TextLabel, info: TextLabel, button: TextButton, ready: boolean, request: string }
 
 local levelRow: BuyRow
@@ -26,7 +24,11 @@ local floorRow: BuyRow
 local vaultRow: BuyRow
 local hideRow: BuyRow
 local itemRows: { [string]: BuyRow } = {}
-local themeRows: { [string]: ThemeRow } = {}
+type DesignCell = { button: TextButton, stroke: UIStroke, status: TextLabel }
+local Designs = Config.CastleDesigns
+local presetCells: { [string]: DesignCell } = {}
+local optionCells: { [string]: { [string]: DesignCell } } = {}
+local slotHeaders: { [string]: TextLabel } = {}
 
 local BaseMenu = {}
 
@@ -156,46 +158,94 @@ function BaseMenu.build(content: Frame)
 			end
 		end
 	end
-	header(list, 50, "Base themes: restyle your plot (biome looks, and looks your floors and vaults unlock)")
-	for i, theme in Progression.themes do
-		local frame = Ui.panel(list, {
-			Size = UDim2.new(1, -10, 0, 50),
-			BackgroundColor3 = Ui.colors.row,
-			BackgroundTransparency = 0,
-			LayoutOrder = 50 + i,
+	-- The Castle Designer: presets, then one swatch grid per slot
+	header(list, 50, "Castle Designer: mix and match your castle (new looks open with each zone)")
+	local function grid(order: number, cell: Vector2): Frame
+		local frame = Instance.new("Frame")
+		frame.BackgroundTransparency = 1
+		frame.Size = UDim2.new(1, -10, 0, 0)
+		frame.AutomaticSize = Enum.AutomaticSize.Y
+		frame.LayoutOrder = order
+		local layout = Instance.new("UIGridLayout")
+		layout.CellSize = UDim2.fromOffset(cell.X, cell.Y)
+		layout.CellPadding = UDim2.fromOffset(6, 6)
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Parent = frame
+		frame.Parent = list
+		return frame
+	end
+	local function cell(
+		parent: Instance,
+		order: number,
+		color: Color3?,
+		title: string,
+		onPick: () -> ()
+	): DesignCell
+		local button = Instance.new("TextButton")
+		button.Text = ""
+		button.AutoButtonColor = true
+		button.BackgroundColor3 = Ui.colors.row
+		button.LayoutOrder = order
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0, 8)
+		round.Parent = button
+		local stroke = Instance.new("UIStroke")
+		stroke.Thickness = 2
+		stroke.Color = Ui.colors.disabled
+		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		stroke.Parent = button
+		if color then
+			local swatch = Instance.new("Frame")
+			swatch.BorderSizePixel = 0
+			swatch.Position = UDim2.fromOffset(6, 6)
+			swatch.Size = UDim2.new(1, -12, 0, 14)
+			swatch.BackgroundColor3 = color
+			local swatchRound = Instance.new("UICorner")
+			swatchRound.CornerRadius = UDim.new(0, 4)
+			swatchRound.Parent = swatch
+			swatch.Parent = button
+		end
+		local name = text(button, {
+			Position = UDim2.fromOffset(6, if color then 22 else 6),
+			Size = UDim2.new(1, -12, 0, 16),
+			TextSize = 13,
+			Text = title,
+			TextXAlignment = Enum.TextXAlignment.Center,
 		})
-		local swatch = Instance.new("Frame")
-		swatch.BorderSizePixel = 0
-		swatch.Position = UDim2.fromOffset(8, 8)
-		swatch.Size = UDim2.fromOffset(34, 34)
-		swatch.BackgroundColor3 = theme.floorColor
-		swatch.Parent = frame
-		local trim = Instance.new("UIStroke")
-		trim.Color = theme.trimColor
-		trim.Thickness = 3
-		trim.Parent = swatch
-		text(frame, {
-			Position = UDim2.fromOffset(52, 5),
-			Size = UDim2.new(1, -200, 0, 22),
-			TextSize = 17,
-			Text = Progression.themeName(theme),
-		})
-		local status = text(frame, {
-			Position = UDim2.fromOffset(52, 27),
-			Size = UDim2.new(1, -200, 0, 16),
-			TextSize = 12,
+		name.TextTruncate = Enum.TextTruncate.AtEnd
+		local status = text(button, {
+			Position = UDim2.new(0, 6, 1, -20),
+			Size = UDim2.new(1, -12, 0, 14),
+			TextSize = 11,
 			TextColor3 = Ui.colors.muted,
 			TextStrokeTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Center,
 		})
-		local button = Ui.button(frame, {
-			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.new(1, -8, 0.5, 0),
-			Size = UDim2.fromOffset(130, 36),
-		})
-		button.Activated:Connect(function()
-			ClientState.request("Theme", theme.id)
+		button.Activated:Connect(onPick)
+		button.Parent = parent
+		return { button = button, stroke = stroke, status = status }
+	end
+	local presetGrid = grid(51, Vector2.new(124, 46))
+	for i, preset in Designs.presets do
+		presetCells[preset.id] = cell(presetGrid, i, nil, preset.name, function()
+			ClientState.request("DesignPreset", preset.id)
 		end)
-		themeRows[theme.id] = { frame = frame, status = status, button = button }
+	end
+	for i, slot in Designs.slots do
+		slotHeaders[slot.id] = text(list, {
+			Size = UDim2.new(1, -10, 0, 22),
+			TextSize = 15,
+			TextColor3 = Color3.fromRGB(255, 220, 120),
+			LayoutOrder = 52 + i * 2,
+		})
+		local slotGrid = grid(53 + i * 2, Vector2.new(96, 60))
+		optionCells[slot.id] = {}
+		for j, option in slot.options do
+			local swatch = option.color or Color3.fromRGB(140, 134, 126)
+			optionCells[slot.id][option.id] = cell(slotGrid, j, swatch, option.name, function()
+				ClientState.request("DesignPick", slot.id, option.id)
+			end)
+		end
 	end
 end
 
@@ -332,37 +382,70 @@ function BaseMenu.refresh(state: { [string]: any })
 		end
 	end
 
-	for id, row in themeRows do
-		local theme = Progression.themesById[id]
-		local owned = state.ownedThemes and state.ownedThemes[id] == true
-		local active = state.baseTheme == id
-		local unlocked = if theme.requires
-			then Progression.themeBuilt(theme, floors, vaults)
-			else Config.Biomes[id].order <= state.unlockedBiome
-		if active then
-			row.status.Text = "Active"
-			row.button.Text = "Active"
-			row.button.BackgroundColor3 = Ui.colors.disabled
-		elseif owned then
-			row.status.Text = "Owned"
-			row.button.Text = "Use"
-			row.button.BackgroundColor3 = Ui.colors.blue
-		elseif unlocked then
-			row.status.Text = `Unlocked: {Format.cash(theme.cost)}`
-			row.button.Text = `Buy {Format.cash(theme.cost)}`
-			row.button.BackgroundColor3 = if cash >= theme.cost then Ui.colors.good else Ui.colors.disabled
-		elseif theme.requires then
-			local need = theme.requires
-			row.status.Text = if need.vaults
-				then `Build all {need.vaults} vaults to unlock`
-				else `Build the {floorName(need.floors or 2)} to unlock`
-			row.button.Text = "Locked"
-			row.button.BackgroundColor3 = Ui.colors.disabled
-		else
-			local need = Progression.biomeRequirements[id]
-			row.status.Text = `Unlock {Config.Biomes[id].displayName} first (Hatcher Lv {need.level})`
-			row.button.Text = "Locked"
-			row.button.BackgroundColor3 = Ui.colors.disabled
+	-- The Castle Designer: what's in use, owned, for sale, or still locked
+	local design = state.design or {}
+	local owned = state.ownedDesigns or {}
+	local progress: Config.DesignProgress = {
+		unlockedBiome = state.unlockedBiome or 1,
+		baseLevel = level,
+		floors = floors,
+		vaults = vaults,
+		rebirths = state.rebirths or 0,
+	}
+	local function biomeOrder(id: string): number
+		local biome = Config.Biomes[id :: any]
+		return if biome then biome.order else math.huge
+	end
+	local function showCell(entry: DesignCell, inUse: boolean, has: boolean, cost: number, needs: string?)
+		entry.stroke.Color = if inUse
+			then Color3.fromRGB(255, 220, 90)
+			elseif has then Ui.colors.good
+			else Ui.colors.disabled
+		entry.status.Text = if inUse
+			then "✓ In use"
+			elseif has then "Owned"
+			elseif needs then `🔒 {needs}`
+			else Format.cash(cost)
+		entry.status.TextColor3 = if needs and not has
+			then Ui.colors.warn
+			elseif not has and cash >= cost then Ui.colors.cash
+			else Ui.colors.muted
+	end
+	for _, slot in Designs.slots do
+		local picked = design[slot.id] or slot.default
+		local pickedOption = Designs.options[slot.id][picked]
+		slotHeaders[slot.id].Text = `{slot.name}: {if pickedOption then pickedOption.name else picked}`
+		for _, option in slot.options do
+			local has = Designs.owns(owned, slot.id, option.id)
+			local open, needs = Designs.unlocked(option, progress, biomeOrder)
+			showCell(
+				optionCells[slot.id][option.id],
+				picked == option.id,
+				has,
+				option.cost,
+				if open then nil else needs
+			)
+		end
+	end
+	for _, preset in Designs.presets do
+		local inUse, total, blocked = true, 0, nil :: string?
+		for slotId, id in preset.picks do
+			local slot = Designs.slotsById[slotId]
+			if (design[slotId] or slot.default) ~= id then
+				inUse = false
+			end
+			local option = Designs.options[slotId][id]
+			if option and not Designs.owns(owned, slotId, id) then
+				local open, needs = Designs.unlocked(option, progress, biomeOrder)
+				total += option.cost
+				if not open then
+					blocked = blocked or needs
+				end
+			end
+		end
+		showCell(presetCells[preset.id], inUse, total == 0, total, blocked)
+		if total == 0 and not inUse then
+			presetCells[preset.id].status.Text = "Apply"
 		end
 	end
 end

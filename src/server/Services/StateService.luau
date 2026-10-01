@@ -100,7 +100,7 @@ local function snapshot(player: Player): { [string]: any }?
 		nextBaseCost = if Config.Economy.tunables.baseLevels[data.baseLevel + 1]
 			then Config.Economy.tunables.baseLevels[data.baseLevel + 1].cost
 			else nil,
-		baseTheme = data.baseTheme,
+		design = data.design,
 		security = data.security,
 		floors = data.floors,
 		vaults = data.vaults,
@@ -108,7 +108,7 @@ local function snapshot(player: Player): { [string]: any }?
 		builds = data.builds,
 		hiddenBuilds = data.hiddenBuilds,
 		vaultLocks = StealService.vaultStates(player),
-		ownedThemes = data.ownedThemes,
+		ownedDesigns = data.ownedDesigns,
 		progression = ProgressionService.snapshot(data),
 		spins = data.spins,
 		luckCharge = data.luckCharge,
