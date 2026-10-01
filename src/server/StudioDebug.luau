@@ -27,6 +27,9 @@
 --       -- restarts the first-session guide for every player (from "buy an egg")
 --   game.ServerStorage.StudioDebug:Invoke("daily")
 --       -- pretends a day passed: the login reward and new daily quests come back
+--   game.ServerStorage.StudioDebug:Invoke("reveal", "Capybaron", "Galaxy")
+--       -- plays the hatch reveal for that species (finish optional) without granting
+--       -- anything (store screenshots)
 --   game.ServerStorage.StudioDebug:Invoke("build")
 --       -- maxes every player's base: level 5, both floors and all 4 vaults
 --   game.ServerStorage.StudioDebug:Invoke("store")
@@ -40,6 +43,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
+local Net = require(script.Parent.Net)
 local BaseService = require(script.Parent.Services.BaseService)
 local CreatureService = require(script.Parent.Services.CreatureService)
 local DailyService = require(script.Parent.Services.DailyService)
@@ -217,6 +221,20 @@ function StudioDebug.start()
 			return cash(...)
 		elseif action == "guide" then
 			return restartGuide()
+		elseif action == "reveal" then
+			local species, finish = ...
+			local creature = if typeof(species) == "string" then Config.CreaturesById[species] else nil
+			if not creature then
+				return "unknown species"
+			end
+			for player in DataService.loadedPlayers() do
+				Net.hatchReveal(player, {
+					species = species,
+					biome = creature.biome,
+					finish = if typeof(finish) == "string" then finish else "Normal",
+				})
+			end
+			return `revealing {species}`
 		elseif action == "build" then
 			local tunables = Config.Economy.tunables
 			for player, data in DataService.loadedPlayers() do
@@ -233,7 +251,7 @@ function StudioDebug.start()
 			end
 			return "a day passed (for the Daily menu)"
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store(), build()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store(), build(), reveal(species, finish?)"
 	end
 	hook.Parent = ServerStorage
 end
