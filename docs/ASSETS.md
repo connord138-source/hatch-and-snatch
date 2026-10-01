@@ -43,6 +43,7 @@ Don't scale or position anything; the code does it:
 
 ## Check in Studio
 
+- **Updating models:** `fetch_assets.py` re-downloads any model whose link changed in the manifest (it remembers links in `assets/.sources.json`), and `rig_all.py` re-rigs only models that changed (`assets/fbx/.rigged.json`; `--all` re-rigs everything). Re-import just the changed FBXs and rerun the organizer.
 - **Facing:** `rig_creature.py` squares each body up and guesses the head end. A raised tail club, tuft or swirl can fool the guess.
   - The fix is `"flip"` in `tools/blender/bodyplans.json`, under `front` (adult), `frontBaby` or `frontJuvenile`. Each GLB has its own orientation, so a species can need it for one stage only.
   - Then rerun `rig_all.py` and re-import that model. Re-running the organizer replaces the old copy.
@@ -87,3 +88,5 @@ HollowStump ef9b172f · GiantGlowcap 3d45884a · TideArch 78dfeb40 · GiantClam 
     python tools/tripo.py run jobs.json --dry
 
 Settings match the old Higgsfield route: v3.1, 8000 faces, standard texture with PBR. Tripo's download links expire within minutes, so host each GLB on Higgsfield file storage (`media_upload` → PUT → `media_confirm` with type `file`) before adding its permanent URL to the manifest.
+
+Ultra-rare rework (2026-10-01, Tripo direct; jobs in `tools/tripo_jobs_ultrarework.json`). These 17 models replaced the earlier ones: Glacierion, Lurehound, Solarion, Quasarfox and Nullcat (all three stages), the Capybaron Juvenile and the Halosaur adult. All were rigged and facing-checked in the sandbox; Solarion (adult) and Nullcat (adult and Juvenile) needed `"flip"`. The Capybaron Baby has a new model sheet (`Capybaron_Sheet_Baby2`) that's waiting on Tripo credits.

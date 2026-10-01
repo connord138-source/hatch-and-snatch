@@ -147,8 +147,7 @@
   },
   "Solarion": {
     "bodyPlan": "lean-predator",
-    "front": "flip",
-    "frontJuvenile": "flip"
+    "front": "flip"
   },
   "Glacierion": {
     "bodyPlan": "lean-predator",
@@ -164,8 +163,7 @@
   },
   "Quasarfox": {
     "bodyPlan": "lean-predator",
-    "front": "flip",
-    "frontJuvenile": "flip"
+    "front": "auto"
   },
   "Singularis": {
     "bodyPlan": "shelled",
@@ -173,6 +171,7 @@
   },
   "Nullcat": {
     "bodyPlan": "lean-predator",
-    "front": "flip"
+    "front": "flip",
+    "frontJuvenile": "flip"
   }
 }

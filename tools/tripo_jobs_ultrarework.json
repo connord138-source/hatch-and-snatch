@@ -223,6 +223,290 @@
    "model": "gemini_3_pro_image_preview",
    "ref": "assets/tripo/concepts/refs/Capybaron_ref.png",
    "prompt": "Creature-design EVOLUTION SHEET for a Roblox creature game: the SAME creature at three life stages side by side on a plain light-gray background, left to right BABY, JUVENILE, ADULT, all facing right in side three-quarter view, neutral standing pose, legs straight and slightly apart, mouth closed, evenly spaced, not overlapping, each fully visible head to tail, at true relative size (baby ~40% of adult height, juvenile ~70%). Growth must read clearly: baby = cute infant (big head, large realistic eyes, stubby legs, fluffy, element only just starting), juvenile = gangly adolescent (features half grown), adult = majestic, fully developed. Same species and colors at every stage. Style: semi-realistic Roblox 3D render, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes (never cartoon or anime), natural anatomy, soft even lighting, no text, no scenery. Reference: the creature's current adult design is on the LEFT; keep its species, identity, colors and signature features but craft it better. The creatures on the right only show the art style. Keep the regalia simple. CAPYBARON, a Secret ROYAL CAPYBARA made of faceted solid gold. Its royal regalia grows with it while it stays solid gold at every stage. Baby: a tiny round gold capybara pup with an oversized crown slipping down over its eyes. Juvenile: a chubby young gold capybara with a small crown and a short red cape. Adult: a fat, regal gold capybara king with a big jeweled crown, a long red royal cape with white ermine trim, and a small yuzu fruit balanced on its head."
+  },
+  {
+   "name": "Glacierion_Sheet_Baby",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Glacierion_EvoB.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the BABY (the smallest one, on the left) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the ice-shard mane exactly as grown at this stage. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Glacierion_Sheet_Juvenile",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Glacierion_EvoB.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the JUVENILE (the middle one) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the ice-shard mane exactly as grown at this stage. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Glacierion_Sheet_Adult",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Glacierion_EvoB.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the ADULT (the largest one, on the right) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the ice-shard mane exactly as grown at this stage. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Solarion_Sheet_Baby",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Solarion_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the BABY (the smallest one, on the left) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the sun-corona mane shape and the small burning sun at the tail tip. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Solarion_Sheet_Juvenile",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Solarion_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the JUVENILE (the middle one) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the sun-corona mane shape and the small burning sun at the tail tip. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Solarion_Sheet_Adult",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Solarion_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the ADULT (the largest one, on the right) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the sun-corona mane shape and the small burning sun at the tail tip. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Quasarfox_Sheet_Baby",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Quasarfox_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the BABY (the smallest one, on the left) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep both tails and their glowing plasma-jet tips. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Quasarfox_Sheet_Juvenile",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Quasarfox_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the JUVENILE (the middle one) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep both tails and their glowing plasma-jet tips. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Quasarfox_Sheet_Adult",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Quasarfox_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the ADULT (the largest one, on the right) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep both tails and their glowing plasma-jet tips. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Lurehound_Sheet_Baby",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Lurehound_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the BABY (the smallest one, on the left) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the anglerfish lure on its stalk from the forehead and the glowing spots. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Lurehound_Sheet_Juvenile",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Lurehound_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the JUVENILE (the middle one) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the anglerfish lure on its stalk from the forehead and the glowing spots. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Lurehound_Sheet_Adult",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Lurehound_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the ADULT (the largest one, on the right) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the anglerfish lure on its stalk from the forehead and the glowing spots. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Nullcat_Sheet_Baby",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Nullcat_EvoB.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the BABY (the smallest one, on the left) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the magenta-and-black checkerboard glitch patches ON its body surface; nothing floating in the air. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Nullcat_Sheet_Juvenile",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Nullcat_EvoB.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the JUVENILE (the middle one) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the magenta-and-black checkerboard glitch patches ON its body surface; nothing floating in the air. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Nullcat_Sheet_Adult",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Nullcat_EvoB.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the ADULT (the largest one, on the right) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. Keep the magenta-and-black checkerboard glitch patches ON its body surface; nothing floating in the air. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Capybaron_Sheet_Baby",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Capybaron_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the BABY (the smallest one, on the left) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. It is solid faceted gold; keep its crown (and cape if it has one) exactly as in the sheet. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Capybaron_Sheet_Juvenile",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Capybaron_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature: baby on the left, juvenile in the middle, adult on the right. Render ONLY the JUVENILE (the middle one) as one single creature: exactly the same design, colors, markings, proportions and age as in the sheet. It is solid faceted gold; keep its crown (and cape if it has one) exactly as in the sheet. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text, no other creatures. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes."
+  },
+  {
+   "name": "Glacierion_Baby",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Glacierion_Sheet_Baby.png"
+  },
+  {
+   "name": "Glacierion_Juvenile",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Glacierion_Sheet_Juvenile.png"
+  },
+  {
+   "name": "Glacierion_Adult",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Glacierion_Sheet_Adult.png"
+  },
+  {
+   "name": "Lurehound_Baby",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Lurehound_Sheet_Baby.png"
+  },
+  {
+   "name": "Lurehound_Juvenile",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Lurehound_Sheet_Juvenile.png"
+  },
+  {
+   "name": "Lurehound_Adult",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Lurehound_Sheet_Adult.png"
+  },
+  {
+   "name": "Solarion_Baby",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Solarion_Sheet_Baby.png"
+  },
+  {
+   "name": "Solarion_Juvenile",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Solarion_Sheet_Juvenile.png"
+  },
+  {
+   "name": "Quasarfox_Juvenile",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Quasarfox_Sheet_Juvenile.png"
+  },
+  {
+   "name": "Quasarfox_Adult",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Quasarfox_Sheet_Adult.png"
+  },
+  {
+   "name": "Nullcat_Juvenile",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Nullcat_Sheet_Juvenile.png"
+  },
+  {
+   "name": "Nullcat_Adult",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Nullcat_Sheet_Adult.png"
+  },
+  {
+   "name": "Halosaur_Adult",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Halosaur_HaloFixA.png"
+  },
+  {
+   "name": "Solarion_Sheet_Adult2",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/Solarion_current.png",
+   "prompt": "Clean model sheet for 3D conversion of this exact creature, the ADULT Solarion sun lion: the same white-gold body, the same big swirling sun-corona mane of flame-like golden rays around its head, the gold sun markings on its flanks and the burning sun at its tail tip. Majestic, fully grown. Full body including the full tail, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes (never cartoon or anime)."
+  },
+  {
+   "name": "Quasarfox_Sheet_Baby2",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Quasarfox_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature (baby left, juvenile middle, adult right). Render ONLY the BABY as one single creature: a newborn fox KIT, clearly an infant: round fluffy body, very big head, large realistic eyes, short stubby legs, tiny paws, short muzzle, and two short fluffy tails with tiny glowing sparks at the tips. Same indigo starfield fur and glowing blue chest core as the sheet. Full body, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes (never cartoon or anime)."
+  },
+  {
+   "name": "Nullcat_Sheet_Baby2",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Nullcat_EvoB.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature (baby left, juvenile middle, adult right). Render ONLY the BABY as one single creature: a tiny grey tabby KITTEN, clearly an infant: big round head, big realistic eyes, short stubby legs, small fluffy body, short tail, with just ONE small magenta-and-black checkerboard glitch patch on its side. Full body, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, tail extended, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes (never cartoon or anime)."
+  },
+  {
+   "name": "Capybaron_Sheet_Baby2",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Capybaron_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature (baby left, juvenile middle, adult right). Render ONLY the BABY: a tiny round capybara pup made of faceted solid gold, big head, short legs, with an oversized jeweled crown slipping down over its eyes. Capybaras have NO tail: no tail at all. Full body, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes (never cartoon or anime)."
+  },
+  {
+   "name": "Capybaron_Sheet_Juvenile2",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/Capybaron_EvoA.png",
+   "prompt": "Clean model sheet for 3D conversion. The reference is an evolution sheet of one creature (baby left, juvenile middle, adult right). Render ONLY the JUVENILE: a chubby young capybara made of faceted solid gold with a small crown and a short red cape. Capybaras have NO tail: no tail at all. Full body, side three-quarter view facing right, neutral stance with all four legs straight and slightly apart, mouth closed, centered and filling most of the frame, no ground, plain flat light gray background, even neutral lighting, no particles, no text. Style: semi-realistic Roblox 3D creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes (never cartoon or anime)."
+  },
+  {
+   "name": "Solarion_Adult",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Solarion_Sheet_Adult2.png"
+  },
+  {
+   "name": "Quasarfox_Baby",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Quasarfox_Sheet_Baby2.png"
+  },
+  {
+   "name": "Nullcat_Baby",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Nullcat_Sheet_Baby2.png"
+  },
+  {
+   "name": "Capybaron_Juvenile",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Capybaron_Sheet_Juvenile2.png"
+  },
+  {
+   "name": "Capybaron_Baby",
+   "group": "rework",
+   "type": "image_to_model",
+   "image": "assets/tripo/concepts/Capybaron_Sheet_Baby2.png"
   }
  ]
 }

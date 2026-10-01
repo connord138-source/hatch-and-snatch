@@ -45,7 +45,8 @@ unrelated to the Polymarket worker.
   - The owner loved the finish-sheet look (the toaster tortoise in 7 finishes).
 - **Junk Egg:** rare and event-only, containing comic household-object creatures such as the Toaster Tortoise and Fridge Hedgehog.
 - **Roster:** 30 launch creatures are final. See `docs/ROSTER.md` and `src/shared/Config/Creatures.luau`.
-- **Ultra-rares above Legendary** (owner asked for them): Mythic (1 per biome, about 1/1,000), Celestial (moon events only), Cosmic (Moonfall only, about 1/10,000) and Secret (about 1/50,000, ??? in the Index). That adds 11 species; the concepts are low-quality drafts awaiting approval. See docs/GDD.md §7.1.
+- **Ultra-rares above Legendary** (owner asked for them): Mythic (1 per biome, about 1/1,000), Celestial (moon events only), Cosmic (Moonfall only, about 1/10,000) and Secret (about 1/50,000, ??? in the Index). That adds 11 species, all approved 2026-10-01 after a rework (docs/ROSTER.md). See docs/GDD.md §7.1.
+  - The owner's rule from that rework: a design must **match its name** (a "-lion" is a lion, a "-fox" a fox), and its baby, juvenile and adult must read as **one creature growing up**. Body-shape swaps that broke the name (seal, yeti, pangolin, jerboa) were rejected.
 - **Servers:** 6 players, 6 plots (set Max Players = 6 in Game Settings).
 - **Progression:** Hatcher Level (XP) plus base level unlock biome eggs; there are achievements; rebirth is prestige only. See GDD §7.2.
 - **Eggs and incubators:**
@@ -126,6 +127,9 @@ How to prompt for concepts:
   - For concepts use nano-banana (`gemini_2.5_flash_image_preview`); `gpt_4o` drifts to cartoon eyes.
   - Every task is logged in `tools/tripo_log.json`.
 - **Images are reachable from the sandbox now** (CloudFront downloads work as of 2026-09-29), so review concepts and Tripo previews before converting.
+- **Evolution sheets** (2026-10-01): to design or redo a creature's stages, generate one sheet with baby, juvenile and adult side by side (Nano Banana Pro, `gemini_3_pro_image_preview`, 10 credits), get it approved, then render each stage from the sheet as its own clean model sheet (Nano Banana, 5 credits) for 3D. Cutting stages out of the sheet doesn't work (they touch, and the crops are small).
+  - Name the age in the per-stage prompt ("a newborn kit: round body, big head, stubby legs"), or the baby comes out as a small adult. Capybaras have no tail; say so.
+  - Tripo rejects prompts over about 1,800 characters (error 1004).
 - **Juvenile prompts:**
   - "Lanky, slightly long legs" puts heavy, low and shelled bodies on stilts. For those, use "legs only a little longer in proportion but still short and sturdy like the reference".
   - Name the signature feature to keep (for example "keep its shaggy aurora-tipped coat").
