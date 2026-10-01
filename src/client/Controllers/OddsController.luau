@@ -17,7 +17,9 @@ local Ui = require(script.Parent.Parent.Ui)
 
 local REFRESH_SECONDS = 0.5
 
-local OddsController = {}
+local OddsController = {
+	open = false, -- the panel is on screen (the guide hides its goal card meanwhile)
+}
 
 local function text(parent: Instance, props: { [string]: any }): TextLabel
 	props.TextScaled = false
@@ -216,11 +218,13 @@ function OddsController.start()
 		lastKey = ""
 		render(biomeId)
 		panel.Visible = true
+		OddsController.open = true
 	end
 	local function hide()
 		shownPrompt = nil
 		shownBiome = nil
 		panel.Visible = false
+		OddsController.open = false
 	end
 
 	ProximityPromptService.PromptShown:Connect(function(prompt: ProximityPrompt)

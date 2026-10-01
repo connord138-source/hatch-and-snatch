@@ -19,6 +19,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
+local OddsController = require(script.Parent.OddsController)
 
 local player = Players.LocalPlayer
 local DONE = 6
@@ -266,7 +267,8 @@ function GuideController.start()
 		if message then
 			text.Text = Ui.hint(message)
 		end
-		banner.Visible = message ~= nil
+		-- The egg odds panel opens in the same corner while an egg is up for sale
+		banner.Visible = message ~= nil and not OddsController.open
 		point(target)
 	end)
 end
