@@ -7,7 +7,7 @@ docs/STORE_PAGE.md): the Higgsfield drafts, and Logo.png / ThumbMoon.png from
 tools/tripo_jobs_marketing.json. Outputs go to marketing/ (committed) as the
 files to upload in Creator Hub:
 
-    icon_512*.png                game icons (512x512), from render_icon.py: `compose.py icons`
+    icon_512.png                 game icon (512x512); icon_512_alt.png is the runner-up
     thumb_1_steal.jpg ...        thumbnails (1920x1080)
     logo.png                     the logo with a transparent background
 
@@ -143,8 +143,11 @@ def main():
     logo = key_green(src("Logo"))
     logo.save(OUT / "logo.png")
 
-    # The icons come from Blender renders of the game's models: main_icons() below
-    # (the image-model icons read as AI to the owner, 2026-10-01)
+    # Icon: the snatch moment, straight from the draft, a touch punchier
+    # Realistic eyes (owner's art direction): B is the snarling young Emberlynx
+    # from its model sheet; A is the first draft's composition with the eyes fixed
+    vibrance(src("IconRealEyesB")).resize((512, 512), Image.LANCZOS).save(OUT / "icon_512.png")
+    vibrance(src("IconRealEyesA")).resize((512, 512), Image.LANCZOS).save(OUT / "icon_512_alt.png")
 
     # 1. The steal (lead thumbnail): big logo, one line of hype
     c = vibrance(cover(src("c826ccbe"), W, H, (0.5, 0.45))).convert("RGBA")
@@ -217,88 +220,5 @@ def main():
     print("wrote", ", ".join(sorted(p.name for p in OUT.iterdir())))
 
 
-# Icons: a Blender render of the game's own models (tools/marketing/render_icon.py)
-# on a radial burst, with a glow behind the subject, a dark outline that keeps it
-# readable at list size, and a few sparkles. No text: the name shows under the icon.
-ICON_RENDERS = ROOT / "assets" / "icon_src" / "renders"
-ICON_STYLES = {
-    # name: (render, burst center, burst edge, glow behind the subject)
-    # The one to upload: the baby Emberlynx hatching, on blue (owner's pick pending)
-    "icon_512.png": ("emberlynx_hatch", (40, 170, 255), (10, 26, 80), (255, 140, 40)),
-    # Alternatives: with the thief's glove, and the Tidalotl
-    "icon_512_snatch.png": ("emberlynx_snatch", (190, 70, 255), (34, 14, 82), (255, 120, 30)),
-    "icon_512_tidalotl.png": ("tidalotl_snatch", (255, 120, 60), (90, 16, 40), (80, 220, 255)),
-}
-
-
-def burst(size: int, center: tuple, edge: tuple, rays: int = 14) -> Image.Image:
-    """Radial gradient plus soft light rays from just above the middle."""
-    w = h = size
-    cx, cy = w / 2, h * 0.46
-    grad = Image.new("RGB", (w, h))
-    px = grad.load()
-    maxd = (w * w + h * h) ** 0.5 / 2
-    for y in range(h):
-        for x in range(w):
-            t = min(1.0, ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5 / maxd) ** 0.85
-            px[x, y] = tuple(round(a + (b - a) * t) for a, b in zip(center, edge))
-    import math
-
-    ray = Image.new("L", (w, h), 0)
-    d = ImageDraw.Draw(ray)
-    for i in range(rays):
-        a0 = (i / rays) * 2 * math.pi
-        a1 = a0 + math.pi / rays * 0.55
-        r = w * 1.2
-        d.polygon([(cx, cy), (cx + r * math.cos(a0), cy + r * math.sin(a0)), (cx + r * math.cos(a1), cy + r * math.sin(a1))], fill=38)
-    ray = ray.filter(ImageFilter.GaussianBlur(size / 90))
-    light = Image.new("RGB", (w, h), (255, 255, 255))
-    return Image.composite(light, grad, ray)
-
-
-def sparkle(draw: ImageDraw.ImageDraw, x: float, y: float, r: float, color=(255, 246, 210, 255)):
-    """A four-point star."""
-    t = r * 0.22
-    draw.polygon([(x, y - r), (x + t, y - t), (x + r, y), (x + t, y + t), (x, y + r), (x - t, y + t), (x - r, y), (x - t, y - t)], fill=color)
-
-
-def compose_icon(render_name: str, center: tuple, edge: tuple, glow: tuple, out: pathlib.Path):
-    subject = Image.open(ICON_RENDERS / f"{render_name}.png").convert("RGBA")
-    size = subject.width
-    canvas = burst(size, center, edge).convert("RGBA")
-    alpha = subject.getchannel("A")
-    # Glow behind the subject, in the creature's element color
-    halo = Image.new("RGBA", (size, size), glow + (0,))
-    halo.putalpha(alpha.filter(ImageFilter.MaxFilter(31)).filter(ImageFilter.GaussianBlur(size / 18)).point(lambda v: v * 0.85))
-    canvas.alpha_composite(halo)
-    # Dark outline, then a drop shadow, so the shape reads at 50 px
-    outline = Image.new("RGBA", (size, size), (16, 8, 34, 255))
-    outline.putalpha(alpha.filter(ImageFilter.MaxFilter(13)))
-    shadow = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    shadow.paste((0, 0, 0, 120), (0, 0), alpha.filter(ImageFilter.MaxFilter(13)))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(size / 60))
-    canvas.alpha_composite(shadow, (round(size * 0.012), round(size * 0.02)))
-    canvas.alpha_composite(outline)
-    canvas.alpha_composite(subject)
-    d = ImageDraw.Draw(canvas)
-    for fx, fy, fr in ((0.83, 0.16, 0.035), (0.9, 0.3, 0.018), (0.12, 0.62, 0.022), (0.76, 0.46, 0.014)):
-        sparkle(d, size * fx, size * fy, size * fr)
-    vignette(canvas, 70)
-    vibrance(canvas.convert("RGB"), 1.08, 1.04).resize((512, 512), Image.LANCZOS).save(out)
-
-
-def main_icons():
-    OUT.mkdir(exist_ok=True)
-    for out_name, (render, center, edge, glow) in ICON_STYLES.items():
-        if (ICON_RENDERS / f"{render}.png").exists():
-            compose_icon(render, center, edge, glow, OUT / out_name)
-            print("wrote", out_name)
-
-
 if __name__ == "__main__":
-    import sys
-
-    if sys.argv[1:] == ["icons"]:
-        main_icons()
-    else:
-        main()
+    main()
