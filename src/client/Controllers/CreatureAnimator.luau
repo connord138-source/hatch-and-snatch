@@ -17,6 +17,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local CreatureGrounding = require(script.Parent.Parent.CreatureGrounding)
+local FinishLooks = require(game:GetService("ReplicatedStorage").Shared.FinishLooks)
 
 type Tracked = {
 	model: Model,
@@ -42,6 +43,7 @@ type Tracked = {
 	-- Level of detail: seconds since this creature was last updated
 	sinceUpdate: number,
 	parts: { BasePart }?, -- Prismatic recolor list, gathered once
+	skies: { Texture }?, -- Galaxy starfield textures, gathered once
 	appearances: { SurfaceAppearance }?, -- Secret shimmer tint list, gathered once
 }
 
@@ -155,6 +157,42 @@ local function poseBones(info: Tracked, t: number)
 	end
 end
 
+-- Galaxy finish: each face's starfield texture slides against the creature's
+-- movement relative to the camera, so the stars hold still on screen while the
+-- creature moves through them. The texture's right/down directions on each face,
+-- in the part's own axes, as seen from outside that face:
+local SKY_AXES: { [Enum.NormalId]: { Vector3 } } = {
+	[Enum.NormalId.Front] = { Vector3.new(-1, 0, 0), Vector3.new(0, -1, 0) },
+	[Enum.NormalId.Back] = { Vector3.new(1, 0, 0), Vector3.new(0, -1, 0) },
+	[Enum.NormalId.Right] = { Vector3.new(0, 0, -1), Vector3.new(0, -1, 0) },
+	[Enum.NormalId.Left] = { Vector3.new(0, 0, 1), Vector3.new(0, -1, 0) },
+	[Enum.NormalId.Top] = { Vector3.new(1, 0, 0), Vector3.new(0, 0, 1) },
+}
+-- If the stars race along with the creature (twice as fast) instead of holding
+-- still, the engine offsets the other way: flip this to -1.
+local SKY_SIGN = 1
+
+local function slideSky(info: Tracked, cameraPos: Vector3)
+	if info.skies == nil then
+		local skies: { Texture } = {}
+		for _, descendant in info.model:GetDescendants() do
+			if descendant:IsA("Texture") and descendant.Name == "Sky" then
+				table.insert(skies, descendant)
+			end
+		end
+		info.skies = skies
+	end
+	for _, texture in info.skies :: { Texture } do
+		local part = texture.Parent
+		local axes = SKY_AXES[texture.Face]
+		if part and part:IsA("BasePart") and axes then
+			local relative = part.CFrame:VectorToObjectSpace(part.Position - cameraPos)
+			texture.OffsetStudsU = -SKY_SIGN * relative:Dot(axes[1])
+			texture.OffsetStudsV = -SKY_SIGN * relative:Dot(axes[2])
+		end
+	end
+end
+
 local tracked: { [Model]: Tracked } = {}
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -216,6 +254,8 @@ local function track(instance: Instance)
 			end
 			if descendant:IsA("BasePart") then
 				info.parts = nil -- regather for the Prismatic recolor
+			elseif descendant:IsA("Texture") then
+				info.skies = nil -- regather for the Galaxy starfield
 			elseif descendant:IsA("SurfaceAppearance") then
 				info.appearances = nil -- regather for the Secret shimmer
 			end
@@ -387,6 +427,9 @@ function CreatureAnimator.start()
 				local lift = size.Y * 0.2 + math.sin(angle * 2) * 0.2
 				local offset = Vector3.new(math.cos(angle) * radius, lift, math.sin(angle) * radius)
 				info.planet.CFrame = CFrame.new(body.Position + offset)
+			end
+			if CollectionService:HasTag(model, FinishLooks.SKY_TAG) then
+				slideSky(info, cameraPos)
 			end
 
 			if CollectionService:HasTag(model, "Prismatic") then

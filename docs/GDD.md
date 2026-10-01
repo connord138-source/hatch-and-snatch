@@ -107,7 +107,7 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 | Chrome | 1 in 100 | ×2 | Mirror finish that reflects the world |
 | Diamond | 1 in 400 | ×3 | See-through crystal that bends light |
 | Molten | 1 in 1,500 | ×5 | Glowing lava cracks, drips embers, sizzles |
-| Galaxy | 1 in 5,000 | ×8 | Starfield skin with a tiny orbiting planet; server announcement |
+| Galaxy | 1 in 5,000 | ×8 | A window onto space: a starfield that holds still on screen while the creature moves through it (`FinishLooks` sky texture, slid each frame by CreatureAnimator; the image is `assets/textures/galaxy_sky.png`), plus a tiny orbiting planet; server announcement |
 | Prismatic | 1 in 20,000 | ×15 | Color-shifting glow and a rainbow trail; server-wide fanfare |
 | Blood Moon | Blood Moon event only | ×10 | Black and red with a red aura |
 
