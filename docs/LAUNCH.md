@@ -5,18 +5,18 @@ The owner does these steps in Creator Hub (signed in as **Dillionaire138**) and 
 ## 1. Before going public
 
 - [ ] **Store art uploaded:** `marketing/icon_512.png` and `thumb_1`…`thumb_4`, plus the title and description (`docs/STORE_PAGE.md`).
-- [ ] **Maturity & compliance questionnaire** (the experience → Audience → Maturity & Compliance). Answer truthfully. For reference:
+- [x] **Maturity & compliance questionnaire** (the experience → Audience → Maturity & Compliance). **Submitted 2026-10-01: Minimal**, no content descriptors, no non-compliant regions. Creator Hub asked two paid-random-items questions (has them: Yes; respects the regional restriction: Yes) and no separate odds question. The answers, for reference:
   - Violence: none. Players grab creatures; there are no weapons and no damage.
   - Blood or gore: none. "Blood Moon" is only a red event name and tint.
   - Paid random items: **Yes**. Eggs are random and bought with cash, and Robux buys cash (Cash Pouch, Cash Chest) and better odds (Server Luck). That counts under Roblox's rules.
   - Shows the odds before purchase: **Yes**. The odds panel lists every species, finish and mutation with percentages adding up to 100%, live with luck and moon events (GDD §3.1).
   - Respects `PolicyService` restrictions: **Yes**. `ArePaidRandomItemsRestricted` players never see Cash Pouch, Cash Chest or Server Luck (GDD §9).
   - Social: the default Roblox chat. No free-form text of our own except redeem codes.
-  - This should come out as Minimal or Mild.
-- [ ] **Devices:** Computer, Phone and Tablet. **Leave Console off**, because the menus have no gamepad navigation yet. VR off.
-- [ ] **Server size:** Max Players 6 (done).
-- [ ] **Private servers** (Monetization → Private Servers): turn them on at **99 Robux a month**. In a stealing game a friends-only server is worth paying for, and it's recurring income. The re-steal rule (no rewards for 30 min) stops alt-account farming there too.
-- [ ] **Genre:** Simulation or Tycoon, whichever fits best among Creator Hub's current genre options.
+  - Re-answer it if the game adds anything that changes these (e.g. new paid items).
+- [x] **Devices:** Computer, Phone and Tablet. **Leave Console off**, because the menus have no gamepad navigation yet. VR off.
+- [x] **Server size:** Max Players 6.
+- [x] **Private servers** (Monetization → Private Servers): turn them on at **99 Robux a month**. In a stealing game a friends-only server is worth paying for, and it's recurring income. The re-steal rule (no rewards for 30 min) stops alt-account farming there too.
+- [x] **Genre:** Simulation or Tycoon, whichever fits best among Creator Hub's current genre options.
 - [ ] **Social links:** skip for now. Add the group link when the group exists (that also turns on the group perk: `Config/Monetization.luau` → `tuning.group.id`).
 
 ## 2. Publish and smoke-test the live game
