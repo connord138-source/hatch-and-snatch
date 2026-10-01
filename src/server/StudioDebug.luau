@@ -31,7 +31,8 @@
 --       -- plays the hatch reveal for that species (finish optional) without granting
 --       -- anything (store screenshots)
 --   game.ServerStorage.StudioDebug:Invoke("build")
---       -- maxes every player's base: level 5, both floors and all 4 vaults
+--       -- maxes every player's base: level 5, both floors, all 4 vaults, security,
+--       -- the 4 hiding spots and every decor and security item
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -241,10 +242,15 @@ function StudioDebug.start()
 				data.baseLevel = #tunables.baseLevels
 				data.floors = #tunables.floors + 1
 				data.vaults = #tunables.vaults
+				data.security = #tunables.securityLevels
+				data.hides = #Config.BaseBuilds.hidingSpots
+				for _, item in Config.BaseBuilds.items do
+					data.builds[item.id] = true
+				end
 				BaseService.apply(player, data)
 				DataService.markDirty(player)
 			end
-			return "every base maxed: level 5, both floors, all vaults"
+			return "every base maxed: level 5, both floors, all vaults, security, hiding spots and every build"
 		elseif action == "daily" then
 			for player in DataService.loadedPlayers() do
 				DailyService.debugNextDay(player)

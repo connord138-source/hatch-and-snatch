@@ -20,10 +20,12 @@ type Menu = {
 	refresh: (state: { [string]: any }) -> (),
 }
 
-local MENUS: { { id: string, title: string, menu: Menu } } = {
+-- `station` menus have no button on the bar: they open from a prompt in the world
+-- (the Base menu at a base's Command Terminal, owner 2026-10-01)
+local MENUS: { { id: string, title: string, menu: Menu, station: boolean? } } = {
 	{ id = "Creatures", title = "Your Creatures", menu = CreaturesMenu },
 	{ id = "Progress", title = "Hatcher Level & Achievements", menu = ProgressMenu },
-	{ id = "Base", title = "Your Base", menu = BaseMenu },
+	{ id = "Base", title = "Command Terminal", menu = BaseMenu, station = true },
 	{ id = "Index", title = "Collection Index", menu = IndexMenu },
 	{ id = "Rebirth", title = "Rebirth", menu = RebirthMenu },
 	{ id = "Daily", title = "Daily Rewards", menu = DailyMenu },
@@ -92,7 +94,14 @@ function MenuController.start()
 		refreshOpen()
 	end
 
-	for i, entry in MENUS do
+	local onBar = 0
+	for _, entry in MENUS do
+		if not entry.station then
+			onBar += 1
+		end
+	end
+	local slot = 0
+	for _, entry in MENUS do
 		local content = Instance.new("Frame")
 		content.Name = entry.id
 		content.BackgroundTransparency = 1
@@ -102,11 +111,15 @@ function MenuController.start()
 		content.Parent = window
 		entry.menu.build(content)
 		contents[entry.id] = content
+		if entry.station then
+			continue
+		end
 
-		local barWidth = #MENUS * BUTTON_W + (#MENUS - 1) * BUTTON_GAP
+		slot += 1
+		local barWidth = onBar * BUTTON_W + (onBar - 1) * BUTTON_GAP
 		local button = Ui.button(gui, {
 			AnchorPoint = Vector2.new(0, 1),
-			Position = UDim2.new(0.5, -barWidth / 2 + (i - 1) * (BUTTON_W + BUTTON_GAP), 1, -12),
+			Position = UDim2.new(0.5, -barWidth / 2 + (slot - 1) * (BUTTON_W + BUTTON_GAP), 1, -12),
 			Size = UDim2.fromOffset(BUTTON_W, 38),
 			Text = entry.id,
 		})

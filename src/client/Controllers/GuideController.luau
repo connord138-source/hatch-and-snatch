@@ -256,9 +256,18 @@ function GuideController.start()
 				return
 			end
 			if state.cash >= cost then
-				message = `You can upgrade your base for {Format.cash(cost)}: more pedestals, more cash!`
-				local station = plot:FindFirstChild("UpgradeStation")
-				target = if station and station:IsA("BasePart") then station else nil
+				message =
+					`You can upgrade your base for {Format.cash(cost)}: stand on the glowing upgrade pad!`
+				target = nil
+				for _, child in plot:GetChildren() do
+					if
+						child:IsA("BasePart")
+						and child.Name == "BuyPad"
+						and child:GetAttribute("Offer") == "level"
+					then
+						target = child
+					end
+				end
 			else
 				message =
 					`Next goal: upgrade your base ({Format.cash(state.cash)} / {Format.cash(cost)}). Keep hatching!`

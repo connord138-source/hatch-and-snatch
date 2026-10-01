@@ -14,6 +14,7 @@ export type MoonEvent = Types.MoonEvent
 export type BaseTheme = Progression.BaseTheme
 export type Achievement = Progression.Achievement
 export type BaseBuild = BaseBuilds.Item
+export type HidingSpot = BaseBuilds.HidingSpot
 
 local creaturesById: { [string]: Types.Creature } = {}
 for _, creature in Creatures do

@@ -28,6 +28,7 @@ local requests: { [string]: RemoteEvent } = {
 	Theme = makeEvent("Theme"), -- (themeId: string) buy if needed, then apply
 	Security = makeEvent("Security"), -- () buy the next security upgrade
 	BuyFloor = makeEvent("BuyFloor"), -- () buy the next floor
+	ToggleBuild = makeEvent("ToggleBuild"), -- (itemId: string) switch a bought decor item on/off
 	BuyVault = makeEvent("BuyVault"), -- () buy the next vault room
 	RedeemCode = makeEvent("RedeemCode"), -- (code: string)
 	ClaimGroup = makeEvent("ClaimGroup"), -- () after the Roblox group join prompt

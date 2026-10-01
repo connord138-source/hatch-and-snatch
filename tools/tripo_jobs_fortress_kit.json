@@ -79,10 +79,18 @@
    "image": "assets/tripo/concepts/GatehouseStoneOpen.png"
   },
   {
-   "name": "GatehouseCitadelOpen",
+   "name": "GatehouseCitadelWide",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/FortressStages.png",
+   "prompt": "A WIDE grand white-and-gold citadel gatehouse from stage 5 of the reference, about twice as wide as it is tall: two cream stone towers with blue cone roofs and gold trim at the far ends, joined by a thick cream stone wall section with gold-trimmed battlements on top, and in the middle a wide tall rounded archway that is completely empty and open, no gate, no doors, no bars, you can see straight through it. Blue banners with gold emblems hang on the towers. Match the rendering style of the reference sheet (stylized semi-realistic low-poly game asset, smooth shading, solid color regions). Draw exactly ONE isolated object, whole and centered, three-quarter view from slightly above, on a plain light gray background, even lighting. No ground, no grass, no shadows, no other objects, no text."
+  },
+  {
+   "name": "GatehouseCitadelWide",
    "group": "props",
    "type": "image_to_model",
-   "image": "assets/tripo/concepts/GatehouseCitadelOpen.png"
+   "image": "assets/tripo/concepts/GatehouseCitadelWide.png"
   }
  ]
 }

@@ -1,0 +1,40 @@
+{
+ "jobs": [
+  {
+   "name": "HideHaystack",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A big round golden haystack, loose straw sticking out, a pitchfork leaning against it, about as tall as a person, big enough for an animal to hide inside. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "HideBarrels",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tight pile of five large wooden barrels with iron bands, three on the bottom and two stacked on top, with a canvas tarp half draped over them. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "HideHedge",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A large dense round hedge bush, thick dark green leaves, a few small white flowers, about as tall as a person and very bushy. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "HideChest",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A large ornate treasure chest with a slightly open domed lid, dark wood with gold corner trim and a heavy lock, faint golden glow inside, big enough for a small animal to hide in. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "BaseTerminal",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A fantasy castle command terminal: a sturdy stone and brass console desk with a big glowing blue crystal monitor screen on top, brass dials and levers on the desk, like a magical control panel. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "BuyPad",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A round flat stone pressure plate set in a gold ring, a glowing green rune circle carved on top, very low and flat like a floor button. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  }
+ ]
+}

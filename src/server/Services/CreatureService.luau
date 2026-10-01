@@ -95,10 +95,10 @@ local function recordInIndex(player: Player?, data: PlayerData, record: Creature
 	end
 end
 
--- Every pedestal slot the player's base has (ground, floors bought, vaults bought),
--- in fill order (Config.Economy.slots).
+-- Every pedestal slot the player's base has (ground, floors bought, vaults bought,
+-- hiding spots bought), in fill order (Config.Economy.slots).
 local function slotList(data: PlayerData): { number }
-	return Config.Economy.slots(data.baseLevel, data.floors, data.vaults)
+	return Config.Economy.slots(data.baseLevel, data.floors, data.vaults, data.hides)
 end
 
 -- Pedestals the player's base provides, vaults included.
@@ -678,6 +678,58 @@ local function spawnWalking(player: Player, uid: string, record: CreatureRecord)
 	models[player][uid] = model
 end
 
+-- In a hiding spot the creature is there (it earns, and a thief who searches the
+-- spot grabs it) but out of sight: no model, halo, sparkles or prompts showing.
+-- Mythic and rarer give themselves away now and then with a burst of sparkles in
+-- their rarity color (Config.BaseBuilds.tellRarityOrder).
+local function hide(model: Model, record: CreatureRecord)
+	CollectionService:RemoveTag(model, "Creature")
+	CollectionService:RemoveTag(model, "Prismatic")
+	CollectionService:RemoveTag(model, "Shimmer")
+	model:SetAttribute("Hidden", true)
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Transparency = 1
+			descendant.CanQuery = false
+		elseif descendant:IsA("Decal") then
+			descendant.Transparency = 1 -- Texture is a Decal too
+		elseif
+			descendant:IsA("ParticleEmitter")
+			or descendant:IsA("BillboardGui")
+			or descendant:IsA("Light")
+			or descendant:IsA("Beam")
+			or descendant:IsA("Trail")
+		then
+			(descendant :: any).Enabled = false
+		elseif descendant:IsA("ProximityPrompt") then
+			descendant:Destroy()
+		end
+	end
+	local rarity = Config.Rarities[Config.CreaturesById[record.species].rarity]
+	local primary = model.PrimaryPart
+	if rarity and rarity.order >= Config.BaseBuilds.tellRarityOrder and primary then
+		local tell = Instance.new("ParticleEmitter")
+		tell.Name = "HidingTell"
+		tell.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		tell.Color = ColorSequence.new(rarity.color)
+		tell.LightEmission = 1
+		tell.Size = NumberSequence.new(0.5, 0)
+		tell.Lifetime = NumberRange.new(1, 1.6)
+		tell.Speed = NumberRange.new(2, 4)
+		tell.SpreadAngle = Vector2.new(60, 60)
+		tell.Rate = 0
+		tell.Parent = primary
+		task.spawn(function()
+			while tell.Parent do
+				task.wait(Config.BaseBuilds.tellEverySeconds * (0.6 + math.random() * 0.8))
+				if tell.Parent then
+					tell:Emit(14)
+				end
+			end
+		end)
+	end
+end
+
 local function spawn(player: Player, uid: string, record: CreatureRecord)
 	despawn(player, uid)
 	local plot = PlotService.get(player)
@@ -697,6 +749,13 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	local name = Config.CreaturesById[record.species].displayName
 	local data = DataService.get(player)
 	local inNursery = data ~= nil and CreatureService.isNursery(data, slot)
+	if Config.Economy.hideOfSlot(slot) then
+		hide(model, record)
+		model.Parent = plot.model
+		models[player] = models[player] or {}
+		models[player][uid] = model
+		return
+	end
 
 	-- Higher floors and vaults take longer to grab from
 	local hold = (STEAL_HOLD[record.stage] or 1.5)
@@ -853,7 +912,8 @@ local function freeSlot(data: PlayerData): number?
 	local vault: number? = nil
 	local nursery: number? = nil
 	for _, slot in slotList(data) do
-		if used[slot] == nil then
+		-- Hiding spots only take a creature on purpose (Creatures menu)
+		if used[slot] == nil and not Config.Economy.hideOfSlot(slot) then
 			if slot <= nurserySlots then
 				nursery = nursery or slot
 			elseif Config.Economy.vaultOfSlot(slot) then
@@ -867,10 +927,10 @@ local function freeSlot(data: PlayerData): number?
 end
 
 -- The slots of a destination: "F1"-"F3" a floor's open pedestals (not the
--- nursery), "V1"-"V4" a vault.
+-- nursery), "V1"-"V4" a vault, "H1"-"H4" a hiding spot.
 local function destinationSlots(data: PlayerData, target: string): { number }
 	local list: { number } = {}
-	local kind, digits = string.match(target, "^([FV])(%d)$")
+	local kind, digits = string.match(target, "^([FVH])(%d)$")
 	local number = tonumber(digits)
 	if kind == nil or number == nil then
 		return list
@@ -878,11 +938,21 @@ local function destinationSlots(data: PlayerData, target: string): { number }
 	local nurserySlots = CreatureService.nurserySlots(data)
 	for _, slot in slotList(data) do
 		local vault = Config.Economy.vaultOfSlot(slot)
+		local hide = Config.Economy.hideOfSlot(slot)
 		if kind == "V" then
 			if vault == number then
 				table.insert(list, slot)
 			end
-		elseif vault == nil and slot > nurserySlots and Config.Economy.slotFloor(slot) == number then
+		elseif kind == "H" then
+			if hide == number then
+				table.insert(list, slot)
+			end
+		elseif
+			vault == nil
+			and hide == nil
+			and slot > nurserySlots
+			and Config.Economy.slotFloor(slot) == number
+		then
 			table.insert(list, slot)
 		end
 	end
@@ -954,7 +1024,7 @@ function CreatureService.arrange(player: Player)
 	local reserved: { [number]: boolean } = {}
 	local movers: { string } = {}
 	for uid, record in data.creatures do
-		if record.slot and record.slot > nurserySlots then
+		if record.slot and record.slot > nurserySlots and not Config.Economy.hideOfSlot(record.slot) then
 			if CreatureService.isCarried(player, uid) then
 				reserved[record.slot] = true -- a thief has it: its pedestal waits for it
 			else
@@ -964,7 +1034,7 @@ function CreatureService.arrange(player: Player)
 	end
 	local targets: { number } = {}
 	for _, slot in slotList(data) do
-		if slot > nurserySlots and not reserved[slot] then
+		if slot > nurserySlots and not reserved[slot] and not Config.Economy.hideOfSlot(slot) then
 			table.insert(targets, slot)
 		end
 	end
@@ -1085,7 +1155,12 @@ function CreatureService.toggleNursery(player: Player, uid: string)
 	if CreatureService.isNursery(data, record.slot) then
 		local used = occupants(data)
 		for _, slot in slotList(data) do
-			if slot > nurserySlots and used[slot] == nil and not Config.Economy.vaultOfSlot(slot) then
+			if
+				slot > nurserySlots
+				and used[slot] == nil
+				and not Config.Economy.vaultOfSlot(slot)
+				and not Config.Economy.hideOfSlot(slot)
+			then
 				target = slot
 				break
 			end

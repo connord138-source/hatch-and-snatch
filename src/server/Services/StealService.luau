@@ -36,6 +36,7 @@ local MonetizationService = require(script.Parent.MonetizationService)
 local PlotService = require(script.Parent.PlotService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
+local BaseKit = require(script.Parent.Parent.BaseKit)
 
 type Outcome = "delivered" | "returned" | "brokeFree" | "takenBack" | "cancelled"
 
@@ -78,6 +79,25 @@ local intruders: { [number]: { [Player]: number } } = {} -- plot index -> player
 local lastAlarm: { [number]: { [Player]: number } } = {} -- plot index -> player -> os.clock() of the alarm
 local lastIntruderAt: { [number]: number } = {} -- plot index -> os.clock() someone was last inside
 local THREAT_SECONDS = 5 -- how long after an intruder leaves the base still counts as under threat
+
+-- Bought security items (Config.BaseBuilds), every one on a timer: nothing makes a
+-- base unbreakable (owner, 2026-10-01). Keyed by plot index.
+type Timer = { activeUntil: number, readyAt: number }
+local spikes: { [number]: Timer } = {}
+local rampGates: { [number]: Timer } = {}
+local ballistaReadyAt: { [number]: number } = {}
+local searchlightReadyAt: { [number]: number } = {}
+local rooted: { [Player]: boolean } = {} -- caught in a spike strip right now
+
+local function ownsBuild(owner: Player?, id: string): boolean
+	local data = owner and DataService.get(owner)
+	return data ~= nil and data.builds[id] == true
+end
+
+local function buildTimes(id: string): (number, number)
+	local item = Config.BaseBuilds.byId[id]
+	return item and item.active or 0, item and item.recharge or 0
+end
 local rng = Random.new()
 
 local StealService = {}
@@ -247,8 +267,90 @@ local function endCarry(carry: Carry, outcome: Outcome)
 	DataService.markDirty(owner)
 end
 
+-- Searchlight: a thief grabbing from this base is lit up and marked for everyone
+-- for a while (then the light recharges).
+local function markThief(owner: Player, plot: WorldService.PlotLayout, thief: Player)
+	local now = serverNow()
+	if not ownsBuild(owner, "Searchlight") or now < (searchlightReadyAt[plot.index] or 0) then
+		return
+	end
+	local active, recharge = buildTimes("Searchlight")
+	searchlightReadyAt[plot.index] = now + active + recharge
+	local character = thief.Character
+	local head = character and character:FindFirstChild("Head")
+	if character == nil then
+		return
+	end
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "SearchlightMark"
+	highlight.FillColor = Color3.fromRGB(255, 235, 120)
+	highlight.FillTransparency = 0.45
+	highlight.OutlineColor = Color3.fromRGB(255, 250, 200)
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.Parent = character
+	local tag: BillboardGui? = nil
+	if head and head:IsA("BasePart") then
+		local gui = Instance.new("BillboardGui")
+		gui.Name = "SearchlightTag"
+		gui.Size = UDim2.fromOffset(150, 40)
+		gui.StudsOffset = Vector3.new(0, 4, 0)
+		gui.AlwaysOnTop = true
+		gui.MaxDistance = Config.BaseBuilds.searchlightRange
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.FredokaOne
+		label.TextScaled = true
+		label.TextColor3 = Color3.fromRGB(255, 235, 120)
+		label.TextStrokeTransparency = 0.2
+		label.Text = "🔦 THIEF!"
+		label.Parent = gui
+		gui.Parent = head
+		tag = gui
+	end
+	Net.notify(owner, `🔦 Your searchlight is on {thief.DisplayName}!`, "bad")
+	task.delay(active, function()
+		highlight:Destroy()
+		if tag then
+			tag:Destroy()
+		end
+	end)
+end
+
+-- Spike strip: the first intruder through the gate is stuck for a moment.
+local function trySpikes(owner: Player, plot: WorldService.PlotLayout, player: Player)
+	local now = serverNow()
+	local state = spikes[plot.index]
+	if not ownsBuild(owner, "SpikeStrip") or (state and now < state.readyAt) or rooted[player] then
+		return
+	end
+	local humanoid = humanoidOf(player)
+	if humanoid == nil or carries[player] then
+		return
+	end
+	local active, recharge = buildTimes("SpikeStrip")
+	spikes[plot.index] = { activeUntil = now + active, readyAt = now + active + recharge }
+	rooted[player] = true
+	local walkSpeed, jumpPower, jumpHeight = humanoid.WalkSpeed, humanoid.JumpPower, humanoid.JumpHeight
+	humanoid.WalkSpeed = 0
+	humanoid.JumpPower = 0
+	humanoid.JumpHeight = 0
+	BaseKit.raiseSpikes(plot.security, true)
+	Net.notify(player, "Ouch! Caught in the spikes!", "bad")
+	Net.notify(owner, `Your spike strip caught {player.DisplayName}!`, "info")
+	task.delay(active, function()
+		rooted[player] = nil
+		if humanoid.Parent and humanoid.WalkSpeed == 0 then
+			humanoid.WalkSpeed = walkSpeed
+			humanoid.JumpPower = jumpPower
+			humanoid.JumpHeight = jumpHeight
+		end
+		BaseKit.raiseSpikes(plot.security, false)
+	end)
+end
+
 local function tryGrab(thief: Player, owner: Player, uid: string)
-	if thief == owner or carries[thief] then
+	if thief == owner or carries[thief] or rooted[thief] then
 		return
 	end
 	local ownerData, thiefData = DataService.get(owner), DataService.get(thief)
@@ -370,6 +472,7 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 	}
 	carries[thief] = carry
 	thief:SetAttribute("Carrying", true) -- clients hide Steal prompts while you carry one
+	markThief(owner, ownerPlot, thief)
 
 	local speed = stage.carrySpeed * (if record.homegrown then HOMEGROWN_STRUGGLE else 1)
 	carry.moveSpeed = carry.walkSpeed * speed
@@ -571,9 +674,139 @@ local function tickCarry(carry: Carry, clock: number)
 	end
 end
 
+-- A thief searches a hiding spot: an empty one is a decoy, an occupied one gives
+-- up its creature (the normal grab rules apply: locked base, protection, ...).
+local function searchSpot(thief: Player, plot: WorldService.PlotLayout, spot: number)
+	local owner = PlotService.ownerOf(plot)
+	local data = owner and DataService.get(owner)
+	if owner == nil or data == nil or thief == owner or carries[thief] then
+		return
+	end
+	local slot = Config.Economy.hideSlot(spot)
+	local found: string? = nil
+	for uid, record in data.creatures do
+		if record.slot == slot and not CreatureService.isCarried(owner, uid) then
+			found = uid
+		end
+	end
+	if found == nil then
+		Net.notify(thief, Config.BaseBuilds.hidingSpots[spot].empty, "info")
+		return
+	end
+	tryGrab(thief, owner, found)
+	local record = data.creatures[found]
+	if carries[thief] and record then
+		local name = Config.CreaturesById[record.species].displayName
+		Net.notify(owner, `⚠ {thief.DisplayName} found your hidden {name}!`, "bad")
+		Net.notify(thief, `You found a hidden {name}!`, "rare")
+	end
+end
+
+-- Ramp gates: the owner pulls the lever and bars both ramps for a while.
+local function barRamps(player: Player, plot: WorldService.PlotLayout)
+	if PlotService.ownerOf(plot) ~= player or not ownsBuild(player, "RampGates") then
+		return
+	end
+	local now = serverNow()
+	local state = rampGates[plot.index]
+	if state and now < state.readyAt then
+		local left = if now < state.activeUntil then state.activeUntil - now else state.readyAt - now
+		Net.notify(
+			player,
+			`The ramp gates are {if now < state.activeUntil then "down" else "resetting"} ({Format.duration(
+				left
+			)}).`,
+			"info"
+		)
+		return
+	end
+	local active, recharge = buildTimes("RampGates")
+	rampGates[plot.index] = { activeUntil = now + active, readyAt = now + active + recharge }
+	BaseKit.setBars(plot.security, true, plot.floors)
+	Net.notify(player, `Ramps barred for {Format.duration(active)}!`, "info")
+end
+
+-- Net ballista: the owner nets the nearest thief carrying one of their creatures.
+local function fireNet(player: Player, plot: WorldService.PlotLayout)
+	if PlotService.ownerOf(plot) ~= player or not ownsBuild(player, "NetBallista") then
+		return
+	end
+	local now = serverNow()
+	local readyAt = ballistaReadyAt[plot.index] or 0
+	if now < readyAt then
+		Net.notify(player, `The ballista is reloading ({Format.duration(readyAt - now)}).`, "info")
+		return
+	end
+	local from = plot.security.ballista.Position
+	local target: Carry? = nil
+	local best = Config.BaseBuilds.ballistaRange
+	for _, carry in carries do
+		if carry.owner == player then
+			local _, root = humanoidOf(carry.thief)
+			local distance = if root then (root.Position - from).Magnitude else math.huge
+			if distance <= best then
+				best, target = distance, carry
+			end
+		end
+	end
+	if target == nil then
+		Net.notify(player, "No thief with your creature in range.", "info")
+		return
+	end
+	local _, recharge = buildTimes("NetBallista")
+	ballistaReadyAt[plot.index] = now + recharge
+	local _, root = humanoidOf(target.thief)
+	-- The net flies, then the creature goes home
+	local net = Instance.new("Part")
+	net.Name = "BallistaNet"
+	net.Size = Vector3.new(4, 4, 0.3)
+	net.Material = Enum.Material.Fabric
+	net.Color = Color3.fromRGB(200, 180, 130)
+	net.Transparency = 0.2
+	net.Anchored = true
+	net.CanCollide = false
+	net.CanQuery = false
+	net.CFrame = CFrame.new(from + Vector3.new(0, 2, 0))
+	net.Parent = Workspace
+	if root then
+		game:GetService("TweenService")
+			:Create(net, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { CFrame = CFrame.new(root.Position) })
+			:Play()
+	end
+	task.delay(1.2, function()
+		net:Destroy()
+	end)
+	Net.notify(target.thief, `Netted by {player.DisplayName}'s ballista! The creature ran home.`, "bad")
+	Net.notify(player, `Got {target.thief.DisplayName}! Your creature is home.`, "rare")
+	endCarry(target, "takenBack")
+end
+
+-- Security fixtures' prompts follow their timers.
+local function refreshFixtures(now: number)
+	for _, plot in WorldService.plots do
+		local state = rampGates[plot.index]
+		local security = plot.security
+		if state and now >= state.activeUntil then
+			BaseKit.setBars(security, false, plot.floors)
+		end
+		if state and now < state.activeUntil then
+			security.leverPrompt.ActionText = `Barred {Format.duration(state.activeUntil - now)}`
+		elseif state and now < state.readyAt then
+			security.leverPrompt.ActionText = `Resetting {Format.duration(state.readyAt - now)}`
+		else
+			security.leverPrompt.ActionText = "Bar the Ramps"
+		end
+		local readyAt = ballistaReadyAt[plot.index] or 0
+		security.ballistaPrompt.ActionText = if now < readyAt
+			then `Reloading {Format.duration(readyAt - now)}`
+			else "Fire Net"
+	end
+end
+
 local function tick()
 	local now = serverNow()
 	local clock = os.clock()
+	refreshFixtures(now)
 
 	for _, carry in carries do
 		local ok, problem = pcall(function(): any
@@ -606,6 +839,9 @@ local function tick()
 			end
 			if isIn and not inside[player] then
 				inside[player] = clock
+				if owner then
+					trySpikes(owner, plot, player)
+				end
 				if
 					level >= 1
 					and owner
@@ -699,11 +935,42 @@ function StealService.start()
 	PlotService.released:connect(function(plot: WorldService.PlotLayout)
 		locks[plot.index] = nil
 		vaultLocks[plot.index] = nil
+		spikes[plot.index] = nil
+		rampGates[plot.index] = nil
+		ballistaReadyAt[plot.index] = nil
+		searchlightReadyAt[plot.index] = nil
+		BaseKit.setBars(plot.security, false, 1)
 	end)
 
 	for _, plot in WorldService.plots do
 		plot.lockPrompt.Triggered:Connect(function(player)
 			tryLock(player, plot)
+		end)
+		for _, spot in plot.hides do
+			local holdStarts: { [Player]: number } = {}
+			spot.search.PromptButtonHoldBegan:Connect(function(thief)
+				holdStarts[thief] = os.clock()
+			end)
+			spot.search.Triggered:Connect(function(thief)
+				local began = holdStarts[thief]
+				holdStarts[thief] = nil
+				local held = if began then os.clock() - began else 0
+				local hold = Config.BaseBuilds.searchSeconds
+				if held < hold * 0.7 or held > hold + 5 or not Reach.prompt(thief, spot.search) then
+					return
+				end
+				searchSpot(thief, plot, spot.spot)
+			end)
+		end
+		plot.security.leverPrompt.Triggered:Connect(function(player)
+			if Reach.prompt(player, plot.security.leverPrompt) then
+				barRamps(player, plot)
+			end
+		end)
+		plot.security.ballistaPrompt.Triggered:Connect(function(player)
+			if Reach.prompt(player, plot.security.ballistaPrompt) then
+				fireNet(player, plot)
+			end
 		end)
 		for vault, room in plot.vaults do
 			room.prompt.Triggered:Connect(function(player)
@@ -715,6 +982,7 @@ function StealService.start()
 	end
 
 	Players.PlayerRemoving:Connect(function(player)
+		rooted[player] = nil
 		for _, inside in intruders do
 			inside[player] = nil
 		end

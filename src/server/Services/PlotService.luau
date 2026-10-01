@@ -77,6 +77,11 @@ local function release(player: Player)
 	WorldService.setFloors(plot, 1, 0)
 	WorldService.applyTheme(plot, Config.Progression.themes[1])
 	WorldService.setNursery(plot, Config.Economy.tunables.nurserySlotsBase)
+	WorldService.setHides(plot, 0)
+	WorldService.setSecurity(plot, {}, false)
+	WorldService.setBuilds(plot, {}, Config.Progression.themes[1], {})
+	WorldService.clearPads(plot)
+	plot.terminalScreen.Text = "BASE TERMINAL"
 	PlotService.released:fire(plot)
 	local connection = characterConnections[player]
 	if connection then

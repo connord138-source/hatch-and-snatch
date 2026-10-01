@@ -215,6 +215,15 @@
   "task_id": "db9382ff-881f-4cdc-bf28-b359e2eb3589",
   "type": "generate_image"
  },
+ "concepts/GatehouseCitadelWide": {
+  "credits": 5,
+  "files": [
+   "GatehouseCitadelWide.png"
+  ],
+  "status": "success",
+  "task_id": "05964176-3e26-4691-8911-6b629e5a770b",
+  "type": "generate_image"
+ },
  "concepts/GatehouseStone": {
   "credits": 5,
   "files": [
@@ -1361,6 +1370,16 @@
   "task_id": "d2df805b-e23a-4567-8e79-0c7added228c",
   "type": "text_to_model"
  },
+ "props/BaseTerminal": {
+  "credits": 20,
+  "files": [
+   "BaseTerminal.glb",
+   "BaseTerminal_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "6f3a0d5e-035a-4633-840e-a2e9b33bb206",
+  "type": "text_to_model"
+ },
  "props/Boulders": {
   "credits": 20,
   "files": [
@@ -1379,6 +1398,16 @@
   ],
   "status": "success",
   "task_id": "a9b8194f-a1c1-4c00-8226-5db2d13f1da6",
+  "type": "text_to_model"
+ },
+ "props/BuyPad": {
+  "credits": 20,
+  "files": [
+   "BuyPad.glb",
+   "BuyPad_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "5b94c583-d534-4913-87fc-43e3de4dd425",
   "type": "text_to_model"
  },
  "props/CampSupplies": {
@@ -1485,9 +1514,25 @@
   "error": "[Errno 2] No such file or directory: '/home/user/hatch-and-snatch/assets/tripo/concepts/GatehouseCitadelOpen.png'",
   "status": "submit_failed"
  },
+ "props/GatehouseCitadelWide": {
+  "credits": 30,
+  "files": [
+   "GatehouseCitadelWide.glb",
+   "GatehouseCitadelWide_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "48f9d2e6-6c7c-44a4-a026-0d774c3eb839",
+  "type": "image_to_model"
+ },
  "props/GatehouseStoneOpen": {
-  "error": "[Errno 2] No such file or directory: '/home/user/hatch-and-snatch/assets/tripo/concepts/GatehouseStoneOpen.png'",
-  "status": "submit_failed"
+  "credits": 30,
+  "files": [
+   "GatehouseStoneOpen.glb",
+   "GatehouseStoneOpen_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "d65e74b6-c1c6-4b00-a53a-6f91d10d4de3",
+  "type": "image_to_model"
  },
  "props/GiantClam": {
   "credits": 20,
@@ -1507,6 +1552,46 @@
   ],
   "status": "success",
   "task_id": "3d45884a-3c1b-409a-b566-4174cb04b8d2",
+  "type": "text_to_model"
+ },
+ "props/HideBarrels": {
+  "credits": 20,
+  "files": [
+   "HideBarrels.glb",
+   "HideBarrels_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "d31edbd5-a474-4557-8974-c2977674cb27",
+  "type": "text_to_model"
+ },
+ "props/HideChest": {
+  "credits": 20,
+  "files": [
+   "HideChest.glb",
+   "HideChest_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "6f196e0c-84ee-42a0-8eef-0c81a746d1df",
+  "type": "text_to_model"
+ },
+ "props/HideHaystack": {
+  "credits": 20,
+  "files": [
+   "HideHaystack.glb",
+   "HideHaystack_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "1180f252-be64-41db-9a53-0681deec8cf7",
+  "type": "text_to_model"
+ },
+ "props/HideHedge": {
+  "credits": 20,
+  "files": [
+   "HideHedge.glb",
+   "HideHedge_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "518a2b77-63d8-4fd7-93ad-33f39fa3c365",
   "type": "text_to_model"
  },
  "props/HollowStump": {

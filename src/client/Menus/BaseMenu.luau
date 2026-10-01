@@ -1,9 +1,10 @@
 --!strict
--- Base menu: base level (what the next upgrade gives and costs), security
--- upgrades (alarm -> tripwire -> auto-lock), floors and vault rooms (bought in
--- order, each needing the one before), and base themes: one per biome (buyable
--- once its biome's eggs are unlocked) plus looks the floors and vaults unlock.
--- Owned themes can be switched freely. The server checks every request.
+-- The Command Terminal's menu (opened at the terminal in your base; owner,
+-- 2026-10-01). Upgrades are bought on the glowing pads in the front yard, so this
+-- shows where the base stands and what's next, and holds the customizing: decor
+-- switched on or off, the security items, and base themes (one per biome, buyable
+-- once its biome's eggs are unlocked, plus looks the floors and vaults unlock).
+-- The server checks every request.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -17,12 +18,14 @@ local levels = tunables.baseLevels
 local securityLevels = tunables.securityLevels
 
 type ThemeRow = { frame: Frame, status: TextLabel, button: TextButton }
-type BuyRow = { title: TextLabel, info: TextLabel, button: TextButton, ready: boolean }
+type BuyRow = { title: TextLabel, info: TextLabel, button: TextButton, ready: boolean, request: string }
 
 local levelRow: BuyRow
 local securityRow: BuyRow
 local floorRow: BuyRow
 local vaultRow: BuyRow
+local hideRow: BuyRow
+local itemRows: { [string]: BuyRow } = {}
 local themeRows: { [string]: ThemeRow } = {}
 
 local BaseMenu = {}
@@ -74,17 +77,34 @@ local function buyRow(list: Instance, order: number, titleColor: Color3, request
 			Size = UDim2.fromOffset(220, 48),
 		}),
 		ready = false,
+		request = request,
 	}
-	row.button.Activated:Connect(function()
-		if row.ready then
-			ClientState.request(request)
-		end
-	end)
+	if request ~= "" and request ~= "ToggleBuild" then
+		row.button.Activated:Connect(function()
+			if row.ready then
+				ClientState.request(request)
+			end
+		end)
+	end
 	return row
 end
 
--- The button of a buy row: buy now, short of cash, or blocked with a reason.
+-- The button of a status row: what the next step costs (bought on its pad in the
+-- base, so the button only reports), or blocked with a reason.
 local function offer(row: BuyRow, cash: number, label: string, cost: number?, blocked: string?)
+	if row.request == "" then
+		row.ready = false
+		row.button.Text = if cost == nil
+			then label
+			elseif blocked then blocked
+			else `On its pad · {Format.cash(cost)}`
+		row.button.BackgroundColor3 = if cost
+				and not blocked
+				and cash >= cost
+			then Ui.colors.good
+			else Ui.colors.disabled
+		return
+	end
 	if cost == nil then
 		row.ready = false
 		row.button.Text = label
@@ -103,17 +123,46 @@ end
 
 function BaseMenu.build(content: Frame)
 	local list = Ui.scrollList(content, { Size = UDim2.fromScale(1, 1) })
-	levelRow = buyRow(list, 1, Color3.new(1, 1, 1), "UpgradeBase")
-	securityRow = buyRow(list, 2, Color3.fromRGB(255, 130, 130), "Security")
-	floorRow = buyRow(list, 3, Color3.fromRGB(150, 220, 255), "BuyFloor")
-	vaultRow = buyRow(list, 4, Color3.fromRGB(255, 200, 90), "BuyVault")
-	header(list, 5, "Base themes: restyle your plot (biome looks, and looks your floors and vaults unlock)")
+	header(list, 0, "Buy upgrades on the glowing pads in your front yard (stand on one).")
+	levelRow = buyRow(list, 1, Color3.new(1, 1, 1), "")
+	securityRow = buyRow(list, 2, Color3.fromRGB(255, 130, 130), "")
+	floorRow = buyRow(list, 3, Color3.fromRGB(150, 220, 255), "")
+	vaultRow = buyRow(list, 4, Color3.fromRGB(255, 200, 90), "")
+	hideRow = buyRow(list, 5, Color3.fromRGB(190, 240, 140), "")
+	header(list, 6, "Decor: switch what you've built on or off")
+	local order = 7
+	for _, kind in { "Decor", "Security" } do
+		if kind == "Security" then
+			header(list, order, "Security items (each runs on a timer)")
+			order += 1
+		end
+		for _, item in Config.BaseBuilds.items do
+			if item.kind == kind then
+				local row = buyRow(
+					list,
+					order,
+					if kind == "Decor" then Color3.fromRGB(255, 225, 150) else Color3.fromRGB(255, 150, 150),
+					"ToggleBuild"
+				)
+				row.title.Text = item.name
+				row.info.Text = item.description
+				row.button.Activated:Connect(function()
+					if row.ready then
+						ClientState.request("ToggleBuild", item.id)
+					end
+				end)
+				itemRows[item.id] = row
+				order += 1
+			end
+		end
+	end
+	header(list, 50, "Base themes: restyle your plot (biome looks, and looks your floors and vaults unlock)")
 	for i, theme in Progression.themes do
 		local frame = Ui.panel(list, {
 			Size = UDim2.new(1, -10, 0, 50),
 			BackgroundColor3 = Ui.colors.row,
 			BackgroundTransparency = 0,
-			LayoutOrder = 10 + i,
+			LayoutOrder = 50 + i,
 		})
 		local swatch = Instance.new("Frame")
 		swatch.BorderSizePixel = 0
@@ -159,7 +208,8 @@ function BaseMenu.refresh(state: { [string]: any })
 	local level: number = state.baseLevel or 1
 	local current = levels[level]
 	local nextLevel = levels[level + 1]
-	levelRow.title.Text = `Base level {level} / {#levels}`
+	local tier = Config.BaseBuilds.tiers[math.clamp(level, 1, #Config.BaseBuilds.tiers)]
+	levelRow.title.Text = `{tier.name} · base level {level} / {#levels}`
 	if nextLevel then
 		local gain = nextLevel.pedestals - current.pedestals
 		local opens: string? = nil
@@ -175,7 +225,7 @@ function BaseMenu.refresh(state: { [string]: any })
 		if opens then
 			table.insert(gains, `opens the {opens}`)
 		end
-		table.insert(gains, "a bigger plot (longer run for thieves)")
+		table.insert(gains, `a bigger plot and {Config.BaseBuilds.tiers[level + 1].description}`)
 		table.insert(gains, `lock +{nextLevel.lockBonusSeconds}s`)
 		levelRow.info.Text = `Next: {table.concat(gains, ", ")}.`
 		offer(levelRow, cash, "Upgrade", nextLevel.cost)
@@ -234,6 +284,53 @@ function BaseMenu.refresh(state: { [string]: any })
 	else
 		vaultRow.info.Text = `Every vault built. {how}`
 		offer(vaultRow, cash, "All vaults built")
+	end
+
+	-- Hiding spots: bought in order
+	local hides: number = state.hides or 0
+	local spots = Config.BaseBuilds.hidingSpots
+	local nextSpot = spots[hides + 1]
+	hideRow.title.Text = `Hiding spots: {hides} / {#spots}`
+	if nextSpot then
+		hideRow.info.Text =
+			`Next: {nextSpot.name}. Hides one creature out of sight (Creatures → Move). Thieves can search spots, and Mythic and rarer sparkle now and then.`
+		offer(
+			hideRow,
+			cash,
+			"Build",
+			nextSpot.cost,
+			if level < nextSpot.baseLevel then `Needs base Lv {nextSpot.baseLevel}` else nil
+		)
+	else
+		hideRow.info.Text = "Every hiding spot built. Empty ones make good decoys."
+		offer(hideRow, cash, "All built")
+	end
+
+	-- Decor and security items: owned decor toggles, the rest say where to get it
+	local builds = state.builds or {}
+	local hidden = state.hiddenBuilds or {}
+	for id, row in itemRows do
+		local item = Config.BaseBuilds.byId[id]
+		if builds[id] then
+			if item.kind == "Decor" then
+				local shown = not hidden[id]
+				row.ready = true
+				row.button.Text = if shown then "Shown ✓" else "Hidden"
+				row.button.BackgroundColor3 = if shown then Ui.colors.good else Ui.colors.blue
+			else
+				row.ready = false
+				row.button.Text = "Installed ✓"
+				row.button.BackgroundColor3 = Ui.colors.good
+			end
+		else
+			row.ready = false
+			local floors: number = state.floors or 1
+			row.button.Text = if level < item.baseLevel
+				then `Needs base Lv {item.baseLevel}`
+				elseif floors < (item.floors or 1) then "Needs the Second Floor"
+				else `On its pad · {Format.cash(item.cost)}`
+			row.button.BackgroundColor3 = Ui.colors.disabled
+		end
 	end
 
 	for id, row in themeRows do

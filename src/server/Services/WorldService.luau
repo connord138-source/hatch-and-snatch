@@ -18,6 +18,8 @@ local SetPieces = require(script.Parent.Parent.SetPieces)
 local Fortress = require(script.Parent.Parent.Fortress)
 local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
 local Landmarks = require(script.Parent.Parent.Landmarks)
+local BaseKit = require(script.Parent.Parent.BaseKit)
+local BaseDecor = require(script.Parent.Parent.BaseDecor)
 
 export type PlotLayout = {
 	index: number,
@@ -32,8 +34,11 @@ export type PlotLayout = {
 	collectorLabel: TextLabel,
 	lockPrompt: ProximityPrompt,
 	lockLabel: TextLabel,
-	upgradePrompt: ProximityPrompt,
-	upgradeLabel: TextLabel,
+	terminalPrompt: ProximityPrompt, -- opens the Base menu (OpensMenu attribute)
+	terminalScreen: TextLabel, -- the monitor's text
+	pads: { BaseKit.Pad }, -- walk-over buy pads (BaseService decides what each sells)
+	hides: { BaseKit.HideSpot },
+	security: BaseKit.Security,
 	lasers: { BasePart },
 	floor: BasePart,
 	trim: { BasePart },
@@ -1134,37 +1139,12 @@ local function buildPlot(index: number): PlotLayout
 	local lockLabel = billboard(lockButton, Vector3.new(0, 3, 0), UDim2.fromOffset(160, 36), 60)
 	lockLabel.Text = "Unlocked"
 
-	-- Base upgrade station (between the lock and the cash pad)
-	local station = part({
-		Name = "UpgradeStation",
-		Size = Vector3.new(2.4, 3.2, 2.4),
-		CFrame = origin * CFrame.new(7.5, TOP + 1.6, -16),
-		Material = Enum.Material.Marble,
-		Color = Color3.fromRGB(230, 225, 210),
-		Parent = model,
-	})
-	part({
-		Name = "UpgradeGem",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(1.6, 1.6, 1.6),
-		CFrame = station.CFrame * CFrame.new(0, 2.5, 0),
-		Material = Enum.Material.Neon,
-		Color = Color3.fromRGB(255, 205, 70),
-		CanCollide = false,
-		Parent = model,
-	})
-	local upgradePrompt = Instance.new("ProximityPrompt")
-	upgradePrompt.Name = "UpgradeBase"
-	upgradePrompt.ActionText = "Upgrade Base"
-	upgradePrompt.ObjectText = "Base upgrade"
-	upgradePrompt.HoldDuration = 0.4
-	upgradePrompt.MaxActivationDistance = 10
-	upgradePrompt.RequiresLineOfSight = false
-	upgradePrompt:SetAttribute("VisibleTo", "owner")
-	upgradePrompt.Parent = station
-	local upgradeLabel = billboard(station, Vector3.new(0, 4.6, 0), UDim2.fromOffset(220, 48), 60)
-	upgradeLabel.TextColor3 = Color3.fromRGB(255, 220, 110)
-	upgradeLabel.Text = "Base Lv 1"
+	-- The Command Terminal (between the lock and the cash pad), buy pads, hiding
+	-- spots and security fixtures (BaseKit)
+	local _, terminalPrompt, terminalScreen = BaseKit.terminal(model, origin)
+	local pads = BaseKit.pads(model, origin)
+	local hides = BaseKit.hideSpots(model, origin)
+	local security = BaseKit.security(model, origin)
 
 	-- Laser walls around the plot edge (placed by setLevel)
 	local lasers: { BasePart } = {}
@@ -1222,8 +1202,11 @@ local function buildPlot(index: number): PlotLayout
 		collectorLabel = collectorLabel,
 		lockPrompt = lockPrompt,
 		lockLabel = lockLabel,
-		upgradePrompt = upgradePrompt,
-		upgradeLabel = upgradeLabel,
+		terminalPrompt = terminalPrompt,
+		terminalScreen = terminalScreen,
+		pads = pads,
+		hides = hides,
+		security = security,
 		lasers = lasers,
 		floor = floor,
 		trim = trim,
@@ -1425,6 +1408,49 @@ function WorldService.setNursery(plot: PlotLayout, count: number)
 	end
 end
 
+-- Shows the first `count` hiding spots (placed for the plot's current width) and
+-- seats hidden creatures there (pedestal slots 51-54).
+function WorldService.setHides(plot: PlotLayout, count: number)
+	for slot, seat in BaseKit.placeHides(plot.model, plot.hides, plot.origin, plot.width, count) do
+		plot.pedestals[slot] = seat
+	end
+end
+
+-- Hides every buy pad (a plot without an owner sells nothing).
+function WorldService.clearPads(plot: PlotLayout)
+	for _, pad in plot.pads do
+		BaseKit.setPad(pad, nil)
+	end
+end
+
+-- Places the security fixtures the owner has (Config.BaseBuilds items, and the
+-- alarm bell from security level 1).
+function WorldService.setSecurity(plot: PlotLayout, owned: { [string]: boolean }, alarm: boolean)
+	BaseKit.placeSecurity(
+		plot.model,
+		plot.security,
+		plot.origin,
+		plot.width,
+		plot.depth,
+		PLOT_FRONT,
+		owned,
+		alarm,
+		plot.floors
+	)
+end
+
+-- Rebuilds the decor the owner has bought and left switched on (`statues`: the
+-- owner's two rarest species, for the Guardian Statues).
+function WorldService.setBuilds(
+	plot: PlotLayout,
+	shown: { [string]: boolean },
+	theme: Config.BaseTheme,
+	statues: { string }
+)
+	local layout = plot.fortress or Fortress.layout(plot.level, plot.width, plot.depth, PLOT_FRONT)
+	BaseDecor.build(plot.model, plot.origin, layout, shown, theme, statues)
+end
+
 -- Restyles a plot with a biome theme: floor, trim, lasers and edge decor.
 function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	if
@@ -1492,11 +1518,11 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	local halfW = layout.halfW
 	local spots: { Vector3 } = {}
 	for z = layout.front + 10, layout.back - 9, 9 do
-		table.insert(spots, Vector3.new(-halfW - 5, 0, z))
-		table.insert(spots, Vector3.new(halfW + 5, 0, z))
+		table.insert(spots, Vector3.new(-halfW - 10, 0, z))
+		table.insert(spots, Vector3.new(halfW + 10, 0, z))
 	end
 	for x = -halfW + 9, halfW - 9, 9 do
-		table.insert(spots, Vector3.new(x, 0, layout.back + 5))
+		table.insert(spots, Vector3.new(x, 0, layout.back + 10))
 	end
 	for _, spot in spots do
 		local name = available[rng:NextInteger(1, #available)]
@@ -2228,6 +2254,8 @@ function WorldService.start()
 		WorldService.setLevel(plot, 1)
 		WorldService.setFloors(plot, 1, 0)
 		WorldService.applyTheme(plot, Config.Progression.themes[1])
+		WorldService.setHides(plot, 0)
+		WorldService.setSecurity(plot, {}, false)
 	end
 	scatterDecor()
 end

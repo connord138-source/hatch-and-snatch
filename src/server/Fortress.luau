@@ -506,21 +506,37 @@ local function gatehouse(folder: Instance, origin: CFrame, layout: Layout, style
 	local h = GATE_CLEAR + 3.5
 	local width = GATE_HALF * 2 + 9
 	local base = origin * CFrame.new(0, 0, z)
-	if style.gateProp and Props.template("WorldProps", style.gateProp) then
-		local model = Props.spawn(style.gateProp, base, h + 4, folder)
-		if model then
-			-- Keep the opening clear whatever the model's shape: colliders on both sides
-			for _, side in { -1, 1 } do
-				part(folder, {
-					Name = "GateCollider",
-					Size = Vector3.new(4.5, h, layout.thickness + 2),
-					CFrame = base * CFrame.new(side * (GATE_HALF + 2.25), h / 2, 0),
-					Transparency = 1,
-					CanQuery = false,
-				})
+	local template = if style.gateProp then Props.template("WorldProps", style.gateProp) else nil
+	if template and style.gateProp then
+		-- Fitted by width: the model's arch is the way in (a 9-stud opening between
+		-- invisible colliders that run out to the wall ends). The Citadel's gate is
+		-- the wide one, with a tower at each end.
+		local gateWidth = if style.pale then 40 else 26
+		local model = template:Clone()
+		model.Name = style.gateProp
+		for _, descendant in model:GetDescendants() do
+			if descendant:IsA("BasePart") then
+				descendant.Anchored = true
+				descendant.CanCollide = false
+				descendant.CanQuery = false
+				descendant.Massless = true
 			end
-			return
 		end
+		local size = Vector3.new(gateWidth, gateWidth * 0.8, gateWidth * 0.5)
+		Props.place(model, base * CFrame.new(0, size.Y / 2, 0), size)
+		model.Parent = folder
+		local opening = 4.5
+		local reach = GATE_HALF + 4.5
+		for _, side in { -1, 1 } do
+			part(folder, {
+				Name = "GateCollider",
+				Size = Vector3.new(reach - opening, h, layout.thickness + 2),
+				CFrame = base * CFrame.new(side * (opening + reach) / 2, h / 2, 0),
+				Transparency = 1,
+				CanQuery = false,
+			})
+		end
+		return
 	end
 	for _, side in { -1, 1 } do
 		part(folder, {
@@ -664,7 +680,7 @@ function Fortress.build(
 	end
 	if style.braziers then
 		for _, side in { -1, 1 } do
-			brazier(folder, origin * CFrame.new(side * (g + 6.5), 0, f - 3.5))
+			brazier(folder, origin * CFrame.new(side * (g + 8), 0, f - 8.5)) -- clear of a moat (BaseDecor)
 		end
 	end
 	folder.Parent = parent

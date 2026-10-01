@@ -59,6 +59,9 @@ local function isNursery(slot: number?): boolean
 end
 
 -- "Vault 2 (locked 2:31)" / "Vault 2 (open)", from the lock timers the server sends
+-- Short labels for the hiding spots in the Move picker (Config.BaseBuilds.hidingSpots)
+local HIDE_LABELS = { "🌾 Hay", "🛢 Barrels", "🌳 Hedge", "🎁 Chest" }
+
 local function vaultText(vault: number): string
 	local state = ClientState.current
 	local lock = state and state.vaultLocks and state.vaultLocks[vault]
@@ -134,9 +137,11 @@ local function updateRow(row: Row, creature: Creature)
 		where = `In storage (earns {Format.cash(creature.rate)}/s placed)`
 	else
 		local vault = Config.Economy.vaultOfSlot(creature.slot)
+		local hide = Config.Economy.hideOfSlot(creature.slot)
 		local spot = if isNursery(creature.slot)
 			then "Nursery"
 			elseif vault then vaultText(vault)
+			elseif hide then `🤫 Hidden: {Config.BaseBuilds.hidingSpots[hide].name}`
 			else FLOOR_NAMES[Config.Economy.slotFloor(creature.slot)] or "Pedestal"
 		where = `{spot} · +{Format.cash(creature.rate)}/s`
 	end
@@ -277,12 +282,14 @@ local function makeRow(uid: string): Row
 		end
 		local here = creature.slot
 		local hereVault = if here then Config.Economy.vaultOfSlot(here) else nil
+		local hereHide = if here then Config.Economy.hideOfSlot(here) else nil
 		local hereFloor = if here
 				and not hereVault
+				and not hereHide
 				and not isNursery(here)
 			then Config.Economy.slotFloor(here)
 			else nil
-		local count = 1 + (state.floors or 1) + (state.vaults or 0)
+		local count = 1 + (state.floors or 1) + (state.vaults or 0) + (state.hides or 0)
 		choice(1, count, "Storage", here ~= nil, function()
 			request("store")
 		end)
@@ -294,6 +301,12 @@ local function makeRow(uid: string): Row
 		for vault = 1, state.vaults or 0 do
 			choice(10 + vault, count, `🔒 Vault {vault}`, hereVault ~= vault, function()
 				ClientState.request("CreatureAction", "move", uid, `V{vault}`)
+			end)
+		end
+		for spot = 1, state.hides or 0 do
+			local label = HIDE_LABELS[spot] or `Hide {spot}`
+			choice(20 + spot, count, label, hereHide ~= spot, function()
+				ClientState.request("CreatureAction", "move", uid, `H{spot}`)
 			end)
 		end
 		row.expanded = true

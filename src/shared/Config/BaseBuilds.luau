@@ -19,6 +19,18 @@ export type Tier = {
 	description: string, -- what the next upgrade adds, for the Base menu
 }
 
+-- A hiding spot: a prop in the base that holds one creature out of sight. Bought
+-- in order. Thieves can search any spot (empty ones are decoys), and Mythic and
+-- rarer creatures give themselves away with the odd sparkle, so a hidden
+-- ultra-rare is never safe for good (owner, 2026-10-01).
+export type HidingSpot = {
+	name: string,
+	prop: string, -- WorldProps model (a part-built stand-in otherwise)
+	cost: number,
+	baseLevel: number,
+	empty: string, -- what a thief finds in an empty one
+}
+
 export type Item = {
 	id: string,
 	name: string,
@@ -182,6 +194,37 @@ local items: { Item } = {
 	},
 }
 
+local hidingSpots: { HidingSpot } = {
+	{
+		name = "Haystack",
+		prop = "HideHaystack",
+		cost = 3_000_000,
+		baseLevel = 2,
+		empty = "Nothing in there but hay!",
+	},
+	{
+		name = "Barrel Pile",
+		prop = "HideBarrels",
+		cost = 300_000_000,
+		baseLevel = 3,
+		empty = "Just empty barrels.",
+	},
+	{
+		name = "Hedge",
+		prop = "HideHedge",
+		cost = 8_000_000_000,
+		baseLevel = 4,
+		empty = "Only leaves and a startled beetle.",
+	},
+	{
+		name = "Secret Chest",
+		prop = "HideChest",
+		cost = 150_000_000_000,
+		baseLevel = 5,
+		empty = "The chest is empty. Sneaky!",
+	},
+}
+
 local byId: { [string]: Item } = {}
 for _, item in items do
 	byId[item.id] = item
@@ -191,6 +234,11 @@ return table.freeze({
 	tiers = tiers,
 	items = items,
 	byId = byId,
+	hidingSpots = hidingSpots,
+	searchSeconds = 3, -- the hold to search a hiding spot (the same for every spot)
+	tellRarityOrder = 6, -- Mythic (Config.Rarities order) and up sparkle from hiding
+	tellEverySeconds = 12, -- about how often they give themselves away
+	padHoldSeconds = 0.6, -- stand on a buy pad this long to buy (no buying by walking past)
 	ballistaRange = 80,
 	searchlightRange = 300, -- how far the marker shows
 })

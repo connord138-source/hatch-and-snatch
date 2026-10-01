@@ -6,6 +6,7 @@ local Stages = require(script.Parent.Stages)
 local Finishes = require(script.Parent.Finishes)
 local Mutations = require(script.Parent.Mutations)
 local Biomes = require(script.Parent.Biomes)
+local BaseBuilds = require(script.Parent.BaseBuilds)
 
 local Tunables = {
 	-- Growth: stage N -> N+1 takes base × rarity growthFactor (runs offline too)
@@ -275,9 +276,11 @@ local function baseLevel(level: number): { cost: number, pedestals: number, lock
 end
 
 -- Pedestal slots: 1-20 on the ground, 21-25 on the Second Floor, 26-30 on the
--- Top Floor, and the vaults at 41-44 (`VAULT_SLOT_BASE` + vault number).
+-- Top Floor, the vaults at 41-44 (`VAULT_SLOT_BASE` + vault number) and the
+-- hiding spots at 51-54 (`HIDE_SLOT_BASE` + spot number, Config.BaseBuilds).
 local GROUND_SLOTS = 20
 local VAULT_SLOT_BASE = 40
+local HIDE_SLOT_BASE = 50
 
 -- The floor (1 = ground) a pedestal slot stands on.
 local function slotFloor(slot: number): number
@@ -307,9 +310,21 @@ local function vaultSlot(vault: number): number
 	return VAULT_SLOT_BASE + vault
 end
 
+-- The hiding spot a slot is, or nil.
+local function hideOfSlot(slot: number?): number?
+	if slot and slot > HIDE_SLOT_BASE and BaseBuilds.hidingSpots[slot - HIDE_SLOT_BASE] then
+		return slot - HIDE_SLOT_BASE
+	end
+	return nil
+end
+
+local function hideSlot(spot: number): number
+	return HIDE_SLOT_BASE + spot
+end
+
 -- Every pedestal slot a base has, in fill order: the ground, the floors bought
--- (`floors` counts the ground: 1-3), then the vaults bought.
-local function slots(level: number, floors: number, vaults: number): { number }
+-- (`floors` counts the ground: 1-3), the vaults bought, then the hiding spots.
+local function slots(level: number, floors: number, vaults: number, hides: number?): { number }
 	local list: { number } = {}
 	for slot = 1, baseLevel(level).pedestals do
 		table.insert(list, slot)
@@ -327,6 +342,9 @@ local function slots(level: number, floors: number, vaults: number): { number }
 	for vault = 1, math.min(vaults, #Tunables.vaults) do
 		table.insert(list, VAULT_SLOT_BASE + vault)
 	end
+	for spot = 1, math.min(hides or 0, #BaseBuilds.hidingSpots) do
+		table.insert(list, HIDE_SLOT_BASE + spot)
+	end
 	return list
 end
 
@@ -335,6 +353,8 @@ local Economy = table.freeze({
 	slotFloor = slotFloor,
 	vaultOfSlot = vaultOfSlot,
 	vaultSlot = vaultSlot,
+	hideOfSlot = hideOfSlot,
+	hideSlot = hideSlot,
 	slots = slots,
 	groundSlots = GROUND_SLOTS,
 	tunables = Tunables,

@@ -79,6 +79,9 @@ export type PlayerData = {
 	security: number, -- how many of Config.Economy.tunables.securityLevels are bought
 	floors: number, -- floors the base has, counting the ground (1-3, Config.Economy.tunables.floors)
 	vaults: number, -- vault rooms bought (Config.Economy.tunables.vaults)
+	hides: number, -- hiding spots bought, in order (Config.BaseBuilds.hidingSpots)
+	builds: { [string]: boolean }, -- decor and security items bought (Config.BaseBuilds.items)
+	hiddenBuilds: { [string]: boolean }, -- decor the owner switched off at the terminal
 	floorsMigrated: boolean, -- old saves: base levels 4-5 had the deck, now the floors
 	spins: number, -- banked Luck Wheel spins
 	luckCharge: number, -- luck multiplier waiting for the next egg bought (1 = none)
@@ -149,6 +152,9 @@ local TEMPLATE: PlayerData = {
 	security = 0,
 	floors = 1,
 	vaults = 0,
+	hides = 0,
+	builds = {},
+	hiddenBuilds = {},
 	floorsMigrated = false,
 	spins = Config.Economy.tunables.startingSpins,
 	luckCharge = 1,
