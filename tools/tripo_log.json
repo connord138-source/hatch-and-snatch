@@ -26,6 +26,24 @@
   "task_id": "c71e2f9a-652a-420b-8c25-b825c90d8c80",
   "type": "generate_image"
  },
+ "concepts/Capybaron_EvoA": {
+  "credits": 10,
+  "files": [
+   "Capybaron_EvoA.png"
+  ],
+  "status": "success",
+  "task_id": "a6fbdd41-8b52-48e8-8b43-c9cc2af1c471",
+  "type": "generate_image"
+ },
+ "concepts/Capybaron_EvoB": {
+  "credits": 10,
+  "files": [
+   "Capybaron_EvoB.png"
+  ],
+  "status": "success",
+  "task_id": "4771667b-eda5-4585-87c7-58d4432a8953",
+  "type": "generate_image"
+ },
  "concepts/Capybaron_Juvenile": {
   "credits": 5,
   "files": [
@@ -141,6 +159,24 @@
   ],
   "status": "success",
   "task_id": "6069ff45-45cc-49c9-b944-fdca2efa9897",
+  "type": "generate_image"
+ },
+ "concepts/Glacierion_EvoA": {
+  "credits": 10,
+  "files": [
+   "Glacierion_EvoA.png"
+  ],
+  "status": "success",
+  "task_id": "81ec9a36-ffa8-491f-87fa-c5e67c2fb056",
+  "type": "generate_image"
+ },
+ "concepts/Glacierion_EvoB": {
+  "credits": 10,
+  "files": [
+   "Glacierion_EvoB.png"
+  ],
+  "status": "success",
+  "task_id": "0bd6c237-0db1-4d4b-a8a2-fe72fbbeaa71",
   "type": "generate_image"
  },
  "concepts/Glacierion_Juvenile": {
@@ -260,6 +296,24 @@
   "task_id": "079e34f4-07d7-4aaa-a90e-aeaa7ef4a151",
   "type": "generate_image"
  },
+ "concepts/Lurehound_EvoA": {
+  "credits": 10,
+  "files": [
+   "Lurehound_EvoA.png"
+  ],
+  "status": "success",
+  "task_id": "2950a7b4-832e-467f-b89c-653daaa57308",
+  "type": "generate_image"
+ },
+ "concepts/Lurehound_EvoB": {
+  "credits": 10,
+  "files": [
+   "Lurehound_EvoB.png"
+  ],
+  "status": "success",
+  "task_id": "46082ce5-64f4-434d-9390-b9bd4ecceb98",
+  "type": "generate_image"
+ },
  "concepts/Lurehound_Juvenile": {
   "credits": 5,
   "files": [
@@ -305,6 +359,24 @@
   "task_id": "bf2d9554-7c65-4573-a524-0520c0b43377",
   "type": "generate_image"
  },
+ "concepts/Nullcat_EvoA": {
+  "credits": 10,
+  "files": [
+   "Nullcat_EvoA.png"
+  ],
+  "status": "success",
+  "task_id": "69535dc1-1903-4f8a-ac5d-5eeea16d147e",
+  "type": "generate_image"
+ },
+ "concepts/Nullcat_EvoB": {
+  "credits": 10,
+  "files": [
+   "Nullcat_EvoB.png"
+  ],
+  "status": "success",
+  "task_id": "af635817-1207-4bcd-8b68-d298dd58a4b5",
+  "type": "generate_image"
+ },
  "concepts/Nullcat_Juvenile": {
   "credits": 5,
   "files": [
@@ -348,6 +420,24 @@
   ],
   "status": "success",
   "task_id": "bc86b348-0b5f-4e6a-aa9f-1784ab6d54fa",
+  "type": "generate_image"
+ },
+ "concepts/Quasarfox_EvoA": {
+  "credits": 10,
+  "files": [
+   "Quasarfox_EvoA.png"
+  ],
+  "status": "success",
+  "task_id": "62df69f5-3707-4f04-a652-b48da48135ee",
+  "type": "generate_image"
+ },
+ "concepts/Quasarfox_EvoB": {
+  "credits": 10,
+  "files": [
+   "Quasarfox_EvoB.png"
+  ],
+  "status": "success",
+  "task_id": "0dcfee92-d97b-4401-8a1a-dcd148b7d0fc",
   "type": "generate_image"
  },
  "concepts/Quasarfox_Juvenile": {
@@ -402,6 +492,24 @@
   ],
   "status": "success",
   "task_id": "ea841e3f-3375-4547-91a7-e7b7dbb80770",
+  "type": "generate_image"
+ },
+ "concepts/Solarion_EvoA": {
+  "credits": 10,
+  "files": [
+   "Solarion_EvoA.png"
+  ],
+  "status": "success",
+  "task_id": "c76e285a-90ca-429c-a256-67fc64f478d6",
+  "type": "generate_image"
+ },
+ "concepts/Solarion_EvoB": {
+  "credits": 10,
+  "files": [
+   "Solarion_EvoB.png"
+  ],
+  "status": "success",
+  "task_id": "c73c9baa-6e7c-4cbc-9029-f4401b416ba3",
   "type": "generate_image"
  },
  "concepts/Solarion_Juvenile": {
