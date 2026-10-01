@@ -16,6 +16,8 @@ assets/eggs/
 assets/props/
 assets/tripo/
 assets/icon_src/
+# tools/fetch_assets.py's record of which link each local file came from
+assets/.sources.json
 
 # Python
 __pycache__/
