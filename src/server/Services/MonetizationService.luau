@@ -11,8 +11,13 @@
 --    everyone; eggs rolled while it runs use it (MonetizationService.serverLuck).
 --  * Free perks: Roblox Premium and Roblox group membership (checked on join and
 --    when the player asks, see RewardsService).
+--  * Paid random items: eggs are random and cash/Server Luck can be bought with
+--    Robux, so players whose policy restricts paid random items (PolicyService) never
+--    see those products (`paidRandom` in Config.Monetization). The egg odds are shown
+--    to everyone before buying (OddsController).
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
+local PolicyService = game:GetService("PolicyService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -34,6 +39,9 @@ local MonetizationService = {
 
 local owned: { [Player]: { [string]: boolean } } = {}
 local groupMembers: { [Player]: boolean } = {}
+-- Players whose policy allows paid random items. Everyone else counts as
+-- restricted, including before the check answers and when it fails.
+local randomAllowed: { [Player]: boolean } = {}
 local debugPerks: { [Player]: { [string]: boolean } } = {} -- StudioDebug "perk"
 
 local luckUntil = 0 -- Workspace:GetServerTimeNow() when Server Luck runs out
@@ -81,7 +89,33 @@ function MonetizationService.inGroup(player: Player): boolean
 	return groupMembers[player] == true or debugPerk(player, "group")
 end
 
--- Studio testing: pretend the player has Premium ("premium") or is in the group ("group").
+-- Whether paid random items (Cash Pouch, Cash Chest, Server Luck) are hidden from
+-- this player: true where their policy restricts them, and until Roblox has answered.
+function MonetizationService.paidRandomRestricted(player: Player): boolean
+	return randomAllowed[player] ~= true or debugPerk(player, "restricted")
+end
+
+-- Asks Roblox for the player's policy (yields). A failed check keeps the player
+-- restricted, the safe side.
+local function checkPolicy(player: Player)
+	for attempt = 1, 3 do
+		local ok, policy = pcall(PolicyService.GetPolicyInfoForPlayerAsync, PolicyService, player)
+		if ok and typeof(policy) == "table" then
+			if player.Parent == Players then
+				randomAllowed[player] = policy.ArePaidRandomItemsRestricted == false
+				DataService.markDirty(player)
+			end
+			return
+		end
+		if attempt < 3 and player.Parent == Players then
+			task.wait(2 * attempt)
+		end
+	end
+	warn(`[MonetizationService] {player.Name}: policy check failed; paid random items stay hidden`)
+end
+
+-- Studio testing: pretend the player has Premium ("premium"), is in the group
+-- ("group") or lives where paid random items are restricted ("restricted").
 function MonetizationService.setDebugPerk(player: Player, perk: string, on: boolean)
 	debugPerks[player] = debugPerks[player] or {}
 	debugPerks[player][perk] = on
@@ -285,10 +319,12 @@ function MonetizationService.start()
 	end)
 	DataService.loaded:connect(function(player: Player)
 		task.spawn(checkPasses, player)
+		task.spawn(checkPolicy, player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		owned[player] = nil
 		groupMembers[player] = nil
+		randomAllowed[player] = nil
 		debugPerks[player] = nil
 	end)
 	publishLuck()

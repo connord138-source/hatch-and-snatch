@@ -24,6 +24,8 @@ export type CreatureRecord = {
 export type IncubatorRecord = {
 	biome: string,
 	species: string, -- rolled at purchase, revealed at hatch
+	finish: string?, -- rolled at purchase too (older saves roll at hatch)
+	mutation: string?,
 	startedAt: number,
 	hatchAt: number,
 	spun: boolean?, -- Luck Wheel already used on this egg
@@ -34,6 +36,8 @@ export type IncubatorRecord = {
 export type HeldEgg = {
 	biome: string,
 	species: string,
+	finish: string?,
+	mutation: string?,
 }
 
 export type PlayerData = {

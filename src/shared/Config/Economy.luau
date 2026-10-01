@@ -182,32 +182,64 @@ end
 
 -- Rolls a finish rarest-first. `activeEventId` enables event-only finishes;
 -- `chanceMultiplier` comes from moon events / luck boosts. `rng` is injected for testability.
-local function rollFinish(rng: Random, activeEventId: string?, chanceMultiplier: number): string
+export type Chance = { id: string, chance: number }
+
+-- The exact chance of every finish for one roll (they sum to 1): rarest first,
+-- each eligible finish takes `chanceMultiplier / oneIn` of what's left, and
+-- Normal gets the rest. `activeEventId` enables event-only finishes;
+-- `chanceMultiplier` comes from moon events. The odds panel shows these, and
+-- rollFinish samples them, so what players see is what they get.
+local function finishOdds(activeEventId: string?, chanceMultiplier: number): { Chance }
 	local ordered = table.clone(Finishes)
 	table.sort(ordered, function(a, b)
 		return (a.oneIn or 0) > (b.oneIn or 0)
 	end)
+	local remaining = 1
+	local odds: { Chance } = {}
 	for _, finish in ordered do
 		local oneIn = finish.oneIn
-		local eligible = oneIn ~= nil and (finish.eventOnly == nil or finish.eventOnly == activeEventId)
-		if eligible and rng:NextNumber() < chanceMultiplier / (oneIn :: number) then
-			return finish.id
+		if oneIn ~= nil and (finish.eventOnly == nil or finish.eventOnly == activeEventId) then
+			local p = math.min(1, chanceMultiplier / oneIn)
+			table.insert(odds, { id = finish.id, chance = remaining * p })
+			remaining *= 1 - p
 		end
 	end
-	return "Normal"
+	table.insert(odds, { id = "Normal", chance = remaining })
+	return odds
 end
 
--- Rolls at most one genetic mutation.
-local function rollMutation(rng: Random): string?
-	local roll = rng:NextNumber()
-	local cumulative = 0
+-- The exact chance of each genetic mutation, plus "None" (they sum to 1).
+local function mutationOdds(): { Chance }
+	local odds: { Chance } = {}
+	local total = 0
 	for _, mutation in Mutations do
-		cumulative += mutation.chance
-		if roll < cumulative then
-			return mutation.id
+		table.insert(odds, { id = mutation.id, chance = mutation.chance })
+		total += mutation.chance
+	end
+	table.insert(odds, { id = "None", chance = 1 - total })
+	return odds
+end
+
+local function sample(rng: Random, odds: { Chance }): string
+	local roll = rng:NextNumber()
+	for _, entry in odds do
+		roll -= entry.chance
+		if roll < 0 then
+			return entry.id
 		end
 	end
-	return nil
+	return odds[#odds].id
+end
+
+-- Rolls a finish from finishOdds. `rng` is injected for testability.
+local function rollFinish(rng: Random, activeEventId: string?, chanceMultiplier: number): string
+	return sample(rng, finishOdds(activeEventId, chanceMultiplier))
+end
+
+-- Rolls at most one genetic mutation, from mutationOdds.
+local function rollMutation(rng: Random): string?
+	local id = sample(rng, mutationOdds())
+	return if id == "None" then nil else id
 end
 
 -- Base level config, clamped to the table.
@@ -226,6 +258,8 @@ local Economy = table.freeze({
 	secondsToNextStage = secondsToNextStage,
 	rollFinish = rollFinish,
 	rollMutation = rollMutation,
+	finishOdds = finishOdds,
+	mutationOdds = mutationOdds,
 })
 
 return Economy

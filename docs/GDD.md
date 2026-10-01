@@ -58,6 +58,7 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
   Upgrading while an egg is inside speeds up the rest of its time. Junk Eggs fit in any tier.
 - **Rarity tease:** each incubator shows a countdown and a progress bar. From 40% progress the bar, the timer and a glow take on the egg's rarity color, fading in from white; the egg wobbles harder and harder over the last 15%.
 - **Luck Wheel:** a physical wheel stands by the plaza. Walk up and hold E to spend a spin; everyone nearby watches it turn. Prizes: ×2 luck 30%, cash (5 min of income) 24%, ×3 luck 18%, +2 spins 12%, ×10 luck 12%, ×25 jackpot 4%. A luck prize charges your **next egg** (bought or forged); its Epic+ weights are multiplied by the luck. Spins come from playtime (1 per 20 minutes, up to 10 banked), achievements, rebirths, the Coral Coast shrine and releasing rare creatures.
+- **Odds panel** (paid random items, 2026-10-01): while an egg's Buy prompt (or a shrine's Forge prompt) is on screen, a panel lists every species, finish and genetic mutation that egg can give, with percentages that add up to 100%. It updates live with the player's luck charge, Server Luck and moon events. Everything is rolled the moment the egg is bought, with exactly those odds (`Shared/Odds.luau`, `OddsController`), so Skip Hatch and incubator upgrades never change what's inside.
 - **Hatch reveal:** a case-opening reel of creature cards from that egg's odds slows down and lands on what hatched, with rare cards teased right beside it. Then a big rarity-colored reveal shows the creature spinning; Mythic and rarer flash the whole screen, and the server announces it once the reveal ends.
 
 ## 4. Creatures
@@ -291,6 +292,9 @@ Built 2026-09-30 (`Config/Monetization.luau`, `MonetizationService`). Prices are
   | Cash Chest | 149 | 90 min of income, at least $10,000 |
 
   Instant Restock was dropped: the conveyor has no stock to restock.
+- **Paid random items (Roblox policy):** eggs are random, and Robux buys cash (Cash Pouch, Cash Chest) and better odds (Server Luck), so the game has paid random items. Two things follow:
+  - Every egg shows its full odds before buying (§3.1, odds panel).
+  - Players whose `PolicyService` policy has `ArePaidRandomItemsRestricted` never see those three products (`paidRandom = true` in `Config/Monetization.luau`). Until the check answers, or if it fails, they count as restricted. A purchase that goes through anyway is still granted, because Robux was charged. Test it with `StudioDebug:Invoke("perk", "restricted")`.
 - **Receipts:** each purchase id is recorded in the player's data and only confirmed to Roblox after a save containing it, so a crash can't double-grant or lose a purchase. Pass ownership is checked with Roblox on join and also stored in data.
 - **Free perks and rewards** (built 2026-09-30, `RewardsService`, Shop → Free rewards):
   - **Codes** (`Config/Codes.luau`): once per player, paying spins, luck charge, cash or Essence, with an optional expiry date. Launch codes: HATCH (3 spins), MOONEGG (×3 luck), SNATCH ($1,000). Like-goal codes are added to the table when a goal is hit.

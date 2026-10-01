@@ -20,6 +20,10 @@ export type Product = {
 	price: number,
 	description: string,
 	shop: boolean?, -- false = not sold in the Shop (the rewarded-ad reward)
+	-- A paid random item under Roblox's rules: Robux for cash or luck that buys or
+	-- improves eggs (random). Hidden from players whose policy restricts paid
+	-- random items (PolicyService, MonetizationService.paidRandomRestricted).
+	paidRandom: boolean?,
 }
 
 local passes: { Pass } = {
@@ -76,6 +80,7 @@ local products: { Product } = {
 		description = "Doubles Epic+ odds on every egg for everyone in the server for 15 minutes, "
 			.. "and your name is announced. Buying again while it runs adds 15 minutes and raises it "
 			.. "to ×3, ×4, up to ×5.",
+		paidRandom = true,
 	},
 	{
 		key = "GrowthElixir",
@@ -97,6 +102,7 @@ local products: { Product } = {
 		name = "Cash Pouch",
 		price = 29,
 		description = "10 minutes of your income, at least $1,000.",
+		paidRandom = true,
 	},
 	{
 		key = "CashLarge",
@@ -104,6 +110,7 @@ local products: { Product } = {
 		name = "Cash Chest",
 		price = 149,
 		description = "90 minutes of your income, at least $10,000.",
+		paidRandom = true,
 	},
 	{
 		-- The rewarded video ad's reward (Roblox grants ad rewards as a developer

@@ -3,7 +3,8 @@
 -- passes and developer products (Config.Monetization). Buttons open Roblox's own
 -- prompts; the server grants everything (MonetizationService, RewardsService). Items
 -- without a Creator Hub id yet are hidden in a live game and shown greyed out in
--- Studio, so the layout can be checked early.
+-- Studio, so the layout can be checked early. Paid random items (cash and Server
+-- Luck, `paidRandom`) are hidden where the player's policy restricts them.
 local GroupService = game:GetService("GroupService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -21,7 +22,7 @@ local Monetization = Config.Monetization
 local Tuning = Monetization.tuning
 local SHOW_UNSET = RunService:IsStudio()
 
-type Row = { button: TextButton, note: TextLabel?, key: string, pass: boolean }
+type Row = { frame: Frame, button: TextButton, note: TextLabel?, key: string, pass: boolean }
 
 local rows: { Row } = {}
 local luckLine: TextLabel
@@ -208,13 +209,13 @@ function ShopMenu.build(content: Frame)
 			continue
 		end
 		order += 1
-		local _, button = row(list, order, pass.name, pass.description)
+		local frame, button = row(list, order, pass.name, pass.description)
 		button.Activated:Connect(function()
 			if pass.id ~= 0 then
 				MarketplaceService:PromptGamePassPurchase(Players.LocalPlayer, pass.id)
 			end
 		end)
-		table.insert(rows, { button = button, key = pass.key, pass = true })
+		table.insert(rows, { frame = frame, button = button, key = pass.key, pass = true })
 	end
 	local anyProduct = false
 	for _, product in Monetization.products do
@@ -240,11 +241,13 @@ function ShopMenu.build(content: Frame)
 			TextStrokeTransparency = 1,
 		})
 		button.Activated:Connect(function()
-			if product.id ~= 0 then
+			local state = ClientState.current
+			local restricted = state == nil or state.paidRandomRestricted ~= false
+			if product.id ~= 0 and not (product.paidRandom and restricted) then
 				MarketplaceService:PromptProductPurchase(Players.LocalPlayer, product.id)
 			end
 		end)
-		table.insert(rows, { button = button, note = note, key = product.key, pass = false })
+		table.insert(rows, { frame = frame, button = button, note = note, key = product.key, pass = false })
 	end
 end
 
@@ -289,10 +292,13 @@ function ShopMenu.refresh(state: { [string]: any })
 			else ""
 	end
 
+	local restricted = state.paidRandomRestricted ~= false
 	for _, entry in rows do
 		local item = if entry.pass
 			then Monetization.passesByKey[entry.key]
 			else Monetization.productsByKey[entry.key]
+		local product = if entry.pass then nil else Monetization.productsByKey[entry.key]
+		entry.frame.Visible = not (product and product.paidRandom and restricted)
 		local button = entry.button
 		-- Ownership first: a pass granted in Studio (or bought) is owned even before
 		-- it has a Creator Hub id

@@ -116,6 +116,7 @@ local function snapshot(player: Player): { [string]: any }?
 		passes = MonetizationService.ownedPasses(player),
 		premium = MonetizationService.isPremium(player),
 		inGroup = MonetizationService.inGroup(player),
+		paidRandomRestricted = MonetizationService.paidRandomRestricted(player),
 		groupRewarded = data.groupRewarded,
 		onboarding = data.onboarding, -- first-session guide step (GuideController)
 		daily = DailyService.snapshot(player, data),

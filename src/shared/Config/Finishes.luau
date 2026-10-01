@@ -1,6 +1,6 @@
 --!strict
 -- Finishes: the flashy rarity layer. Material + particle swaps, no new models.
--- Rolled rarest-first at hatch; see Economy.rollFinish.
+-- Rolled rarest-first when the egg is bought; see Economy.finishOdds / rollFinish.
 local Types = require(script.Parent.Types)
 
 local Finishes: { Types.Finish } = {

@@ -8,7 +8,9 @@ The owner does these steps in Creator Hub (signed in as **Dillionaire138**) and 
 - [ ] **Maturity & compliance questionnaire** (the experience → Audience → Maturity & Compliance). Answer truthfully. For reference:
   - Violence: none. Players grab creatures; there are no weapons and no damage.
   - Blood or gore: none. "Blood Moon" is only a red event name and tint.
-  - Paid random items: **none**. Eggs are bought with in-game cash, not Robux. Server Luck (Robux) raises the Epic+ odds of eggs players still buy with cash.
+  - Paid random items: **Yes**. Eggs are random and bought with cash, and Robux buys cash (Cash Pouch, Cash Chest) and better odds (Server Luck). That counts under Roblox's rules.
+  - Shows the odds before purchase: **Yes**. The odds panel lists every species, finish and mutation with percentages adding up to 100%, live with luck and moon events (GDD §3.1).
+  - Respects `PolicyService` restrictions: **Yes**. `ArePaidRandomItemsRestricted` players never see Cash Pouch, Cash Chest or Server Luck (GDD §9).
   - Social: the default Roblox chat. No free-form text of our own except redeem codes.
   - This should come out as Minimal or Mild.
 - [ ] **Devices:** Computer, Phone and Tablet. **Leave Console off**, because the menus have no gamepad navigation yet. VR off.

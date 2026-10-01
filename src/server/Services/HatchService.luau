@@ -263,13 +263,18 @@ function HatchService.giveEgg(player: Player, biomeId: string)
 	-- multiplies it (Junk eggs ignore luck)
 	local charge = if data.luckCharge > 1 then data.luckCharge else nil
 	local luck = if biomeId ~= "Junk" then (charge or 1) * MonetizationService.serverLuck() else 1
+	-- Everything random about the egg is rolled now, when it's bought, with the
+	-- same odds the odds panel showed the buyer (Eggs.speciesOdds,
+	-- Economy.finishOdds and mutationOdds): paid random items must disclose them
 	local species =
 		Config.Eggs.rollSpecies(biomeId, rng, EventService.activeId() ~= nil, if luck > 1 then luck else nil)
+	local finish = Config.Economy.rollFinish(rng, EventService.activeId(), EventService.finishMultiplier())
+	local mutation = Config.Economy.rollMutation(rng)
 	if charge and biomeId ~= "Junk" then
 		data.luckCharge = 1
 		Net.notify(player, `Your ×{charge} Luck Wheel charge was used on this egg!`, "rare")
 	end
-	data.heldEgg = { biome = biomeId, species = species }
+	data.heldEgg = { biome = biomeId, species = species, finish = finish, mutation = mutation }
 	attachHeldEgg(player, biomeId)
 	refreshIncubators(player, data)
 	DataService.markDirty(player)
@@ -301,6 +306,8 @@ local function place(player: Player, slot: number)
 	table.insert(data.incubators, {
 		biome = held.biome,
 		species = held.species,
+		finish = held.finish,
+		mutation = held.mutation,
 		startedAt = now,
 		hatchAt = hatchAt,
 		slot = slot,
@@ -382,8 +389,10 @@ local function hatch(player: Player, data: PlayerData, index: number)
 	if egg == nil then
 		return
 	end
-	local finishId = Config.Economy.rollFinish(rng, EventService.activeId(), EventService.finishMultiplier())
-	local mutation = Config.Economy.rollMutation(rng)
+	-- Rolled at purchase (eggs from older saves roll here)
+	local finishId = egg.finish
+		or Config.Economy.rollFinish(rng, EventService.activeId(), EventService.finishMultiplier())
+	local mutation = if egg.finish then egg.mutation else Config.Economy.rollMutation(rng)
 	local uid = CreatureService.add(player, {
 		species = egg.species,
 		stage = "Baby",

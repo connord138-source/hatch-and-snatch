@@ -13,6 +13,7 @@ local HudController = require(script.Controllers.HudController)
 local IncubatorController = require(script.Controllers.IncubatorController)
 local LuckWheelController = require(script.Controllers.LuckWheelController)
 local MenuController = require(script.Controllers.MenuController)
+local OddsController = require(script.Controllers.OddsController)
 local PromptFilter = require(script.Controllers.PromptFilter)
 local RevealController = require(script.Controllers.RevealController)
 local ZoneGateController = require(script.Controllers.ZoneGateController)
@@ -26,6 +27,7 @@ PromptFilter.start()
 IncubatorController.start()
 task.spawn(LuckWheelController.start) -- waits for the world to replicate
 RevealController.start()
+OddsController.start() -- the egg odds panel (paid random items: odds before buying)
 task.spawn(ZoneGateController.start) -- waits for the world to replicate
 task.spawn(ZoneMoodController.start) -- waits for the world to replicate
 task.spawn(GuideController.start) -- waits for the world to replicate

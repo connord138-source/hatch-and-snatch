@@ -17,7 +17,8 @@
 --   game.ServerStorage.StudioDebug:Invoke("product", "AdBoost")
 --       -- the rewarded-ad reward (×2 cash for 15 min) without an ad
 --   game.ServerStorage.StudioDebug:Invoke("perk", "premium")
---       -- toggles pretend Roblox Premium ("premium") or group membership ("group") for every player
+--       -- toggles pretend Roblox Premium ("premium"), group membership ("group") or a
+--       -- region that restricts paid random items ("restricted") for every player
 --   game.ServerStorage.StudioDebug:Invoke("codes")
 --       -- forgets which codes every player redeemed (Config.Codes), to test them again
 --   game.ServerStorage.StudioDebug:Invoke("cash", 1e12)
@@ -126,15 +127,16 @@ local function pass(key: any): string
 end
 
 local function perk(name: any): string
-	if name ~= "premium" and name ~= "group" then
-		return "perk is premium or group"
+	if name ~= "premium" and name ~= "group" and name ~= "restricted" then
+		return "perk is premium, group or restricted"
 	end
 	local on = false
 	for player in DataService.loadedPlayers() do
 		on = not (
 			if name == "premium"
 				then MonetizationService.isPremium(player)
-				else MonetizationService.inGroup(player)
+				elseif name == "group" then MonetizationService.inGroup(player)
+				else MonetizationService.paidRandomRestricted(player)
 		)
 		MonetizationService.setDebugPerk(player, name, on)
 	end
@@ -218,7 +220,7 @@ function StudioDebug.start()
 			end
 			return "a day passed (for the Daily menu)"
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group), codes(), cash(amount), guide(), daily(), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store()"
 	end
 	hook.Parent = ServerStorage
 end
