@@ -48,6 +48,10 @@ local function rebirth(player: Player)
 		`Rebirth {data.rebirths}! Earnings are now +{bonus}%, and +{REBIRTH_SPINS} Luck Wheel spins.`,
 		"rare"
 	)
+	local looks = Config.CastleDesigns.rebirthUnlocks(data.rebirths)
+	if looks then
+		Net.notify(player, `🏰 New in the Castle Designer: {looks}!`, "rare")
+	end
 	Net.announce(`{player.DisplayName} reached Rebirth {data.rebirths}!`, ANNOUNCE_COLOR)
 end
 

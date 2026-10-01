@@ -27,6 +27,11 @@ local function enumGroup(name)
 	-- Cached so items compare equal, as Roblox enum items do
 	return setmetatable({}, { __index = function(t, k) local item = { Name = k, EnumType = name }; rawset(t, k, item); return item end })
 end
+-- Particle types (the preview ignores particles)
+NumberRange = { new = function(a, b) return { Min = a, Max = b or a } end }
+NumberSequenceKeypoint = { new = function(t, v) return { Time = t, Value = v } end }
+NumberSequence = { new = function(v) return { Keypoints = v } end }
+ColorSequence = { new = function(v) return { Keypoints = v } end }
 Enum = setmetatable({}, { __index = function(t, k) local group = enumGroup(k); rawset(t, k, group); return group end })
 
 local DEFAULTS = {

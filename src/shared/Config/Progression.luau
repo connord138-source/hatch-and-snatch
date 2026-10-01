@@ -247,6 +247,7 @@ export type BaseTheme = {
 	-- Build the towers and gatehouse from parts in these colors, not the imported
 	-- models (whose textures carry the Classic look)
 	customTowers: boolean?,
+	sparkle: Color3?, -- the Castle Designer's rebirth stones twinkle on the towers
 }
 local themes: { BaseTheme } = {
 	{

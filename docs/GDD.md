@@ -180,13 +180,25 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
   - Hiding spots aren't auto-filled and Rarest up top leaves them alone; moving a creature in or out isn't allowed while an intruder is in the base.
 - **Decor** (pads; switch each on or off at the terminal; `BaseDecor.luau`): Camp Supplies 15K, Wall Torches 40K, Campfire 150K, Flower Planters 600K, Banners 2.5M (theme colors), Training Yard 8M, Stone Well 40M, Lantern Path 150M, Fountain 900M, Guardian Statues 4B (stone statues of your two rarest creatures by the gate), Moat & Drawbridge 30B, Royal Gold Trim 350B (base 5).
 - **Castle Designer** (owner, 2026-10-01: "ice, fire, light, dark, red, blue, green, rainbow, tons of combos"; `Config/CastleDesigns.luau`, Base menu at the terminal). It replaced the nine fixed base themes. A base's look is six picks that mix and match:
-  - **Stone** (walls, towers, keep): Classic (gray, pale and gold at the Citadel), Mossy 25K, Sandstone 120K, Basalt 30M, Obsidian 120M, Ice 6B, Storm Slate 600B, Moonstone 60T; Fortress Stone 2B (Second Floor), Marble 150B (Top Floor), Royal Granite 1T (all 4 vaults), Solid Gold 150T (1 rebirth).
-  - **Roofs** and **Banners** (the same 14 colors each): Blue, Red and Green free; Sunflower 40K, Lagoon Teal 150K, Coral Pink 250K, Ember Orange 30M, Charcoal 60M, Snow White 6B, Ice Blue 8B, Thunder Yellow 600B, Void Purple 60T; Gold foil 400B (base 5); Rainbow 100T (1 rebirth, the color cycles).
-  - **Glow** (laser gate, vault doors, spire and royal crystals): Laser Red free, Toxic 50K, Ocean 150K, Fire 30M, Ice 6B, Light 8B (base 4), Lightning 600B, Dark 60T, Royal Gold 1T (all 4 vaults), Rainbow 100T (1 rebirth).
+  - **Stone** (walls, towers, keep): Classic (gray, pale and gold at the Citadel), Mossy 25K, Sandstone 120K, Basalt 30M, Obsidian 120M, Ice 6B, Storm Slate 600B, Moonstone 60T; Fortress Stone 2B (Second Floor), Marble 150B (Top Floor), Royal Granite 1T (all 4 vaults).
+  - **Roofs** and **Banners** (the same 14 colors each): Blue, Red and Green free; Sunflower 40K, Lagoon Teal 150K, Coral Pink 250K, Ember Orange 30M, Charcoal 60M, Snow White 6B, Ice Blue 8B, Thunder Yellow 600B, Void Purple 60T; Gold foil 400B (base 5).
+  - **Glow** (laser gate, vault doors, spire and royal crystals): Laser Red free, Toxic 50K, Ocean 150K, Fire 30M, Ice 6B, Light 8B (base 4), Lightning 600B, Dark 60T, Royal Gold 1T (all 4 vaults).
   - **Floor:** Wood free, Sand 100K, Basalt 25M, Glacier 5B, Slate 500B, Moon Pebble 50T; Cobblestone 1B, Marble 100B, Dark Granite 800B (floors and vaults as above).
   - **Grounds** (the plants and rocks round the walls): Forest free, Meadow 60K, Coral Shore 100K, Volcanic 25M, Frozen 5B, Stormy Crags 500B, Lunar 50T; Rocky 1B, Crystal Garden 150B.
+  - **Rebirth ladder** (owner, 2026-10-01: "the more desirable and harder to get ones should require multiple rebirths to generate return players"). The flashiest looks unlock one rebirth at a time, each priced near that rebirth's own cost so it is a second sink:
+    | Rebirth | Unlocks | Price |
+    |---|---|---|
+    | 1 | Molten roofs and banners (glowing neon) | 1T each |
+    | 2 | Rainbow roofs and banners (the color cycles) | 2.5T each |
+    | 3 | Solid Gold stone; Gold Tiles floor | 6T; 4T |
+    | 4 | Diamond roofs and banners (foil); Rainbow glow | 10T each; 15T |
+    | 5 | Diamond stone; Diamond floor | 40T; 25T |
+    | 6 | Void Steel stone; Void Glow roofs and banners (neon) | 100T each |
+    - The rebirth stones (Solid Gold, Diamond, Void Steel) also twinkle on the towers.
+    - The Rebirth menu shows what the next rebirth unlocks, and rebirthing announces it.
+    - Simulated pace (150 days, free to play): a 3 h/day player reaches rebirth 1 around day 41, rebirth 3 around day 60 and rebirth 5 around day 117; an 8 h/day player reaches them around days 22, 33 and 60, and rebirth 6 around day 92. Rebirth 6 is the long-term goal, and more steps can be added above it later.
   - Biome options open with that biome's eggs (Mossvale, Coral, Magma, Frost, Storm, Moonfall), the rest with base progress or a rebirth. Each is bought once and can be picked freely after; free options count as owned.
-  - **12 presets** set every slot at once and buy whatever is missing in one payment (all of it must be unlocked): Classic, Red Bastion, Green Hold, Coral Fort, Fire Keep, Ice Castle, Light Citadel, Storm Spire, Dark Fortress, Moon Palace, Royal Vault, Rainbow Castle.
+  - **16 presets** set every slot at once and buy whatever is missing in one payment (all of it must be unlocked): Classic, Red Bastion, Green Hold, Coral Fort, Fire Keep, Ice Castle, Light Citadel, Storm Spire, Dark Fortress, Moon Palace, Royal Vault, then the rebirth ones: Molten Keep (1), Golden Palace (3), Rainbow Castle (4), Diamond Citadel (5) and Void Throne (6).
   - Old saves migrate: every theme a player owned becomes its stone, floor, glow and grounds options, and their active theme becomes their design (`DataService`, `fromTheme`).
   - Preview: `bash tools/preview/run_designs.sh <dir> [Preset ...]` renders the Citadel in each preset; `bash tools/tests/run_designs.sh` checks the presets, options and unlocks.
 - **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.

@@ -12,7 +12,11 @@
 --
 -- Each option unlocks with a biome zone (its colors and materials), the base's
 -- progress or a rebirth, is bought once at the Command Terminal and can be
--- picked freely after that. Presets set every slot at once (buying what's
+-- picked freely after that. The flashiest looks climb a rebirth ladder (owner:
+-- "the more desirable, harder to get ones should require multiple rebirths",
+-- so players come back): Molten 1, Rainbow 2, Solid Gold 3, Diamond trim and a
+-- rainbow glow 4, Diamond stone 5, Void 6. Each costs about what its rebirth
+-- did, and the Rebirth menu shows what the next one unlocks. Presets set every slot at once (buying what's
 -- missing). This replaced the nine fixed base themes; old saves keep what they
 -- owned (DataService migration, `fromTheme`).
 local Progression = require(script.Parent.Progression)
@@ -32,6 +36,7 @@ export type Option = {
 	color: Color3?, -- swatch and look; nil for the stone's tier default
 	material: Enum.Material?,
 	rainbow: boolean?, -- the client cycles it through the colors
+	sparkle: Color3?, -- stone: twinkles on the towers (the rebirth stones)
 	decor: { string }?, -- grounds: WorldProps scattered round the walls
 }
 
@@ -130,13 +135,38 @@ local function colors(): { Option }
 			color = Color3.fromRGB(240, 195, 70),
 			material = Enum.Material.Foil,
 		},
+		-- The rebirth ladder
+		{
+			id = "Molten",
+			name = "Molten",
+			cost = 1_000_000_000_000,
+			unlock = { rebirths = 1 },
+			color = Color3.fromRGB(255, 95, 25),
+			material = Enum.Material.Neon,
+		},
 		{
 			id = "Rainbow",
 			name = "Rainbow",
-			cost = 100_000_000_000_000,
-			unlock = { rebirths = 1 },
+			cost = 2_500_000_000_000,
+			unlock = { rebirths = 2 },
 			color = Color3.fromRGB(255, 120, 200),
 			rainbow = true,
+		},
+		{
+			id = "Diamond",
+			name = "Diamond",
+			cost = 10_000_000_000_000,
+			unlock = { rebirths = 4 },
+			color = Color3.fromRGB(215, 245, 255),
+			material = Enum.Material.Foil,
+		},
+		{
+			id = "Void",
+			name = "Void Glow",
+			cost = 100_000_000_000_000,
+			unlock = { rebirths = 6 },
+			color = Color3.fromRGB(120, 50, 255),
+			material = Enum.Material.Neon,
 		},
 	}
 end
@@ -231,10 +261,29 @@ local slots: { Slot } = {
 			{
 				id = "Golden",
 				name = "Solid Gold",
-				cost = 150_000_000_000_000,
-				unlock = { rebirths = 1 },
+				cost = 6_000_000_000_000,
+				unlock = { rebirths = 3 },
 				material = Enum.Material.Foil,
 				color = Color3.fromRGB(235, 190, 70),
+				sparkle = Color3.fromRGB(255, 225, 140),
+			},
+			{
+				id = "Diamond",
+				name = "Diamond",
+				cost = 40_000_000_000_000,
+				unlock = { rebirths = 5 },
+				material = Enum.Material.Foil,
+				color = Color3.fromRGB(200, 238, 252),
+				sparkle = Color3.fromRGB(235, 250, 255),
+			},
+			{
+				id = "VoidSteel",
+				name = "Void Steel",
+				cost = 100_000_000_000_000,
+				unlock = { rebirths = 6 },
+				material = Enum.Material.Foil,
+				color = Color3.fromRGB(52, 36, 92),
+				sparkle = Color3.fromRGB(190, 140, 255),
 			},
 		},
 	},
@@ -305,8 +354,8 @@ local slots: { Slot } = {
 			{
 				id = "Rainbow",
 				name = "Rainbow",
-				cost = 100_000_000_000_000,
-				unlock = { rebirths = 1 },
+				cost = 15_000_000_000_000,
+				unlock = { rebirths = 4 },
 				color = Color3.fromRGB(255, 120, 200),
 				rainbow = true,
 			},
@@ -387,6 +436,22 @@ local slots: { Slot } = {
 				unlock = { vaults = 4 },
 				material = Enum.Material.Granite,
 				color = Color3.fromRGB(38, 34, 44),
+			},
+			{
+				id = "GoldTiles",
+				name = "Gold Tiles",
+				cost = 4_000_000_000_000,
+				unlock = { rebirths = 3 },
+				material = Enum.Material.Foil,
+				color = Color3.fromRGB(230, 185, 70),
+			},
+			{
+				id = "Diamond",
+				name = "Diamond",
+				cost = 25_000_000_000_000,
+				unlock = { rebirths = 5 },
+				material = Enum.Material.Foil,
+				color = Color3.fromRGB(210, 242, 255),
 			},
 		},
 	},
@@ -605,6 +670,31 @@ local presets: { Preset } = {
 			grounds = "Rocky",
 		},
 	},
+	-- The rebirth ladder
+	{
+		id = "Molten",
+		name = "Molten Keep",
+		picks = {
+			stone = "Obsidian",
+			roof = "Molten",
+			banner = "Molten",
+			glow = "Fire",
+			floor = "Basalt",
+			grounds = "Volcanic",
+		},
+	},
+	{
+		id = "Golden",
+		name = "Golden Palace",
+		picks = {
+			stone = "Golden",
+			roof = "White",
+			banner = "Red",
+			glow = "Gold",
+			floor = "GoldTiles",
+			grounds = "Crystal",
+		},
+	},
 	{
 		id = "Rainbow",
 		name = "Rainbow Castle",
@@ -615,6 +705,30 @@ local presets: { Preset } = {
 			glow = "Rainbow",
 			floor = "Marble",
 			grounds = "Crystal",
+		},
+	},
+	{
+		id = "Diamond",
+		name = "Diamond Citadel",
+		picks = {
+			stone = "Diamond",
+			roof = "Diamond",
+			banner = "Gold",
+			glow = "Light",
+			floor = "Diamond",
+			grounds = "Frozen",
+		},
+	},
+	{
+		id = "Void",
+		name = "Void Throne",
+		picks = {
+			stone = "VoidSteel",
+			roof = "Void",
+			banner = "Void",
+			glow = "Dark",
+			floor = "Granite",
+			grounds = "Lunar",
 		},
 	},
 }
@@ -682,7 +796,7 @@ function CastleDesigns.unlocked(
 		return false, `{need.vaults} vaults`
 	end
 	if need.rebirths and progress.rebirths < need.rebirths then
-		return false, "a rebirth"
+		return false, if need.rebirths == 1 then "a rebirth" else `Rebirth {need.rebirths}`
 	end
 	return true, nil
 end
@@ -736,7 +850,36 @@ function CastleDesigns.resolve(picks: { [string]: string }): Progression.BaseThe
 			glow = glow.rainbow == true,
 		},
 		customTowers = not (stone.id == "Tier" and roof.id == "Blue" and banner.id == "Blue"),
+		sparkle = stone.sparkle,
 	}
+end
+
+-- What reaching rebirth `n` opens in the designer, for the Rebirth menu
+-- ("Molten roofs and banners"), or nil when nothing.
+function CastleDesigns.rebirthUnlocks(n: number): string?
+	local names: { string } = {}
+	local slotsOf: { [string]: { string } } = {}
+	for _, slot in slots do
+		for _, option in slot.options do
+			if option.unlock and option.unlock.rebirths == n then
+				local list = slotsOf[option.name]
+				if list == nil then
+					list = {}
+					slotsOf[option.name] = list
+					table.insert(names, option.name)
+				end
+				table.insert(list, string.lower(slot.name))
+			end
+		end
+	end
+	if #names == 0 then
+		return nil
+	end
+	local parts: { string } = {}
+	for _, name in names do
+		table.insert(parts, `{name} {table.concat(slotsOf[name], " and ")}`)
+	end
+	return table.concat(parts, ", ")
 end
 
 -- Free options are owned from the start.

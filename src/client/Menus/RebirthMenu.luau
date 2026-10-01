@@ -1,5 +1,6 @@
 --!strict
--- Rebirth menu (prestige): what the next rebirth costs, what it gives and what it resets.
+-- Rebirth menu (prestige): what the next rebirth costs, what it gives (including the
+-- Castle Designer looks it unlocks) and what it resets.
 -- The button needs a second press to confirm; the server re-checks the cost.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -14,6 +15,7 @@ local PER_REBIRTH = Config.Economy.tunables.rebirthBonusPerLevel
 local status: TextLabel
 local unlock: TextLabel
 local bonus: TextLabel
+local designs: TextLabel
 local costLabel: TextLabel
 local button: TextButton
 local armedUntil = 0
@@ -44,6 +46,10 @@ function RebirthMenu.build(content: Frame)
 		TextColor3 = Ui.colors.muted,
 		TextStrokeTransparency = 1,
 		Text = "Rebirthing resets your cash and uncollected cash.\nYou keep every creature, egg, level, upgrade and index entry.",
+	})
+	designs = line(content, 250, 18, {
+		Size = UDim2.new(1, 0, 0, 52),
+		TextColor3 = Color3.fromRGB(255, 210, 90),
 	})
 
 	button = Ui.button(content, {
@@ -85,6 +91,10 @@ function RebirthMenu.refresh(state: { [string]: any })
 	costLabel.TextColor3 = if affordable then Ui.colors.cash else Ui.colors.warn
 	unlock.Text = "Also gives 3 Luck Wheel spins. Biomes unlock by Hatcher Level (Progress menu)."
 	bonus.Text = `Earnings bonus: +{percent(rebirths)}% now, +{percent(rebirths + 1)}% after`
+	local looks = Config.CastleDesigns.rebirthUnlocks(rebirths + 1)
+	designs.Text = if looks
+		then `🏰 Rebirth {rebirths + 1} unlocks in the Castle Designer: {looks}`
+		else "🏰 You've unlocked every rebirth look in the Castle Designer."
 
 	if os.clock() >= armedUntil then
 		button.Text = if affordable

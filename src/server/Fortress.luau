@@ -168,6 +168,26 @@ local function column(
 	return part(parent, props)
 end
 
+-- The rebirth stones' twinkle: a few star glints on a tower's surface.
+local function twinkle(tower: BasePart, color: Color3)
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Name = "Twinkle"
+	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	emitter.Shape = Enum.ParticleEmitterShape.Box
+	emitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	emitter.Rate = 5
+	emitter.Lifetime = NumberRange.new(0.6, 1.2)
+	emitter.Speed = NumberRange.new(0)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.5, 0.7),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	emitter.Color = ColorSequence.new(color)
+	emitter.LightEmission = 1
+	emitter.Parent = tower
+end
+
 function Fortress.style(level: number): Style
 	return STYLES[math.clamp(level, 1, #STYLES)]
 end
@@ -708,6 +728,9 @@ function Fortress.build(
 	-- the glow color on the spire crystals, and rainbow parts for the client to cycle (RainbowController)
 	local rainbow = theme.rainbow
 	for _, descendant in folder:GetDescendants() do
+		if descendant:IsA("BasePart") and descendant.Name == "Tower" and theme.sparkle then
+			twinkle(descendant, theme.sparkle)
+		end
 		if descendant:IsA("BasePart") then
 			local kind = if descendant.Name == "Roof"
 				then "roof"

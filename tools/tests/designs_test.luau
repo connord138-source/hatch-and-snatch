@@ -56,4 +56,16 @@ check(Designs.unlocked(Designs.options.stone.Mossy, progress, order), "Mossy is 
 check(not Designs.unlocked(Designs.options.stone.Ice, progress, order), "Ice needs the Frost Shelf")
 check(not Designs.unlocked(Designs.options.roof.Rainbow, progress, order), "Rainbow needs a rebirth")
 
+-- The rebirth ladder: every step from 1 to 6 opens something, and the flashiest
+-- looks sit at the top
+for n = 1, 6 do
+	check(Designs.rebirthUnlocks(n) ~= nil, `rebirth {n} unlocks nothing`)
+end
+check(Designs.rebirthUnlocks(7) == nil, "nothing past rebirth 6 yet")
+check(Designs.options.roof.Rainbow.unlock.rebirths >= 2, "Rainbow takes more than one rebirth")
+check(Designs.options.stone.Diamond.unlock.rebirths >= 5, "Diamond stone sits near the top")
+local _, needs = Designs.unlocked(Designs.options.stone.Golden, { unlockedBiome = 6, baseLevel = 5, floors = 3, vaults = 4, rebirths = 2 }, order)
+check(needs == "Rebirth 3", `Solid Gold should need Rebirth 3, not {needs}`)
+print(`rebirth ladder: 1 {Designs.rebirthUnlocks(1)}; 2 {Designs.rebirthUnlocks(2)}; 3 {Designs.rebirthUnlocks(3)}; 4 {Designs.rebirthUnlocks(4)}; 5 {Designs.rebirthUnlocks(5)}; 6 {Designs.rebirthUnlocks(6)}`)
+
 print(`designs: {#Designs.presets} presets and every option check out`)
