@@ -353,15 +353,16 @@ local function addHalo(primary: BasePart, center: Vector3, extents: Vector3, col
 	gui.Parent = attachment
 end
 
-local function addRarityLook(model: Model, rarity: string, finish: string)
+local function addRarityLook(model: Model, species: string, rarity: string, finish: string)
 	local primary = model.PrimaryPart
 	if primary == nil then
 		return
 	end
 	local look = RarityLooks.get(rarity)
 	local color = RarityLooks.color(rarity)
-	if finish == "Normal" then
-		RarityLooks.tint(model, rarity)
+	local tint = RarityLooks.tintFor(species, rarity)
+	if finish == "Normal" and tint then
+		RarityLooks.tint(model, tint)
 	end
 	if look.shimmer then
 		CollectionService:AddTag(model, "Shimmer") -- CreatureAnimator cycles the tint
@@ -576,7 +577,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	end
 	applyFinish(model, record.finish)
 	addStageEffects(model, Config.CreaturesById[record.species], record.stage)
-	addRarityLook(model, Config.CreaturesById[record.species].rarity, record.finish)
+	addRarityLook(model, record.species, Config.CreaturesById[record.species].rarity, record.finish)
 
 	-- Stand the model's bounding box on the pedestal, whatever its pivot is
 	local boxCFrame, boxSize = model:GetBoundingBox()

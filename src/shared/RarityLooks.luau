@@ -103,6 +103,15 @@ local LOOKS: { [string]: Look } = {
 	Junk = { halo = 0.45 },
 }
 
+-- Species whose own colors fight their rarity tint (PC round 9da730a): the
+-- Mythic crimson turned the white-ice Glacierion red, and the Celestial pale blue
+-- turned Solarion's gold mane olive. `false` keeps the creature's own colors; a
+-- color tints with that instead. Their halo and stardust keep the rarity color.
+local SPECIES_TINT: { [string]: Color3 | false } = {
+	Glacierion = false,
+	Solarion = Color3.fromRGB(255, 232, 180), -- warmer gold, still a step up from its texture
+}
+
 local RarityLooks = {}
 
 RarityLooks.rainbow = RAINBOW
@@ -117,14 +126,20 @@ function RarityLooks.color(rarity: string): Color3
 	return if entry then entry.color else Color3.new(1, 1, 1)
 end
 
--- Tints every textured part of `model` (SurfaceAppearance.Color multiplies the
--- texture). Untextured parts get the same tint on their color. Returns whether
--- `rarity` has a tint at all.
-function RarityLooks.tint(model: Model, rarity: string, tint: Color3?): boolean
-	local color = tint or RarityLooks.get(rarity).tint
-	if color == nil then
-		return false
+-- The tint for one species at its rarity (nil: no tint).
+function RarityLooks.tintFor(species: string, rarity: string): Color3?
+	local override = SPECIES_TINT[species]
+	if override == false then
+		return nil
+	elseif typeof(override) == "Color3" then
+		return override
 	end
+	return RarityLooks.get(rarity).tint
+end
+
+-- Tints every textured part of `model` with `color` (SurfaceAppearance.Color
+-- multiplies the texture). Untextured parts get the same tint on their color.
+function RarityLooks.tint(model: Model, color: Color3)
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("SurfaceAppearance") then
 			-- Guarded: if a Roblox update ever made it read-only, the creature still builds
@@ -141,7 +156,6 @@ function RarityLooks.tint(model: Model, rarity: string, tint: Color3?): boolean
 			end
 		end
 	end
-	return true
 end
 
 return RarityLooks

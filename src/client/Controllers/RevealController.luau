@@ -165,7 +165,10 @@ local function viewport(parent: Instance, speciesId: string, finish: string): Vi
 	if not FinishLooks.apply(model, finish) then
 		local creature = Config.CreaturesById[speciesId]
 		if creature then
-			RarityLooks.tint(model, creature.rarity)
+			local tint = RarityLooks.tintFor(speciesId, creature.rarity)
+			if tint then
+				RarityLooks.tint(model, tint)
+			end
 		end
 	end
 	for _, descendant in model:GetDescendants() do
