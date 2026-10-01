@@ -91,7 +91,11 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
 ## 5. Rarity layers (the collection)
 
-1. **Species rarity:** see the roster.
+1. **Species rarity:** see the roster. Everyone can read it on sight (owner, 2026-10-01; `Shared/RarityLooks.luau`):
+   - **Halo:** every creature has a soft halo of its rarity color behind it, stronger with each tier and visible from across the island.
+   - **Stardust:** from Uncommon up, sparkles in the rarity color rise off the creature, thicker and brighter with each tier (Uncommon 1/s up to Legendary 8/s, then Mythic 16, Celestial 20, Cosmic 26 and Secret 32, which bloom).
+   - **Color conversion (Mythic and up):** the creature's texture is tinted toward its rarity color (Mythic crimson, Celestial pale blue, Cosmic violet), keeping its details and eyes. Secret shifts slowly through the rainbow. A finish replaces the tint; the halo and stardust stay.
+   - Lights are added from Epic up. The name tag shows the rarity under the name.
 2. **Genetic mutations**, rolled at hatch. These give natural variety and are mostly cosmetic, with a small value bonus:
    - Albino 5%, Melanistic 3%, Leucistic 2%, Piebald 2%, Iridescent 0.2%.
 3. **Finishes**, the flashy layer. Each is a material and particle swap, so no new models are needed:

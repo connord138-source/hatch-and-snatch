@@ -11,6 +11,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local FinishLooks = require(ReplicatedStorage.Shared.FinishLooks)
+local RarityLooks = require(ReplicatedStorage.Shared.RarityLooks)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Signal = require(ReplicatedStorage.Shared.Signal)
@@ -167,6 +168,7 @@ type ParticleSpec = {
 	lifetime: number,
 	rise: number,
 	light: Color3?,
+	brightness: number?, -- above 1 blooms (the rarer stardust)
 }
 local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
 local FIRE = "rbxasset://textures/particles/fire_main.dds"
@@ -185,6 +187,7 @@ local function addParticles(part: BasePart, spec: ParticleSpec)
 	end
 	emitter.Color = ColorSequence.new(keypoints)
 	emitter.LightEmission = 1
+	emitter.Brightness = spec.brightness or 1
 	emitter.Rate = spec.rate
 	emitter.Lifetime = NumberRange.new(spec.lifetime * 0.6, spec.lifetime)
 	emitter.Speed = NumberRange.new(spec.speed * 0.4, spec.speed)
@@ -289,69 +292,79 @@ local FINISH_FX: { [string]: ParticleSpec } = {
 	},
 }
 
--- Rarity auras by species rarity: rarer species glow more, readable across the map
-local RARITY_FX: { [string]: ParticleSpec } = {
-	Legendary = {
-		texture = SPARKLE,
-		colors = { Color3.fromRGB(255, 190, 60) },
-		rate = 4,
-		size = 0.4,
-		speed = 0.8,
-		lifetime = 1.6,
-		rise = 1.5,
-	},
-	Mythic = {
-		texture = SPARKLE,
-		colors = { Color3.fromRGB(255, 70, 110), Color3.fromRGB(255, 180, 200) },
-		rate = 9,
-		size = 0.5,
-		speed = 1,
-		lifetime = 2,
-		rise = 2,
-		light = Color3.fromRGB(255, 70, 110),
-	},
-	Celestial = {
-		texture = SPARKLE,
-		colors = { Color3.fromRGB(255, 250, 220), Color3.fromRGB(150, 235, 255) },
-		rate = 12,
-		size = 0.55,
-		speed = 0.6,
-		lifetime = 2.4,
-		rise = 3,
-		light = Color3.fromRGB(200, 240, 255),
-	},
-	Cosmic = {
-		texture = SPARKLE,
-		colors = { Color3.fromRGB(140, 70, 255), Color3.fromRGB(90, 200, 255), Color3.new(1, 1, 1) },
-		rate = 18,
-		size = 0.45,
-		speed = 0.5,
-		lifetime = 3.5,
-		rise = 0.4,
-		light = Color3.fromRGB(140, 70, 255),
-	},
-	Secret = {
-		texture = SPARKLE,
-		colors = {
-			Color3.fromRGB(255, 80, 80),
-			Color3.fromRGB(255, 230, 80),
-			Color3.fromRGB(80, 255, 140),
-			Color3.fromRGB(80, 160, 255),
-			Color3.fromRGB(220, 90, 255),
-		},
-		rate = 22,
-		size = 0.55,
-		speed = 1.2,
-		lifetime = 2.5,
-		rise = 1,
-		light = Color3.new(1, 1, 1),
-	},
-}
+-- The rarity look (Shared/RarityLooks): a soft halo of the rarity color behind
+-- the creature, stardust that thickens with each tier, a light on the rarer ones
+-- and, for the ultra-rares, a tint toward the rarity color. Everyone sees it.
+local HALO_RINGS = 6 -- stacked discs: a soft edge without a texture
+local HALO_DISTANCE = 220 -- readable from across the island
 
-local function addRarityAura(model: Model, rarity: string)
-	local fx = RARITY_FX[rarity]
-	if fx and model.PrimaryPart then
-		addParticles(model.PrimaryPart, fx)
+local function addHalo(primary: BasePart, center: Vector3, extents: Vector3, color: Color3, strength: number)
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "RarityHalo"
+	attachment.WorldPosition = center
+	attachment.Parent = primary
+	local diameter = math.max(extents.X, extents.Y, extents.Z) * 1.35
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "RarityHalo"
+	gui.Size = UDim2.fromScale(diameter, diameter) -- studs: shrinks with distance
+	-- Camera-relative offset: always pushed back behind the creature, whatever the angle
+	gui.StudsOffset = Vector3.new(0, 0, -diameter * 0.5)
+	gui.LightInfluence = 0
+	gui.MaxDistance = HALO_DISTANCE
+	gui.ClipsDescendants = false
+	local alpha = 0.12 * strength -- per disc; the middle stacks them all
+	for i = 1, HALO_RINGS do
+		local scale = 1 - (i - 1) * 0.11
+		local disc = Instance.new("Frame")
+		disc.AnchorPoint = Vector2.new(0.5, 0.5)
+		disc.Position = UDim2.fromScale(0.5, 0.5)
+		disc.Size = UDim2.fromScale(scale, scale)
+		disc.BackgroundColor3 = color
+		disc.BackgroundTransparency = 1 - alpha
+		disc.BorderSizePixel = 0
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0.5, 0)
+		corner.Parent = disc
+		disc.Parent = gui
+	end
+	gui.Parent = attachment
+end
+
+local function addRarityLook(model: Model, rarity: string, finish: string)
+	local primary = model.PrimaryPart
+	if primary == nil then
+		return
+	end
+	local look = RarityLooks.get(rarity)
+	local color = RarityLooks.color(rarity)
+	if finish == "Normal" then
+		RarityLooks.tint(model, rarity)
+	end
+	if look.shimmer then
+		CollectionService:AddTag(model, "Shimmer") -- CreatureAnimator cycles the tint
+	end
+	local box, extents = model:GetBoundingBox()
+	addHalo(primary, box.Position, extents, color:Lerp(Color3.new(1, 1, 1), 0.15), look.halo)
+	local dust = look.stardust
+	if dust then
+		addParticles(primary, {
+			texture = SPARKLE,
+			colors = dust.colors or { color, color:Lerp(Color3.new(1, 1, 1), 0.6) },
+			rate = dust.rate,
+			size = dust.size,
+			speed = 0.8,
+			lifetime = dust.lifetime,
+			rise = dust.rise,
+			brightness = dust.brightness,
+		})
+	end
+	if look.light then
+		local light = Instance.new("PointLight")
+		light.Name = "RarityLight"
+		light.Color = color
+		light.Brightness = look.light
+		light.Range = math.max(extents.X, extents.Z) * 0.8 + 4
+		light.Parent = primary
 	end
 end
 
@@ -540,7 +553,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	end
 	applyFinish(model, record.finish)
 	addStageEffects(model, Config.CreaturesById[record.species], record.stage)
-	addRarityAura(model, Config.CreaturesById[record.species].rarity)
+	addRarityLook(model, Config.CreaturesById[record.species].rarity, record.finish)
 
 	-- Stand the model's bounding box on the pedestal, whatever its pivot is
 	local boxCFrame, boxSize = model:GetBoundingBox()
@@ -569,7 +582,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 		then ` · stolen from {record.stolenFrom}`
 		elseif record.homegrown then " · Homegrown"
 		else ""
-	label.Text = `{finishText}{creature.displayName}\n{record.stage}{origin}`
+	label.Text = `{finishText}{creature.displayName}\n{creature.rarity} {record.stage}{origin}`
 	label.Parent = tag
 
 	model:SetAttribute("Uid", uid)

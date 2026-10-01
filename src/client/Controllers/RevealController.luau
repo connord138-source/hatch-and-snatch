@@ -14,6 +14,7 @@ local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local FinishLooks = require(ReplicatedStorage.Shared.FinishLooks)
+local RarityLooks = require(ReplicatedStorage.Shared.RarityLooks)
 local Ui = require(script.Parent.Parent.Ui)
 
 local TICK_SOUND = "rbxasset://sounds/electronicpingshort.wav"
@@ -160,7 +161,13 @@ local function viewport(parent: Instance, speciesId: string, finish: string): Vi
 	limit.Parent = frame
 	frame.Parent = parent
 	local model = template:Clone()
-	FinishLooks.apply(model, finish) -- show the finish that actually hatched
+	-- Show the finish that actually hatched; without one, an ultra-rare's rarity tint
+	if not FinishLooks.apply(model, finish) then
+		local creature = Config.CreaturesById[speciesId]
+		if creature then
+			RarityLooks.tint(model, creature.rarity)
+		end
+	end
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			-- A viewport has nothing to reflect, so reflectance only washes colors out

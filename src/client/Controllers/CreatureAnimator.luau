@@ -42,6 +42,7 @@ type Tracked = {
 	-- Level of detail: seconds since this creature was last updated
 	sinceUpdate: number,
 	parts: { BasePart }?, -- Prismatic recolor list, gathered once
+	appearances: { SurfaceAppearance }?, -- Secret shimmer tint list, gathered once
 }
 
 local STAGE_MOTION: { [string]: { stride: number, height: number, speed: number } } = {
@@ -215,6 +216,8 @@ local function track(instance: Instance)
 			end
 			if descendant:IsA("BasePart") then
 				info.parts = nil -- regather for the Prismatic recolor
+			elseif descendant:IsA("SurfaceAppearance") then
+				info.appearances = nil -- regather for the Secret shimmer
 			end
 		end)
 		tracked[instance] = {
@@ -400,6 +403,23 @@ function CreatureAnimator.start()
 				for _, part in info.parts :: { BasePart } do
 					part.Color = color
 				end
+			elseif CollectionService:HasTag(model, "Shimmer") then
+				-- Secret rarity: its texture tint drifts slowly through the rainbow
+				local tint = Color3.fromHSV((t * 0.08 + info.seed) % 1, 0.45, 1)
+				if info.appearances == nil then
+					local appearances: { SurfaceAppearance } = {}
+					for _, appearance in model:GetDescendants() do
+						if appearance:IsA("SurfaceAppearance") then
+							table.insert(appearances, appearance)
+						end
+					end
+					info.appearances = appearances
+				end
+				pcall(function()
+					for _, appearance in info.appearances :: { SurfaceAppearance } do
+						appearance.Color = tint
+					end
+				end)
 			end
 		end
 	end)
