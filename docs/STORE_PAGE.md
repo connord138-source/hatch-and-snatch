@@ -15,6 +15,11 @@ The files to upload are in `marketing/`. Rebuild them with `python3 tools/market
 2. `thumb_2_hatch.jpg`: "HATCH A 1 IN 10,000!", a Cosmic creature bursting from an incubator.
 3. `thumb_3_collect.jpg`: "COLLECT 41 CREATURES / 7 SHINY FINISHES", the finish lineup.
 4. `thumb_4_moon.jpg`: "MOON EVENTS!", the cracked Moon Egg turning red.
+5. `thumb_5_fortress.jpg`: "BUILD YOUR FORTRESS! / 3 FLOORS · 4 VAULTS", the three-story base from above.
+6. `thumb_6_vault.jpg`: "LOCK THE VAULT!", a Sylvanox behind a glowing vault door.
+7. `thumb_7_reveal.jpg`: "1 IN 50,000 SECRET! / WATCH THE REEL SPIN", the hatch reveal landing on Capybaron.
+8. `thumb_8_lineup.jpg`: "SHOW OFF YOUR RAREST!", rarity halos and stardust at night.
+9. `thumb_9_biome.jpg`: "EXPLORE 6 BIOMES! / ERUPTIONS · METEORS · LIGHTNING", the Magma Rift mid-eruption.
 
 Tips:
 - Roblox rotates thumbnails, and the first one is also the default share image.
@@ -50,5 +55,6 @@ Keep the first line punchy, because only the first ~150 characters show in searc
 
 - Icon: `IconRealEyesB` / `IconRealEyesA` (Tripo, `tools/tripo_jobs_marketing.json`).
 - Thumbnails 1–3 are Higgsfield drafts (see `docs/ROSTER.md` → Store art): `0a0bc141`, `c826ccbe`, `a95a62f6`, `1ccbf410`.
+- Thumbnails 5–9 are in-game captures from Studio (`marketing/raw/`, no UI text), with the text added by `python3 tools/marketing/compose.py shots`.
 - Logo and thumbnail 4 were made with the Tripo API (`tools/tripo_jobs_marketing.json`, Nano Banana Pro, 10 credits each); the outputs are in `assets/tripo/marketing/`.
 - Fonts: Luckiest Guy (Apache 2.0), Lilita One and Titan One (SIL OFL). The license files are in `tools/marketing/fonts/`.

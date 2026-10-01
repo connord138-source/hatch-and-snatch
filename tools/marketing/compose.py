@@ -1,6 +1,7 @@
 """Builds the Roblox store art (icon + thumbnails) from the generated key art.
 
-    python3 tools/marketing/compose.py
+    python3 tools/marketing/compose.py          # everything
+    python3 tools/marketing/compose.py shots    # only thumbnails 5-9 (needs no drafts)
 
 Inputs live in assets/tripo/marketing/ (gitignored; the source links are in
 docs/STORE_PAGE.md): the Higgsfield drafts, and Logo.png / ThumbMoon.png from
@@ -9,6 +10,7 @@ files to upload in Creator Hub:
 
     icon_512.png                 game icon (512x512); icon_512_alt.png is the runner-up
     thumb_1_steal.jpg ...        thumbnails (1920x1080)
+    thumb_5_fortress.jpg ...     thumbnails from in-game captures (marketing/raw/, committed)
     logo.png                     the logo with a transparent background
 
 Text is set here (not by the image model) so it's crisp and spelled right.
@@ -217,8 +219,59 @@ def main():
         "mb",
     )
     c.convert("RGB").save(OUT / "thumb_4_moon.jpg", quality=92)
+    shots()
     print("wrote", ", ".join(sorted(p.name for p in OUT.iterdir())))
 
 
+def shots():
+    """Thumbnails 5-9 from in-game captures (marketing/raw/, 1920x1080, no UI text)."""
+    raw = OUT / "raw"
+    logo = Image.open(OUT / "logo.png").convert("RGBA")
+    big = "LuckiestGuy-Regular.ttf"
+    sub = "LilitaOne-Regular.ttf"
+    white, sky = (255, 255, 255), (190, 230, 255)
+
+    def shot(name: str, strength: int = 80) -> Image.Image:
+        c = vibrance(cover(Image.open(raw / f"{name}.png").convert("RGB"), W, H)).convert("RGBA")
+        vignette(c, strength)
+        return c
+
+    # 5. Floors and vaults: the three-story base from above
+    c = shot("shot_5_fortress")
+    place(c, logo_at(430, logo), 10, 0)
+    place(c, text_layer("BUILD YOUR\nFORTRESS!", big, 118, angle=3), W - 50, H - 110, "rb")
+    place(c, text_layer("3 FLOORS · 4 VAULTS", sub, 58, white, sky), W - 70, H - 40, "rb")
+    c.convert("RGB").save(OUT / "thumb_5_fortress.jpg", quality=92)
+
+    # 6. A locked vault: the door glowing shut on a Mythic
+    c = shot("shot_6_vault")
+    place(c, logo_at(430, logo), 10, 0)
+    place(c, text_layer("LOCK THE\nVAULT!", big, 124, (230, 255, 255), (90, 220, 255), angle=-3), 60, H - 40, "lb")
+    c.convert("RGB").save(OUT / "thumb_6_vault.jpg", quality=92)
+
+    # 7. The case-opening reveal landing on the Secret
+    c = shot("shot_7_reveal", 60)
+    place(c, logo_at(430, logo), 10, 0)
+    place(c, text_layer("1 IN 50,000\nSECRET!", big, 112, angle=3), W - 50, 30, "rt")
+    place(c, text_layer("WATCH THE REEL SPIN", sub, 58, white, sky), W // 2, H - 40, "mb")
+    c.convert("RGB").save(OUT / "thumb_7_reveal.jpg", quality=92)
+
+    # 8. Rarity looks at night: halos and stardust (Sylvanox's antlers fill the top
+    # left, so the logo sits on the sand)
+    c = shot("shot_8_lineup", 60)
+    place(c, text_layer("SHOW OFF\nYOUR RAREST!", big, 112, angle=-3), W - 60, 30, "rt")
+    place(c, logo_at(400, logo), W // 2 + 340, H - 10, "mb")
+    c.convert("RGB").save(OUT / "thumb_8_lineup.jpg", quality=92)
+
+    # 9. A biome zone mid-eruption
+    c = shot("shot_9_biome")
+    place(c, logo_at(430, logo), 10, 0)
+    place(c, text_layer("EXPLORE 6 BIOMES!", big, 116, (255, 236, 110), (255, 120, 30), angle=-2), W - 50, 40, "rt")
+    place(c, text_layer("ERUPTIONS · METEORS · LIGHTNING", sub, 54, white, (255, 210, 170)), W // 2, H - 36, "mb")
+    c.convert("RGB").save(OUT / "thumb_9_biome.jpg", quality=92)
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+
+    shots() if sys.argv[1:] == ["shots"] else main()
