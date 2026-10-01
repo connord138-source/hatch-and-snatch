@@ -750,12 +750,6 @@ function Landmarks.build(parent: Instance, options: Options): Result
 		Transparency = 1,
 		CanQuery = false,
 	})
-	prop(
-		"Dock",
-		folder,
-		pierFrame * CFrame.new(5, -1.2, -Landmarks.PIER_LENGTH / 2 + 4) * CFrame.Angles(0, math.rad(90), 0),
-		5
-	)
 	keep(pierStart, 8)
 
 	-- The north: windmill, stone circle, ruins

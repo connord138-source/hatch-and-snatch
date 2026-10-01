@@ -101,7 +101,7 @@ Ultra-rare rework (2026-10-01, Tripo direct; jobs in `tools/tripo_jobs_ultrarewo
 | Fortress kit | WatchtowerWood, TowerStone, TowerRoofed, TowerCitadel, GatehouseStone, GatehouseCitadel, Brazier | `Fortress.luau`: towers fit to the tower's height (an invisible column keeps it solid); gatehouses fit by width with a 9-stud arch between invisible colliders |
 | Base | BaseTerminal, BuyPad, HideHaystack, HideBarrels, HideHedge, HideChest, SpikeStrip, NetBallista, SearchlightTower, AlarmBell | `BaseKit.luau` (BuyPad isn't placed yet; the pads are part-built rings) |
 | Decor | CampSupplies, WallTorch, Campfire, FlowerPlanter, TrainingDummy, StoneWell, Fountain | `BaseDecor.luau` |
-| Open land | Lighthouse, Windmill, RuinsArch, StoneCircle, WaterfallCliff, CampTents, Shipwreck, PalmTree, Signpost, WoodBridge, OakTree, FishingHut, Dock, MarketStall, FlowerMeadow, Boulders | `Landmarks.luau` |
+| Open land | Lighthouse, Windmill, RuinsArch, StoneCircle, WaterfallCliff, CampTents, Shipwreck, PalmTree, Signpost, WoodBridge, OakTree, FishingHut, Dock, MarketStall, FlowerMeadow, Boulders | `Landmarks.luau` (Dock isn't placed: the walkable pier is part-built) |
 
 - The gatehouses were redrawn with open archways (the first drafts had closed gates), and the Citadel one wide, with a tower at each end, so its arch spans the gate.
 - **Facing:** the landmarks and fixtures face the hub (or the way the code says) along the model's -Z. A model that comes in turned, or lying down, gets rotated once in WorldProps and saved, as for the earlier props.
