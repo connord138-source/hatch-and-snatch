@@ -111,6 +111,22 @@
    "model": "gemini_2.5_flash_image_preview",
    "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030655_cf9c787c-139e-408b-bcea-182a816a5cf6.png",
    "prompt": "Clean 3D character reference render of this exact creature: same design, colors, armor and style, with ONE change: the golden halo floats freely ABOVE the top of its head, level and centered over the skull, with a clear gap, NOT touching or resting on any horn, nose, crest or spike. Full body including the tail, side three-quarter view, neutral stance with all four legs straight and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no particles, no text. The halo hovers a little higher, like a saint's halo."
+  },
+  {
+   "name": "Capybaron_Juvenile_RedoC",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_e1838f3f-aa84-41de-9020-28e623b8f896.png",
+   "prompt": "Clean 3D model sheet of the JUVENILE (young, prince) stage of this exact capybara: same species and the same faceted low-poly style with smooth shading and realistic eyes. It must look clearly YOUNGER and less royal than the solid-gold king in the reference: a smaller, chubby young capybara with a slightly bigger head, short legs and slightly larger realistic eyes. Its fur is still natural warm brown, and shiny faceted GOLD is only starting to spread over it: gold paws, gold snout and gold patches creeping up its legs and back, like it is turning to gold as it grows. NO big crown and NO royal cape: instead a small simple gold circlet sits on its head, and it wears a short red scarf tied around its neck. Side three-quarter view, neutral stance with all four legs straight and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no text."
+  },
+  {
+   "name": "Capybaron_Juvenile_RedoD",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_e1838f3f-aa84-41de-9020-28e623b8f896.png",
+   "prompt": "Clean 3D model sheet of the JUVENILE (young, prince) stage of this exact capybara: same species and the same faceted low-poly style with smooth shading and realistic eyes. It must look clearly YOUNGER and less royal than the solid-gold king in the reference: a smaller, chubby young capybara with a slightly bigger head, short legs and slightly larger realistic eyes. Its fur is still natural warm brown, and shiny faceted GOLD is only starting to spread over it: gold paws, gold snout and gold patches creeping up its legs and back, like it is turning to gold as it grows. NO big crown and NO royal cape: instead a small simple gold circlet sits on its head, and it wears a short red scarf tied around its neck. Side three-quarter view, neutral stance with all four legs straight and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no text. The gold covers about half of its body, in jagged faceted patches."
   }
  ]
 }

@@ -4,9 +4,10 @@ The files to upload are in `marketing/`. Rebuild them with `python3 tools/market
 
 ## Icon
 
-`marketing/icon_512.png` (512×512): a young Emberlynx snarls out of a cracked golden egg while a thief's gloved hand reaches in. It has realistic eyes, per the art direction.
-- `icon_512_alt.png` is the runner-up: the first draft's cute kitten, with its cartoon eyes fixed.
-- Neither carries text, because the game name shows under the icon and text is unreadable at list size.
+`marketing/icon_512.png` (512×512): the baby Emberlynx hatching from a glowing cracked egg on a blue burst. It's rendered in Blender from the game's own 3D model, because the owner felt the image-model icons looked AI (2026-10-01).
+- Alternatives: `icon_512_snatch.png` (a thief's glove reaching in; the glove still reads weakly) and `icon_512_tidalotl.png`.
+- No text on the icon, because the game name shows under it and text is unreadable at list size.
+- Rebuild: render the 3D layer with `EGL_PLATFORM=surfaceless <bpy python> tools/marketing/render_icon.py -- <creature.glb> assets/icon_src/renders/<name>.png <snatch|hatch>`, then run `python3 tools/marketing/compose.py icons` for the burst, glow, outline and sparkles. The creature GLBs come from `tools/assets_manifest.json`. Eevee needs `libegl1` and Mesa in the sandbox.
 - Roblox can A/B test icons once the game has traffic.
 
 ## Thumbnails (1920×1080, in this order)
@@ -48,7 +49,7 @@ Keep the first line punchy, because only the first ~150 characters show in searc
 
 ## Sources
 
-- Icon: `IconRealEyesB` / `IconRealEyesA` (Tripo, `tools/tripo_jobs_marketing.json`).
+- Icon: Blender render of the baby Emberlynx and Tidalotl models (`tools/marketing/render_icon.py`).
 - Thumbnails 1–3 are Higgsfield drafts (see `docs/ROSTER.md` → Store art): `0a0bc141`, `c826ccbe`, `a95a62f6`, `1ccbf410`.
 - Logo and thumbnail 4 were made with the Tripo API (`tools/tripo_jobs_marketing.json`, Nano Banana Pro, 10 credits each); the outputs are in `assets/tripo/marketing/`.
 - Fonts: Luckiest Guy (Apache 2.0), Lilita One and Titan One (SIL OFL). The license files are in `tools/marketing/fonts/`.

@@ -35,6 +35,42 @@
   "task_id": "d2a43f44-c4c8-4172-9aad-8f7765882acb",
   "type": "generate_image"
  },
+ "concepts/Capybaron_Juvenile_RedoA": {
+  "credits": 5,
+  "files": [
+   "Capybaron_Juvenile_RedoA.png"
+  ],
+  "status": "success",
+  "task_id": "87a4072b-ba06-4b93-a1bc-a58199c8492f",
+  "type": "generate_image"
+ },
+ "concepts/Capybaron_Juvenile_RedoB": {
+  "credits": 5,
+  "files": [
+   "Capybaron_Juvenile_RedoB.png"
+  ],
+  "status": "success",
+  "task_id": "c53892c1-9542-4c91-af2f-a6dad72cafa9",
+  "type": "generate_image"
+ },
+ "concepts/Capybaron_Juvenile_RedoC": {
+  "credits": 5,
+  "files": [
+   "Capybaron_Juvenile_RedoC.png"
+  ],
+  "status": "success",
+  "task_id": "079283f9-4d45-4bcd-9b97-6ac5800aa97a",
+  "type": "generate_image"
+ },
+ "concepts/Capybaron_Juvenile_RedoD": {
+  "credits": 5,
+  "files": [
+   "Capybaron_Juvenile_RedoD.png"
+  ],
+  "status": "success",
+  "task_id": "de015be3-8b5f-4e76-8438-b63a9f8cf672",
+  "type": "generate_image"
+ },
  "concepts/Capybaron_Juvenile_v2": {
   "credits": 10,
   "files": [
@@ -116,6 +152,24 @@
   "task_id": "f0f07e47-5a08-403d-bdc6-35b9ea2d8667",
   "type": "generate_image"
  },
+ "concepts/Glacierion_RedoA": {
+  "credits": 5,
+  "files": [
+   "Glacierion_RedoA.png"
+  ],
+  "status": "success",
+  "task_id": "a4bffe8a-a39f-4d42-9169-83c3194a065c",
+  "type": "generate_image"
+ },
+ "concepts/Glacierion_RedoB": {
+  "credits": 5,
+  "files": [
+   "Glacierion_RedoB.png"
+  ],
+  "status": "success",
+  "task_id": "819b9bb0-80c0-4f5c-84b7-3f8cf5cc31f9",
+  "type": "generate_image"
+ },
  "concepts/Grillgator_Juvenile": {
   "credits": 5,
   "files": [
@@ -123,6 +177,24 @@
   ],
   "status": "success",
   "task_id": "8ede85e1-d886-4da4-9a71-0e5464412c19",
+  "type": "generate_image"
+ },
+ "concepts/Halosaur_HaloFixA": {
+  "credits": 5,
+  "files": [
+   "Halosaur_HaloFixA.png"
+  ],
+  "status": "success",
+  "task_id": "5f8a5cf7-4a29-4dd8-b7cf-0df92668b9e2",
+  "type": "generate_image"
+ },
+ "concepts/Halosaur_HaloFixB": {
+  "credits": 5,
+  "files": [
+   "Halosaur_HaloFixB.png"
+  ],
+  "status": "success",
+  "task_id": "c09013eb-d302-455e-a2dc-8bdb75b4927a",
   "type": "generate_image"
  },
  "concepts/Halosaur_Juvenile": {
@@ -197,6 +269,24 @@
   "task_id": "068a4ec5-d721-4c0b-ace7-aaa064fad38e",
   "type": "generate_image"
  },
+ "concepts/Lurehound_RedoA": {
+  "credits": 5,
+  "files": [
+   "Lurehound_RedoA.png"
+  ],
+  "status": "success",
+  "task_id": "1e8ddd2d-575a-4a09-ba16-029bc4b6777b",
+  "type": "generate_image"
+ },
+ "concepts/Lurehound_RedoB": {
+  "credits": 5,
+  "files": [
+   "Lurehound_RedoB.png"
+  ],
+  "status": "success",
+  "task_id": "ce026c70-13b5-4fb7-b21e-bbb05d6c7f1e",
+  "type": "generate_image"
+ },
  "concepts/Nebulion": {
   "credits": 5,
   "files": [
@@ -233,6 +323,24 @@
   "task_id": "29b7c128-8cfb-46c3-be91-ba0ef5142fc5",
   "type": "generate_image"
  },
+ "concepts/Nullcat_RedoA": {
+  "credits": 5,
+  "files": [
+   "Nullcat_RedoA.png"
+  ],
+  "status": "success",
+  "task_id": "950f2a8d-9e1a-421a-8f56-73c70a822b1d",
+  "type": "generate_image"
+ },
+ "concepts/Nullcat_RedoB": {
+  "credits": 5,
+  "files": [
+   "Nullcat_RedoB.png"
+  ],
+  "status": "success",
+  "task_id": "e5716716-f618-483d-a251-5deecf119aab",
+  "type": "generate_image"
+ },
  "concepts/Pyrodrake_Juvenile": {
   "credits": 5,
   "files": [
@@ -249,6 +357,24 @@
   ],
   "status": "success",
   "task_id": "2986f616-2c42-4729-af1d-c98a7a831370",
+  "type": "generate_image"
+ },
+ "concepts/Quasarfox_RedoA": {
+  "credits": 5,
+  "files": [
+   "Quasarfox_RedoA.png"
+  ],
+  "status": "success",
+  "task_id": "91d93199-a43a-4a2e-a72e-8d717b97770f",
+  "type": "generate_image"
+ },
+ "concepts/Quasarfox_RedoB": {
+  "credits": 5,
+  "files": [
+   "Quasarfox_RedoB.png"
+  ],
+  "status": "success",
+  "task_id": "cbb11a04-5759-45be-bac2-9c8153e6acea",
   "type": "generate_image"
  },
  "concepts/Singularis_Juvenile": {
@@ -285,6 +411,24 @@
   ],
   "status": "success",
   "task_id": "b2c7226a-b8bf-4e5b-b818-cec300ca6ca9",
+  "type": "generate_image"
+ },
+ "concepts/Solarion_RedoA": {
+  "credits": 5,
+  "files": [
+   "Solarion_RedoA.png"
+  ],
+  "status": "success",
+  "task_id": "c4d8f5ba-22ad-4a32-a761-dad74c29050b",
+  "type": "generate_image"
+ },
+ "concepts/Solarion_RedoB": {
+  "credits": 5,
+  "files": [
+   "Solarion_RedoB.png"
+  ],
+  "status": "success",
+  "task_id": "73cba7a9-b685-42ce-bf2c-21b6387c7f6f",
   "type": "generate_image"
  },
  "concepts/Squallcoon": {
