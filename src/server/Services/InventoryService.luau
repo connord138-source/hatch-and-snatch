@@ -76,7 +76,8 @@ local function onCreatureAction(player: Player, action: any, uid: any, target: a
 		or (
 			action == "nursery" and not CreatureService.isNursery(data :: DataService.PlayerData, record.slot)
 		)
-	if dodge and record.slot ~= nil and StealService.underThreat(player) then
+	-- (A move from storage counts too: it can swap a pedestal creature out.)
+	if dodge and (record.slot ~= nil or action == "move") and StealService.underThreat(player) then
 		Net.notify(player, "Not while an intruder is in your base! Lock it or chase them out.", "bad")
 		return
 	end

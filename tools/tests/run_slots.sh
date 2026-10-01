@@ -1,5 +1,5 @@
 #!/bin/bash
-# Checks the egg, finish and mutation odds against the real Config (see slots_test.luau).
+# Checks the pedestal slot layout against the real Config (see slots_test.luau).
 set -e
 cd "$(dirname "$0")"
 out=$(mktemp -d)

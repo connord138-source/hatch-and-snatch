@@ -79,6 +79,7 @@ export type PlayerData = {
 	security: number, -- how many of Config.Economy.tunables.securityLevels are bought
 	floors: number, -- floors the base has, counting the ground (1-3, Config.Economy.tunables.floors)
 	vaults: number, -- vault rooms bought (Config.Economy.tunables.vaults)
+	floorsMigrated: boolean, -- old saves: base levels 4-5 had the deck, now the floors
 	spins: number, -- banked Luck Wheel spins
 	luckCharge: number, -- luck multiplier waiting for the next egg bought (1 = none)
 	spinProgress: number, -- seconds played toward the next free spin
@@ -148,6 +149,7 @@ local TEMPLATE: PlayerData = {
 	security = 0,
 	floors = 1,
 	vaults = 0,
+	floorsMigrated = false,
 	spins = Config.Economy.tunables.startingSpins,
 	luckCharge = 1,
 	spinProgress = 0,
@@ -337,6 +339,15 @@ local function onPlayerAdded(player: Player)
 		end
 	end
 	data.stats.incubators = #data.incubatorTiers
+	-- Saves from before floors (2026-10-01): base levels 4 and 5 had an upper deck
+	-- on what are now the Second and Top Floors' pedestals, so they keep those floors
+	if not data.floorsMigrated then
+		data.floorsMigrated = true
+		if data.baseLevel >= 4 then
+			data.floors =
+				math.max(data.floors, math.min(data.baseLevel - 2, #Config.Economy.tunables.floors + 1))
+		end
+	end
 	local discovered = 0
 	for _ in data.index do
 		discovered += 1

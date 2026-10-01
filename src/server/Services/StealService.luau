@@ -308,7 +308,9 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 	end
 	-- Upper floors: only from the creature's own floor (not from the one below);
 	-- vaults: only from inside the room
-	if WorldService.floorAt(ownerPlot, root.Position) ~= Config.Economy.slotFloor(record.slot :: number) then
+	if
+		not WorldService.onFloor(ownerPlot, root.Position, Config.Economy.slotFloor(record.slot :: number))
+	then
 		return
 	end
 	if vault and not WorldService.inVault(ownerPlot, vault, root.Position) then
@@ -693,6 +695,11 @@ end
 
 function StealService.start()
 	CreatureService.stealRequested:connect(tryGrab)
+	-- A plot changing hands starts with its gate and vaults unlocked
+	PlotService.released:connect(function(plot: WorldService.PlotLayout)
+		locks[plot.index] = nil
+		vaultLocks[plot.index] = nil
+	end)
 
 	for _, plot in WorldService.plots do
 		plot.lockPrompt.Triggered:Connect(function(player)

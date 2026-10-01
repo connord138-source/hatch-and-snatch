@@ -26,7 +26,6 @@ local Tunables = {
 	nurserySlotsBase = 1,
 	nurserySlotsMax = 3,
 	pedestalsBase = 10,
-	pedestalsMax = 30,
 	basePlotsPerServer = 6, -- also set Max Players = 6 in Game Settings → Places
 
 	-- Creatures menu. A creature sells for this many seconds of its own earnings:

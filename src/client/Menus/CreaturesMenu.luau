@@ -4,6 +4,7 @@
 -- Essence + spins) and Sell send requests, and "Rarest up top" sorts the most
 -- valuable into the vaults and upper floors; the server checks and applies them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
@@ -55,6 +56,16 @@ local function isNursery(slot: number?): boolean
 		then state.nurserySlots
 		else Config.Economy.tunables.nurserySlotsBase
 	return slot ~= nil and slot <= nursery
+end
+
+-- "Vault 2 (locked 2:31)" / "Vault 2 (open)", from the lock timers the server sends
+local function vaultText(vault: number): string
+	local state = ClientState.current
+	local lock = state and state.vaultLocks and state.vaultLocks[vault]
+	local left = if lock then lock.lockedUntil - Workspace:GetServerTimeNow() else 0
+	return if left > 0
+		then `🔒 Vault {vault} (locked {Format.duration(math.ceil(left))})`
+		else `Vault {vault} (open)`
 end
 
 local function fullName(creature: Creature): string
@@ -125,7 +136,7 @@ local function updateRow(row: Row, creature: Creature)
 		local vault = Config.Economy.vaultOfSlot(creature.slot)
 		local spot = if isNursery(creature.slot)
 			then "Nursery"
-			elseif vault then `🔒 Vault {vault}`
+			elseif vault then vaultText(vault)
 			else FLOOR_NAMES[Config.Economy.slotFloor(creature.slot)] or "Pedestal"
 		where = `{spot} · +{Format.cash(creature.rate)}/s`
 	end
@@ -235,7 +246,7 @@ local function makeRow(uid: string): Row
 	local function choice(order: number, label: string, enabled: boolean, onPick: () -> ())
 		local button = Ui.button(
 			picker,
-			{ Size = UDim2.fromOffset(84, PICKER_HEIGHT - 8), LayoutOrder = order, Text = label }
+			{ Size = UDim2.fromOffset(76, PICKER_HEIGHT - 8), LayoutOrder = order, Text = label }
 		)
 		setButton(button, enabled, Ui.colors.blue)
 		button.Activated:Connect(function()

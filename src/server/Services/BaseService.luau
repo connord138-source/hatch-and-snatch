@@ -26,6 +26,16 @@ local function maxLevel(): number
 	return #Config.Economy.tunables.baseLevels
 end
 
+-- The floor a base level makes buildable, if any.
+local function floorOpenedAt(level: number): string?
+	for _, floor in Config.Economy.tunables.floors do
+		if floor.baseLevel == level then
+			return floor.name
+		end
+	end
+	return nil
+end
+
 -- Pushes the player's level + theme onto their plot and its upgrade sign.
 local function apply(player: Player, data: PlayerData)
 	local plot = PlotService.get(player)
@@ -47,12 +57,18 @@ local function apply(player: Player, data: PlayerData)
 		local cost = Config.Economy.baseLevel(nextLevel).cost
 		plot.upgradePrompt:SetAttribute("Active", true) -- not Enabled: PromptFilter owns that
 		plot.upgradePrompt.ActionText = `Upgrade Base ({Format.cash(cost)})`
-		local next = Config.Economy.baseLevel(nextLevel)
-		local current = Config.Economy.baseLevel(data.baseLevel)
-		local gain = next.pedestals - current.pedestals
-		plot.upgradeLabel.Text = `Base Lv {data.baseLevel} → {nextLevel}\n{if gain > 0
-			then `+{gain} pedestals · `
-			else "opens a new floor · "}bigger base · longer lock`
+		local gains: { string } = {}
+		local gain = Config.Economy.baseLevel(nextLevel).pedestals
+			- Config.Economy.baseLevel(data.baseLevel).pedestals
+		if gain > 0 then
+			table.insert(gains, `+{gain} pedestals`)
+		end
+		local opens = floorOpenedAt(nextLevel)
+		if opens then
+			table.insert(gains, `opens the {opens}`)
+		end
+		table.insert(gains, "bigger base · longer lock")
+		plot.upgradeLabel.Text = `Base Lv {data.baseLevel} → {nextLevel}\n{table.concat(gains, " · ")}`
 	else
 		plot.upgradePrompt:SetAttribute("Active", false)
 		plot.upgradeLabel.Text = `Base Lv {data.baseLevel} (max)`
@@ -83,11 +99,15 @@ function BaseService.upgrade(player: Player)
 	Analytics.progress(player, "BaseLevel", nextLevel)
 	local gain = Config.Economy.baseLevel(nextLevel).pedestals
 		- Config.Economy.baseLevel(nextLevel - 1).pedestals
+	local opens = floorOpenedAt(nextLevel)
+	local gains = if gain > 0
+		then `+{gain} pedestals and a bigger plot`
+		else "a bigger plot and a longer lock"
 	Net.notify(
 		player,
-		if gain > 0
-			then `Base upgraded to level {nextLevel}! +{gain} pedestals and a bigger plot.`
-			else `Base upgraded to level {nextLevel}! A bigger plot, and a new floor to build (Base menu).`,
+		if opens
+			then `Base upgraded to level {nextLevel}! {gains}, and the {opens} can be built (Base menu).`
+			else `Base upgraded to level {nextLevel}! {gains}.`,
 		"rare"
 	)
 	ProgressionService.addXp(player, Config.Progression.xp.baseUpgradePerLevel * nextLevel)

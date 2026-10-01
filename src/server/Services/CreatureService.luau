@@ -710,8 +710,9 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	steal.Triggered:Connect(function(thief)
 		local began = holdStarts[thief]
 		holdStarts[thief] = nil
-		if began == nil or os.clock() - began < hold * HOLD_TOLERANCE then
-			return
+		local held = if began then os.clock() - began else 0
+		if held < hold * HOLD_TOLERANCE or held > hold + 5 then
+			return -- too quick, or a stale hold from earlier
 		end
 		CreatureService.stealRequested:fire(thief, player, uid)
 	end)

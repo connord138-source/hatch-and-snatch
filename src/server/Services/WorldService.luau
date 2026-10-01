@@ -732,20 +732,34 @@ local function buildPlot(index: number): PlotLayout
 			vault
 		)
 	end
-	-- A ramp between two points, with glass walls on both sides
+	-- A ramp between two points, with glass walls on both sides. The walls stand
+	-- upright in steps, each at least FLOOR_WALL above the ramp along its whole
+	-- length (a wall tilted with the ramp would sink low enough to hop near the top).
+	local RAMP_STEPS = 4
 	local function ramp(from: number, a: Vector3, b: Vector3)
 		local length = (b - a).Magnitude
 		local frame = CFrame.lookAt((a + b) / 2, b) * CFrame.new(0, -0.5, 0)
 		piece(from, nil, "Ramp", Vector3.new(6, 1, length), frame)
-		for _, side in { -1, 1 } do
-			piece(
-				from,
-				nil,
-				"RampWall",
-				Vector3.new(0.4, FLOOR_WALL, length),
-				frame * CFrame.new(side * 3.2, 0.5 + FLOOR_WALL / 2, 0),
-				true
-			)
+		local flat = Vector3.new(b.X - a.X, 0, b.Z - a.Z)
+		local along = flat.Unit
+		local right = along:Cross(Vector3.yAxis)
+		for step = 0, RAMP_STEPS - 1 do
+			local p0 = a:Lerp(b, step / RAMP_STEPS)
+			local p1 = a:Lerp(b, (step + 1) / RAMP_STEPS)
+			local bottom = p0.Y - 1
+			local height = p1.Y + FLOOR_WALL - bottom
+			local mid = Vector3.new((p0.X + p1.X) / 2, bottom + height / 2, (p0.Z + p1.Z) / 2)
+			for _, side in { -1, 1 } do
+				local at = mid + right * side * 3.2
+				piece(
+					from,
+					nil,
+					"RampWall",
+					Vector3.new(0.4, height, flat.Magnitude / RAMP_STEPS + 0.05),
+					CFrame.lookAt(at, at + along),
+					true
+				)
+			end
 		end
 	end
 
@@ -1177,6 +1191,19 @@ end
 function WorldService.floorAt(plot: PlotLayout, position: Vector3): number
 	local y = plot.origin:PointToObjectSpace(position).Y
 	return math.clamp(math.floor((y - TOP + 4) / FLOOR_HEIGHT) + 1, 1, #Config.Economy.tunables.floors + 1)
+end
+
+-- Whether a world position is on a floor: at its height, and over its slab (not
+-- beside it on a ramp).
+function WorldService.onFloor(plot: PlotLayout, position: Vector3, floor: number): boolean
+	if WorldService.floorAt(plot, position) ~= floor then
+		return false
+	end
+	if floor <= 1 then
+		return true
+	end
+	local localPos = plot.origin:PointToObjectSpace(position)
+	return math.abs(localPos.X) <= FLOOR_X and localPos.Z >= FLOOR_Z0[floor] and localPos.Z <= FLOOR_Z1
 end
 
 -- Whether a world position is inside a vault room.
