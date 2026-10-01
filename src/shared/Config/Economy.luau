@@ -52,14 +52,41 @@ local Tunables = {
 	moonEventIntervalSeconds = 60 * 60,
 
 	-- Base upgrades: each level widens and deepens the plot (longer escape run for
-	-- thieves), adds a row of 5 pedestals and lengthens the laser lock.
+	-- thieves) and lengthens the laser lock. Levels 2-3 add a row of 5 ground
+	-- pedestals (`pedestals` = ground pedestals, up to 20); levels 3 and 4 open the
+	-- floors above (`floors`).
 	baseLevels = {
 		{ cost = 0, pedestals = 10, lockBonusSeconds = 0 },
 		{ cost = 60_000, pedestals = 15, lockBonusSeconds = 15 },
 		{ cost = 25_000_000, pedestals = 20, lockBonusSeconds = 30 },
-		{ cost = 5_000_000_000, pedestals = 25, lockBonusSeconds = 45 },
-		{ cost = 500_000_000_000, pedestals = 30, lockBonusSeconds = 60 },
+		{ cost = 5_000_000_000, pedestals = 20, lockBonusSeconds = 45 },
+		{ cost = 500_000_000_000, pedestals = 20, lockBonusSeconds = 60 },
 	},
+
+	-- Floors (owner, 2026-10-01), bought in order in the Base menu. Each adds a row of
+	-- 5 pedestals one story up: harder to steal from, since thieves must climb the
+	-- ramps, the Steal hold gets longer each floor up (`floorStealHold`), and the
+	-- creature has to be carried all the way back down. Each floor also has room
+	-- for two vaults. Floor 1 is the ground.
+	floors = {
+		{ name = "Second Floor", cost = 800_000_000, baseLevel = 3, pedestals = 5 },
+		{ name = "Top Floor", cost = 60_000_000_000, baseLevel = 4, pedestals = 5 },
+	},
+	floorStealHold = 0.5, -- each floor up adds 50% to the Steal hold
+
+	-- Vaults: single rooms for one creature each, behind a door the owner locks for
+	-- `vaultLockSeconds` (then `vaultCooldownSeconds` before it can lock again).
+	-- While locked nothing inside can be stolen; unlocked, the Steal hold is
+	-- `vaultStealHold`× longer. Bought in order; each needs its floor.
+	vaults = {
+		{ cost = 1_500_000_000, floor = 2 },
+		{ cost = 3_000_000_000, floor = 2 },
+		{ cost = 120_000_000_000, floor = 3 },
+		{ cost = 250_000_000_000, floor = 3 },
+	},
+	vaultLockSeconds = 180,
+	vaultCooldownSeconds = 60,
+	vaultStealHold = 2,
 
 	-- Base security (bought in order in the Base menu)
 	securityLevels = {
@@ -76,7 +103,7 @@ local Tunables = {
 		{
 			name = "Auto-Lock",
 			cost = 2_000_000_000,
-			description = "Your laser gate locks itself when an intruder walks in (if it's charged)",
+			description = "Your laser gate and vaults lock themselves when an intruder walks in (if charged)",
 		},
 	},
 	tripwireSlow = 0.75,
@@ -248,8 +275,69 @@ local function baseLevel(level: number): { cost: number, pedestals: number, lock
 	return levels[math.clamp(level, 1, #levels)]
 end
 
+-- Pedestal slots: 1-20 on the ground, 21-25 on the Second Floor, 26-30 on the
+-- Top Floor, and the vaults at 41-44 (`VAULT_SLOT_BASE` + vault number).
+local GROUND_SLOTS = 20
+local VAULT_SLOT_BASE = 40
+
+-- The floor (1 = ground) a pedestal slot stands on.
+local function slotFloor(slot: number): number
+	if slot > VAULT_SLOT_BASE then
+		local vault = Tunables.vaults[slot - VAULT_SLOT_BASE]
+		return if vault then vault.floor else 1
+	end
+	local floor, last = 1, GROUND_SLOTS
+	for i, extra in Tunables.floors do
+		if slot <= last then
+			return floor
+		end
+		floor, last = i + 1, last + extra.pedestals
+	end
+	return floor
+end
+
+-- The vault number a slot belongs to, or nil for an open pedestal.
+local function vaultOfSlot(slot: number?): number?
+	if slot and slot > VAULT_SLOT_BASE and Tunables.vaults[slot - VAULT_SLOT_BASE] then
+		return slot - VAULT_SLOT_BASE
+	end
+	return nil
+end
+
+local function vaultSlot(vault: number): number
+	return VAULT_SLOT_BASE + vault
+end
+
+-- Every pedestal slot a base has, in fill order: the ground, the floors bought
+-- (`floors` counts the ground: 1-3), then the vaults bought.
+local function slots(level: number, floors: number, vaults: number): { number }
+	local list: { number } = {}
+	for slot = 1, baseLevel(level).pedestals do
+		table.insert(list, slot)
+	end
+	local first = GROUND_SLOTS + 1
+	for i, extra in Tunables.floors do
+		if i + 1 > floors then
+			break
+		end
+		for slot = first, first + extra.pedestals - 1 do
+			table.insert(list, slot)
+		end
+		first += extra.pedestals
+	end
+	for vault = 1, math.min(vaults, #Tunables.vaults) do
+		table.insert(list, VAULT_SLOT_BASE + vault)
+	end
+	return list
+end
+
 local Economy = table.freeze({
 	baseLevel = baseLevel,
+	slotFloor = slotFloor,
+	vaultOfSlot = vaultOfSlot,
+	vaultSlot = vaultSlot,
+	slots = slots,
+	groundSlots = GROUND_SLOTS,
 	tunables = Tunables,
 	maxBiomeOrder = maxBiomeOrder,
 	cashPerSecond = cashPerSecond,

@@ -77,6 +77,8 @@ export type PlayerData = {
 	ownedThemes: { [string]: boolean },
 	baseLevel: number, -- Config.Economy.tunables.baseLevels index
 	security: number, -- how many of Config.Economy.tunables.securityLevels are bought
+	floors: number, -- floors the base has, counting the ground (1-3, Config.Economy.tunables.floors)
+	vaults: number, -- vault rooms bought (Config.Economy.tunables.vaults)
 	spins: number, -- banked Luck Wheel spins
 	luckCharge: number, -- luck multiplier waiting for the next egg bought (1 = none)
 	spinProgress: number, -- seconds played toward the next free spin
@@ -144,6 +146,8 @@ local TEMPLATE: PlayerData = {
 	ownedThemes = { Mossvale = true },
 	baseLevel = 1,
 	security = 0,
+	floors = 1,
+	vaults = 0,
 	spins = Config.Economy.tunables.startingSpins,
 	luckCharge = 1,
 	spinProgress = 0,

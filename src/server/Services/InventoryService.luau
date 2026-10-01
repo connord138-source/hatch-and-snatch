@@ -47,7 +47,16 @@ local function release(player: Player, uid: string, record: DataService.Creature
 	Net.notify(player, `Released your {species.displayName}: +{table.concat(rewards, ", ")}.`, "good")
 end
 
-local function onCreatureAction(player: Player, action: any, uid: any)
+local function onCreatureAction(player: Player, action: any, uid: any, target: any)
+	if action == "arrange" then
+		-- "Rarest up top" moves every pedestal creature, so not with a thief inside
+		if StealService.underThreat(player) then
+			Net.notify(player, "Not while an intruder is in your base! Lock it or chase them out.", "bad")
+			return
+		end
+		CreatureService.arrange(player)
+		return
+	end
 	if typeof(action) ~= "string" or typeof(uid) ~= "string" then
 		return
 	end
@@ -62,6 +71,7 @@ local function onCreatureAction(player: Player, action: any, uid: any)
 	end
 	-- No pulling a pedestal creature out of a thief's hands at the last second
 	local dodge = action == "store"
+		or action == "move"
 		or (action == "walk" and CreatureService.walkingUid(player) ~= uid)
 		or (
 			action == "nursery" and not CreatureService.isNursery(data :: DataService.PlayerData, record.slot)
@@ -76,6 +86,8 @@ local function onCreatureAction(player: Player, action: any, uid: any)
 		CreatureService.place(player, uid)
 	elseif action == "nursery" then
 		CreatureService.toggleNursery(player, uid)
+	elseif action == "move" and typeof(target) == "string" then
+		CreatureService.moveTo(player, uid, target)
 	elseif action == "sell" then
 		if CreatureService.walkingUid(player) == uid then
 			CreatureService.stopWalking(player)
@@ -97,6 +109,7 @@ end
 
 function InventoryService.start()
 	Net.onRequest("CreatureAction", onCreatureAction)
+	CreatureService.actionRequested:connect(onCreatureAction) -- in-world Nursery and Walk prompts
 end
 
 return InventoryService

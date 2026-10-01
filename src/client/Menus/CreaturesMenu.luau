@@ -1,7 +1,8 @@
 --!strict
 -- Creatures menu: everything you own, where it is, what it earns and what it sells
--- for. Walk, Place/Store, Nursery, Release (for biome Essence + spins) and Sell send
--- requests; the server checks and applies them.
+-- for. Walk, Move (storage, a floor or a vault), Nursery, Release (for biome
+-- Essence + spins) and Sell send requests, and "Rarest up top" sorts the most
+-- valuable into the vaults and upper floors; the server checks and applies them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -18,6 +19,8 @@ type Row = {
 	details: TextLabel,
 	walk: TextButton,
 	move: TextButton,
+	picker: Frame,
+	expanded: boolean,
 	nursery: TextButton,
 	sell: TextButton,
 	sellArmedUntil: number,
@@ -32,7 +35,12 @@ for _, finish in Config.Finishes do
 	finishNames[finish.id] = finish.displayName
 end
 
+local ROW_HEIGHT = 58
+local PICKER_HEIGHT = 40
+local FLOOR_NAMES = { "Ground", "2nd floor", "Top floor" }
+
 local summary: TextLabel
+local arrangeButton: TextButton
 local list: ScrollingFrame
 local emptyLabel: TextLabel
 local rows: { [string]: Row } = {}
@@ -114,7 +122,11 @@ local function updateRow(row: Row, creature: Creature)
 	elseif creature.slot == nil then
 		where = `In storage (earns {Format.cash(creature.rate)}/s placed)`
 	else
-		local spot = if isNursery(creature.slot) then "Nursery" else "Pedestal"
+		local vault = Config.Economy.vaultOfSlot(creature.slot)
+		local spot = if isNursery(creature.slot)
+			then "Nursery"
+			elseif vault then `🔒 Vault {vault}`
+			else FLOOR_NAMES[Config.Economy.slotFloor(creature.slot)] or "Pedestal"
 		where = `{spot} · +{Format.cash(creature.rate)}/s`
 	end
 	local parts = { creature.stage, species.rarity, where }
@@ -133,8 +145,16 @@ local function updateRow(row: Row, creature: Creature)
 	if isWalking then
 		row.details.Text = `On a walk (grows faster) · {row.details.Text}`
 	end
-	row.move.Text = if creature.slot == nil then "Place" else "Store"
+	row.move.Text = if row.expanded
+		then "Close ▴"
+		elseif creature.slot == nil then "Place ▾"
+		else "Move ▾"
 	setButton(row.move, free, Ui.colors.button)
+	if creature.carried and row.expanded then
+		row.expanded = false
+		row.picker.Visible = false
+		row.frame.Size = UDim2.new(1, -10, 0, ROW_HEIGHT)
+	end
 	row.nursery.Visible = creature.slot ~= nil
 	row.nursery.Text = if isNursery(creature.slot) then "Leave Nursery" else "To Nursery"
 	setButton(row.nursery, free, Ui.colors.blue)
@@ -144,7 +164,7 @@ end
 
 local function makeRow(uid: string): Row
 	local frame = Ui.panel(list, {
-		Size = UDim2.new(1, -10, 0, 58),
+		Size = UDim2.new(1, -10, 0, ROW_HEIGHT),
 		BackgroundColor3 = Ui.colors.row,
 		BackgroundTransparency = 0,
 	})
@@ -170,11 +190,25 @@ local function makeRow(uid: string): Row
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 	})
+	-- Where Move can send it: storage, each floor the base has, each vault
+	local picker = Instance.new("Frame")
+	picker.BackgroundTransparency = 1
+	picker.Position = UDim2.fromOffset(20, ROW_HEIGHT - 4)
+	picker.Size = UDim2.new(1, -28, 0, PICKER_HEIGHT - 6)
+	picker.Visible = false
+	picker.Parent = frame
+	local pickerLayout = Instance.new("UIListLayout")
+	pickerLayout.FillDirection = Enum.FillDirection.Horizontal
+	pickerLayout.Padding = UDim.new(0, 6)
+	pickerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	pickerLayout.Parent = picker
 	local row: Row = {
 		frame = frame,
 		strip = strip,
 		name = name,
 		details = details,
+		picker = picker,
+		expanded = false,
 		walk = Ui.button(frame, { Position = UDim2.new(1, -358, 0, 11), Size = UDim2.fromOffset(64, 36) }),
 		move = Ui.button(frame, { Position = UDim2.new(1, -288, 0, 11), Size = UDim2.fromOffset(78, 36) }),
 		nursery = Ui.button(frame, { Position = UDim2.new(1, -204, 0, 11), Size = UDim2.fromOffset(96, 36) }),
@@ -193,11 +227,70 @@ local function makeRow(uid: string): Row
 			ClientState.request("CreatureAction", action, uid)
 		end
 	end
+	local function collapse()
+		row.expanded = false
+		picker.Visible = false
+		frame.Size = UDim2.new(1, -10, 0, ROW_HEIGHT)
+	end
+	local function choice(order: number, label: string, enabled: boolean, onPick: () -> ())
+		local button = Ui.button(
+			picker,
+			{ Size = UDim2.fromOffset(84, PICKER_HEIGHT - 8), LayoutOrder = order, Text = label }
+		)
+		setButton(button, enabled, Ui.colors.blue)
+		button.Activated:Connect(function()
+			if enabled then
+				onPick()
+				collapse()
+			end
+		end)
+	end
+	local function expand()
+		local creature = latest[uid]
+		local state = ClientState.current
+		if creature == nil or state == nil then
+			return
+		end
+		for _, child in picker:GetChildren() do
+			if child:IsA("GuiButton") then
+				child:Destroy()
+			end
+		end
+		local here = creature.slot
+		local hereVault = if here then Config.Economy.vaultOfSlot(here) else nil
+		local hereFloor = if here
+				and not hereVault
+				and not isNursery(here)
+			then Config.Economy.slotFloor(here)
+			else nil
+		choice(1, "Storage", here ~= nil, function()
+			request("store")
+		end)
+		for floor = 1, state.floors or 1 do
+			choice(1 + floor, FLOOR_NAMES[floor] or `Floor {floor}`, hereFloor ~= floor, function()
+				ClientState.request("CreatureAction", "move", uid, `F{floor}`)
+			end)
+		end
+		for vault = 1, state.vaults or 0 do
+			choice(10 + vault, `🔒 Vault {vault}`, hereVault ~= vault, function()
+				ClientState.request("CreatureAction", "move", uid, `V{vault}`)
+			end)
+		end
+		row.expanded = true
+		picker.Visible = true
+		frame.Size = UDim2.new(1, -10, 0, ROW_HEIGHT + PICKER_HEIGHT)
+	end
 	row.move.Activated:Connect(function()
 		local creature = latest[uid]
-		if creature then
-			request(if creature.slot == nil then "place" else "store")
+		if creature == nil or creature.carried then
+			return
 		end
+		if row.expanded then
+			collapse()
+		else
+			expand()
+		end
+		updateRow(row, creature)
 	end)
 	row.nursery.Activated:Connect(function()
 		request("nursery")
@@ -238,12 +331,22 @@ end
 
 function CreaturesMenu.build(content: Frame)
 	summary = Ui.label(content, {
-		Size = UDim2.new(1, 0, 0, 22),
+		Size = UDim2.new(1, -200, 0, 22),
 		TextScaled = false,
 		TextSize = 15,
 		TextColor3 = Ui.colors.muted,
 		TextXAlignment = Enum.TextXAlignment.Left,
 	})
+	arrangeButton = Ui.button(content, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -4, 0, -2),
+		Size = UDim2.fromOffset(190, 28),
+		Text = "⬆ Rarest up top",
+		Visible = false,
+	})
+	arrangeButton.Activated:Connect(function()
+		ClientState.request("CreatureAction", "arrange")
+	end)
 	list = Ui.scrollList(content, {
 		Position = UDim2.fromOffset(0, 30),
 		Size = UDim2.new(1, 0, 1, -30),
@@ -302,6 +405,8 @@ function CreaturesMenu.refresh(state: { [string]: any })
 	end
 
 	summary.Text = `On pedestals: {placed}/{state.pedestals}     In storage: {stored}/{state.storageSlots}`
+	-- Sorting only matters once there's somewhere safer to sort into
+	arrangeButton.Visible = (state.floors or 1) > 1 or (state.vaults or 0) > 0
 	emptyLabel.Visible = placed + stored == 0
 end
 

@@ -35,10 +35,16 @@ local walking: { [Player]: string } = {}
 local tunables = Config.Economy.tunables
 local passTuning = Config.Monetization.tuning
 local STEAL_HOLD: { [string]: number } = { Baby = 1.2, Juvenile = 1.6, Adult = 2.0 }
+-- A Steal only counts if the server saw the hold last this share of its time
+-- (latency slack): an exploit that fires the prompt instantly gets nothing.
+local HOLD_TOLERANCE = 0.7
 
 local CreatureService = {
 	-- (thief: Player, owner: Player, uid: string) — a Steal prompt was completed
 	stealRequested = Signal.new(),
+	-- (player: Player, action: string, uid: string) — an in-world owner prompt
+	-- (Nursery, Walk); InventoryService runs it through the same checks as the menu
+	actionRequested = Signal.new(),
 }
 
 -- Protected nursery pedestals (the first ones): 1, +1 with the Extra Nursery pass.
@@ -89,11 +95,28 @@ local function recordInIndex(player: Player?, data: PlayerData, record: Creature
 	end
 end
 
--- Pedestals the player's base level provides.
+-- Every pedestal slot the player's base has (ground, floors bought, vaults bought),
+-- in fill order (Config.Economy.slots).
+local function slotList(data: PlayerData): { number }
+	return Config.Economy.slots(data.baseLevel, data.floors, data.vaults)
+end
+
+-- Pedestals the player's base provides, vaults included.
 local function pedestalCount(data: PlayerData): number
-	return Config.Economy.baseLevel(data.baseLevel).pedestals
+	return #slotList(data)
 end
 CreatureService.pedestalCount = pedestalCount
+
+-- Which creature stands on each slot.
+local function occupants(data: PlayerData): { [number]: string }
+	local used: { [number]: string } = {}
+	for uid, record in data.creatures do
+		if record.slot then
+			used[record.slot] = uid
+		end
+	end
+	return used
+end
 
 -- Whether the player can take one more creature: owned creatures plus eggs still
 -- incubating or carried must fit on pedestals + storage. Buying and stealing check this.
@@ -674,9 +697,22 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	local data = DataService.get(player)
 	local inNursery = data ~= nil and CreatureService.isNursery(data, slot)
 
-	local steal = addPrompt(primary, "Steal", "Steal", name, STEAL_HOLD[record.stage] or 1.5, "others")
+	-- Higher floors and vaults take longer to grab from
+	local hold = (STEAL_HOLD[record.stage] or 1.5)
+		* (1 + tunables.floorStealHold * (Config.Economy.slotFloor(slot) - 1))
+		* (if Config.Economy.vaultOfSlot(slot) then tunables.vaultStealHold else 1)
+	local steal = addPrompt(primary, "Steal", "Steal", name, hold, "others")
 	steal:SetAttribute("Protected", inNursery)
+	local holdStarts: { [Player]: number } = {}
+	steal.PromptButtonHoldBegan:Connect(function(thief)
+		holdStarts[thief] = os.clock()
+	end)
 	steal.Triggered:Connect(function(thief)
+		local began = holdStarts[thief]
+		holdStarts[thief] = nil
+		if began == nil or os.clock() - began < hold * HOLD_TOLERANCE then
+			return
+		end
 		CreatureService.stealRequested:fire(thief, player, uid)
 	end)
 
@@ -692,7 +728,7 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	nurseryPrompt.UIOffset = Vector2.new(0, 60)
 	nurseryPrompt.Triggered:Connect(function(who)
 		if who == player then
-			CreatureService.toggleNursery(player, uid)
+			CreatureService.actionRequested:fire(player, "nursery", uid)
 		end
 	end)
 
@@ -701,7 +737,7 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	walkPrompt.UIOffset = Vector2.new(0, 120)
 	walkPrompt.Triggered:Connect(function(who)
 		if who == player then
-			CreatureService.walk(player, uid)
+			CreatureService.actionRequested:fire(player, "walk", uid)
 		end
 	end)
 
@@ -809,25 +845,191 @@ function CreatureService.walkingUid(player: Player): string?
 end
 
 local function freeSlot(data: PlayerData): number?
-	local used: { [number]: boolean } = {}
-	for _, record in data.creatures do
-		if record.slot then
-			used[record.slot] = true
-		end
-	end
-	-- Regular pedestals first; the nursery is filled only on request (or as a last resort)
+	local used = occupants(data)
 	local nurserySlots = CreatureService.nurserySlots(data)
-	for slot = nurserySlots + 1, pedestalCount(data) do
-		if not used[slot] then
-			return slot
+	-- Open pedestals first, then the vaults; the nursery only on request (or as a last resort)
+	local vault: number? = nil
+	local nursery: number? = nil
+	for _, slot in slotList(data) do
+		if used[slot] == nil then
+			if slot <= nurserySlots then
+				nursery = nursery or slot
+			elseif Config.Economy.vaultOfSlot(slot) then
+				vault = vault or slot
+			else
+				return slot
+			end
 		end
 	end
-	for slot = 1, nurserySlots do
-		if not used[slot] then
-			return slot
+	return vault or nursery
+end
+
+-- The slots of a destination: "F1"-"F3" a floor's open pedestals (not the
+-- nursery), "V1"-"V4" a vault.
+local function destinationSlots(data: PlayerData, target: string): { number }
+	local list: { number } = {}
+	local kind, digits = string.match(target, "^([FV])(%d)$")
+	local number = tonumber(digits)
+	if kind == nil or number == nil then
+		return list
+	end
+	local nurserySlots = CreatureService.nurserySlots(data)
+	for _, slot in slotList(data) do
+		local vault = Config.Economy.vaultOfSlot(slot)
+		if kind == "V" then
+			if vault == number then
+				table.insert(list, slot)
+			end
+		elseif vault == nil and slot > nurserySlots and Config.Economy.slotFloor(slot) == number then
+			table.insert(list, slot)
 		end
 	end
-	return nil
+	return list
+end
+
+local function value(record: CreatureRecord): number
+	return Config.Economy.sellValue(CreatureService.stats(record))
+end
+
+-- Moves a creature to a floor or vault (from a pedestal or storage). When it's
+-- full, it swaps places with the least valuable creature there.
+function CreatureService.moveTo(player: Player, uid: string, target: string)
+	local data = DataService.get(player)
+	local record = data and data.creatures[uid]
+	if data == nil or record == nil or CreatureService.isCarried(player, uid) then
+		return
+	end
+	local choices = destinationSlots(data, target)
+	if #choices == 0 then
+		Net.notify(player, "Your base doesn't have that yet (Base menu).", "bad")
+		return
+	end
+	if record.slot and table.find(choices, record.slot) then
+		return
+	end
+	local used = occupants(data)
+	local slot: number? = nil
+	local swapUid: string? = nil
+	for _, choice in choices do
+		if used[choice] == nil then
+			slot = choice
+			break
+		end
+	end
+	if slot == nil then
+		local lowest = math.huge
+		for _, choice in choices do
+			local otherUid = used[choice]
+			local other = data.creatures[otherUid]
+			if other and not CreatureService.isCarried(player, otherUid) and value(other) < lowest then
+				lowest = value(other)
+				slot, swapUid = choice, otherUid
+			end
+		end
+	end
+	if slot == nil then
+		return
+	end
+	if swapUid then
+		local other = data.creatures[swapUid]
+		other.slot = record.slot -- its old pedestal, or storage
+		CreatureService.respawn(player, swapUid)
+	end
+	record.slot = slot
+	spawn(player, uid, record)
+	DataService.markDirty(player)
+end
+
+-- "Rarest up top": the most valuable creatures go to the safest places, the vaults
+-- first, then the Top Floor, the Second Floor and the ground. The nursery and
+-- storage stay as they are.
+function CreatureService.arrange(player: Player)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local nurserySlots = CreatureService.nurserySlots(data)
+	local reserved: { [number]: boolean } = {}
+	local movers: { string } = {}
+	for uid, record in data.creatures do
+		if record.slot and record.slot > nurserySlots then
+			if CreatureService.isCarried(player, uid) then
+				reserved[record.slot] = true -- a thief has it: its pedestal waits for it
+			else
+				table.insert(movers, uid)
+			end
+		end
+	end
+	local targets: { number } = {}
+	for _, slot in slotList(data) do
+		if slot > nurserySlots and not reserved[slot] then
+			table.insert(targets, slot)
+		end
+	end
+	table.sort(targets, function(a: number, b: number): boolean
+		local vaultA, vaultB = Config.Economy.vaultOfSlot(a) ~= nil, Config.Economy.vaultOfSlot(b) ~= nil
+		if vaultA ~= vaultB then
+			return vaultA
+		end
+		local floorA, floorB = Config.Economy.slotFloor(a), Config.Economy.slotFloor(b)
+		if floorA ~= floorB then
+			return floorA > floorB
+		end
+		return a < b
+	end)
+	local values: { [string]: number } = {}
+	for _, uid in movers do
+		values[uid] = value(data.creatures[uid])
+	end
+	table.sort(movers, function(a: string, b: string): boolean
+		if values[a] ~= values[b] then
+			return values[a] > values[b]
+		end
+		return a < b
+	end)
+	local moved = 0
+	for i, uid in movers do
+		local record = data.creatures[uid]
+		local slot = targets[i]
+		if slot and record.slot ~= slot then
+			record.slot = slot
+			moved += 1
+		end
+	end
+	if moved > 0 then
+		for _, uid in movers do
+			spawn(player, uid, data.creatures[uid])
+		end
+		DataService.markDirty(player)
+	end
+	Net.notify(
+		player,
+		if moved > 0 then "Your rarest creatures moved up to the safest spots." else "Already sorted!",
+		"good"
+	)
+end
+
+-- After a load: anything on a slot the base no longer has (or two on one) goes
+-- to a free pedestal, or storage.
+local function validateSlots(data: PlayerData)
+	local valid: { [number]: boolean } = {}
+	for _, slot in slotList(data) do
+		valid[slot] = true
+	end
+	local seen: { [number]: boolean } = {}
+	local homeless: { CreatureRecord } = {}
+	for _, record in data.creatures do
+		local slot = record.slot
+		if slot and (not valid[slot] or seen[slot]) then
+			record.slot = nil
+			table.insert(homeless, record)
+		elseif slot then
+			seen[slot] = true
+		end
+	end
+	for _, record in homeless do
+		record.slot = freeSlot(data)
+	end
 end
 
 -- Moves a creature off its pedestal into storage (it stops earning).
@@ -879,14 +1081,9 @@ function CreatureService.toggleNursery(player: Player, uid: string)
 	local target: number? = nil
 	local nurserySlots = CreatureService.nurserySlots(data)
 	if CreatureService.isNursery(data, record.slot) then
-		for slot = nurserySlots + 1, pedestalCount(data) do
-			local taken = false
-			for _, other in data.creatures do
-				if other.slot == slot then
-					taken = true
-				end
-			end
-			if not taken then
+		local used = occupants(data)
+		for _, slot in slotList(data) do
+			if slot > nurserySlots and used[slot] == nil and not Config.Economy.vaultOfSlot(slot) then
 				target = slot
 				break
 			end
@@ -1000,6 +1197,7 @@ end
 function CreatureService.start()
 	DataService.loaded:connect(function(player: Player, data: PlayerData)
 		local now = Timing.now()
+		validateSlots(data)
 		for uid, record in data.creatures do
 			advance(record, now) -- offline growth catch-up
 			recordInIndex(nil, data, record) -- also backfills saves from before the index

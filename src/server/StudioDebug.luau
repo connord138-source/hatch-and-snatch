@@ -27,6 +27,8 @@
 --       -- restarts the first-session guide for every player (from "buy an egg")
 --   game.ServerStorage.StudioDebug:Invoke("daily")
 --       -- pretends a day passed: the login reward and new daily quests come back
+--   game.ServerStorage.StudioDebug:Invoke("build")
+--       -- maxes every player's base: level 5, both floors and all 4 vaults
 --   game.ServerStorage.StudioDebug:Invoke("store")
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
@@ -38,6 +40,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
+local BaseService = require(script.Parent.Services.BaseService)
 local CreatureService = require(script.Parent.Services.CreatureService)
 local DailyService = require(script.Parent.Services.DailyService)
 local DataService = require(script.Parent.Services.DataService)
@@ -214,13 +217,23 @@ function StudioDebug.start()
 			return cash(...)
 		elseif action == "guide" then
 			return restartGuide()
+		elseif action == "build" then
+			local tunables = Config.Economy.tunables
+			for player, data in DataService.loadedPlayers() do
+				data.baseLevel = #tunables.baseLevels
+				data.floors = #tunables.floors + 1
+				data.vaults = #tunables.vaults
+				BaseService.apply(player, data)
+				DataService.markDirty(player)
+			end
+			return "every base maxed: level 5, both floors, all vaults"
 		elseif action == "daily" then
 			for player in DataService.loadedPlayers() do
 				DailyService.debugNextDay(player)
 			end
 			return "a day passed (for the Daily menu)"
 		end
-		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store()"
+		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store(), build()"
 	end
 	hook.Parent = ServerStorage
 end

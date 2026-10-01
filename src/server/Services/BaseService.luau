@@ -1,7 +1,9 @@
 --!strict
 -- Base upgrades and themes (docs/GDD.md §6.1). Upgrading grows the plot (a longer
--- run for thieves), adds a row of pedestals and lengthens the laser lock. Themes
--- restyle the plot in a biome's look once that biome is unlocked.
+-- run for thieves), adds a row of ground pedestals and lengthens the laser lock.
+-- Floors add a row of pedestals a story up and room for vaults (single rooms the
+-- owner locks on a timer). Themes restyle the plot in a biome's look once that
+-- biome is unlocked, or in a built-up look the floors and vaults unlock.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -31,6 +33,7 @@ local function apply(player: Player, data: PlayerData)
 		return
 	end
 	WorldService.setLevel(plot, data.baseLevel)
+	WorldService.setFloors(plot, data.floors, data.vaults)
 	WorldService.applyTheme(
 		plot,
 		Config.Progression.themesById[data.baseTheme] or Config.Progression.themes[1]
@@ -44,13 +47,20 @@ local function apply(player: Player, data: PlayerData)
 		local cost = Config.Economy.baseLevel(nextLevel).cost
 		plot.upgradePrompt:SetAttribute("Active", true) -- not Enabled: PromptFilter owns that
 		plot.upgradePrompt.ActionText = `Upgrade Base ({Format.cash(cost)})`
-		plot.upgradeLabel.Text =
-			`Base Lv {data.baseLevel} → {nextLevel}\n+5 pedestals · bigger base · longer lock`
+		local next = Config.Economy.baseLevel(nextLevel)
+		local current = Config.Economy.baseLevel(data.baseLevel)
+		local gain = next.pedestals - current.pedestals
+		plot.upgradeLabel.Text = `Base Lv {data.baseLevel} → {nextLevel}\n{if gain > 0
+			then `+{gain} pedestals · `
+			else "opens a new floor · "}bigger base · longer lock`
 	else
 		plot.upgradePrompt:SetAttribute("Active", false)
 		plot.upgradeLabel.Text = `Base Lv {data.baseLevel} (max)`
 	end
 end
+
+-- Re-applies a player's base (after a data change outside these functions).
+BaseService.apply = apply
 
 function BaseService.upgrade(player: Player)
 	local data = DataService.get(player)
@@ -71,7 +81,15 @@ function BaseService.upgrade(player: Player)
 	apply(player, data)
 	Analytics.onboard(player, data, 6)
 	Analytics.progress(player, "BaseLevel", nextLevel)
-	Net.notify(player, `Base upgraded to level {nextLevel}! +5 pedestals and a bigger plot.`, "rare")
+	local gain = Config.Economy.baseLevel(nextLevel).pedestals
+		- Config.Economy.baseLevel(nextLevel - 1).pedestals
+	Net.notify(
+		player,
+		if gain > 0
+			then `Base upgraded to level {nextLevel}! +{gain} pedestals and a bigger plot.`
+			else `Base upgraded to level {nextLevel}! A bigger plot, and a new floor to build (Base menu).`,
+		"rare"
+	)
 	ProgressionService.addXp(player, Config.Progression.xp.baseUpgradePerLevel * nextLevel)
 	ProgressionService.bump(player, "baseUpgrades")
 	ProgressionService.refresh(player) -- higher base levels open later biomes
@@ -88,9 +106,15 @@ function BaseService.setTheme(player: Player, themeId: any)
 	if data == nil or theme == nil then
 		return
 	end
+	local name = Config.Progression.themeName(theme)
 	if not data.ownedThemes[themeId] then
-		if not ProgressionService.canBuyBiome(data, themeId) then
-			Net.notify(player, `Unlock {Config.Biomes[themeId].displayName} first.`, "bad")
+		if theme.requires then
+			if not Config.Progression.themeBuilt(theme, data.floors, data.vaults) then
+				Net.notify(player, `Build up your base to unlock {name} first.`, "bad")
+				return
+			end
+		elseif not ProgressionService.canBuyBiome(data, themeId) then
+			Net.notify(player, `Unlock {name} first.`, "bad")
 			return
 		end
 		if not EconomyService.spend(player, theme.cost, `Theme_{themeId}`) then
@@ -98,10 +122,74 @@ function BaseService.setTheme(player: Player, themeId: any)
 			return
 		end
 		data.ownedThemes[themeId] = true
-		Net.notify(player, `{Config.Biomes[themeId].displayName} base theme unlocked!`, "rare")
+		Net.notify(player, `{name} base theme unlocked!`, "rare")
 	end
 	data.baseTheme = themeId
 	apply(player, data)
+	DataService.markDirty(player)
+end
+
+-- Buys the next floor (needs its base level).
+function BaseService.buyFloor(player: Player)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local floor = Config.Economy.tunables.floors[data.floors] -- floors[1] is the Second Floor
+	if floor == nil then
+		Net.notify(player, "Your base has every floor!", "info")
+		return
+	end
+	if data.baseLevel < floor.baseLevel then
+		Net.notify(player, `The {floor.name} needs base level {floor.baseLevel}.`, "bad")
+		return
+	end
+	if not EconomyService.spend(player, floor.cost, `Floor{data.floors + 1}`) then
+		Net.notify(player, `You need {Format.cash(floor.cost)} for the {floor.name}.`, "bad")
+		return
+	end
+	data.floors += 1
+	apply(player, data)
+	Analytics.progress(player, "Floor", data.floors)
+	Net.notify(
+		player,
+		`{floor.name} built! +{floor.pedestals} pedestals up the ramp, and room for vaults. Move your rarest up there (Creatures menu).`,
+		"rare"
+	)
+	ProgressionService.addXp(player, Config.Progression.xp.baseUpgradePerLevel * (data.floors + 2))
+	DataService.markDirty(player)
+end
+
+-- Buys the next vault room (needs its floor).
+function BaseService.buyVault(player: Player)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local index = data.vaults + 1
+	local vault = Config.Economy.tunables.vaults[index]
+	if vault == nil then
+		Net.notify(player, "Your base has every vault!", "info")
+		return
+	end
+	if data.floors < vault.floor then
+		local floorName = Config.Economy.tunables.floors[vault.floor - 1].name
+		Net.notify(player, `Vault {index} needs the {floorName}.`, "bad")
+		return
+	end
+	if not EconomyService.spend(player, vault.cost, `Vault{index}`) then
+		Net.notify(player, `You need {Format.cash(vault.cost)} for Vault {index}.`, "bad")
+		return
+	end
+	data.vaults = index
+	apply(player, data)
+	Analytics.progress(player, "Vault", index)
+	Net.notify(
+		player,
+		`Vault {index} built! Put a rare creature inside and lock the door (hold E at the door).`,
+		"rare"
+	)
+	ProgressionService.addXp(player, Config.Progression.xp.baseUpgradePerLevel * (index + 2))
 	DataService.markDirty(player)
 end
 
@@ -145,6 +233,8 @@ function BaseService.start()
 	Net.onRequest("UpgradeBase", BaseService.upgrade)
 	Net.onRequest("Theme", BaseService.setTheme)
 	Net.onRequest("Security", BaseService.buySecurity)
+	Net.onRequest("BuyFloor", BaseService.buyFloor)
+	Net.onRequest("BuyVault", BaseService.buyVault)
 end
 
 return BaseService

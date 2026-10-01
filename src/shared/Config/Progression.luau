@@ -2,6 +2,7 @@
 -- Player progression (docs/GDD.md §7.2): Hatcher Level from XP, achievements,
 -- what unlocks each biome's eggs, base themes, and incubator slots/tiers.
 -- Pure data + math, safe on client and server.
+local Biomes = require(script.Parent.Biomes)
 
 -- XP per action. Hatching scales with the egg's biome order so later biomes level faster.
 local xp = {
@@ -221,9 +222,12 @@ local achievements: { Achievement } = {
 	},
 }
 
--- Base themes: a biome look for your plot. Buyable once that biome's eggs are unlocked.
+-- Base themes: a biome look for your plot, buyable once that biome's eggs are
+-- unlocked; and looks unlocked by building up (floors and vaults, owner 2026-10-01).
 export type BaseTheme = {
-	id: string, -- a biome id
+	id: string, -- a biome id, or the look's own id
+	name: string?, -- display name (biome themes use the biome's)
+	requires: { floors: number?, vaults: number? }?, -- unlocked by floors/vaults, not a biome
 	cost: number,
 	floorMaterial: Enum.Material,
 	floorColor: Color3,
@@ -284,6 +288,39 @@ local themes: { BaseTheme } = {
 		floorColor = Color3.fromRGB(120, 110, 150),
 		trimColor = Color3.fromRGB(190, 120, 255),
 		laserColor = Color3.fromRGB(190, 90, 255),
+		decor = { "CrystalCluster", "RockCluster" },
+	},
+	{
+		id = "Fortress",
+		name = "Stone Fortress",
+		requires = { floors = 2 },
+		cost = 2_000_000_000,
+		floorMaterial = Enum.Material.Cobblestone,
+		floorColor = Color3.fromRGB(125, 120, 112),
+		trimColor = Color3.fromRGB(205, 165, 80),
+		laserColor = Color3.fromRGB(255, 150, 40),
+		decor = { "RockCluster", "FallenLog" },
+	},
+	{
+		id = "SkyPalace",
+		name = "Sky Palace",
+		requires = { floors = 3 },
+		cost = 150_000_000_000,
+		floorMaterial = Enum.Material.Marble,
+		floorColor = Color3.fromRGB(236, 236, 242),
+		trimColor = Color3.fromRGB(120, 200, 255),
+		laserColor = Color3.fromRGB(120, 220, 255),
+		decor = { "CrystalCluster", "FlowerPatch" },
+	},
+	{
+		id = "RoyalVault",
+		name = "Royal Vault",
+		requires = { vaults = 4 },
+		cost = 1_000_000_000_000,
+		floorMaterial = Enum.Material.Granite,
+		floorColor = Color3.fromRGB(38, 34, 44),
+		trimColor = Color3.fromRGB(255, 200, 60),
+		laserColor = Color3.fromRGB(255, 210, 80),
 		decor = { "CrystalCluster", "RockCluster" },
 	},
 }
@@ -348,7 +385,24 @@ local function tierForBiome(biomeOrder: number): number
 	return #incubatorTiers
 end
 
+-- A theme's display name.
+local function themeName(theme: BaseTheme): string
+	if theme.name then
+		return theme.name
+	end
+	local biome = Biomes[theme.id :: any]
+	return if biome then biome.displayName else theme.id
+end
+
+-- Whether a built-up look (`requires`) is unlocked by a base's floors and vaults.
+local function themeBuilt(theme: BaseTheme, floors: number, vaults: number): boolean
+	local need = theme.requires
+	return need ~= nil and floors >= (need.floors or 0) and vaults >= (need.vaults or 0)
+end
+
 return table.freeze({
+	themeName = themeName,
+	themeBuilt = themeBuilt,
 	xp = xp,
 	xpToNext = xpToNext,
 	levelFromXp = levelFromXp,

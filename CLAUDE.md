@@ -56,7 +56,8 @@ unrelated to the Polymarket worker.
   - There is a physical Luck Wheel by the plaza (charges the next egg's luck) and a case-opening hatch reveal. See GDD §3.1.
 - **Belt:** eggs roll out of and back into the hatchery tunnel; they never vanish in view.
 - **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed.
-- **Bases:** 5 upgrade levels (bigger plot, more pedestals, an upper deck from level 4, longer lock), 3 security upgrades (alarm, tripwire, auto-lock) and biome base themes. See GDD §6.1.
+- **Bases:** 5 upgrade levels (bigger plot, ground pedestals up to 20, longer lock), 3 security upgrades (alarm, tripwire, auto-lock) and biome base themes. See GDD §6.1.
+- **Floors and vaults** (owner, 2026-10-01; replaced the level-4 deck): two bought floors (+5 pedestals each, harder to steal from: ramps, longer Steal hold, grab only from the same floor) and 4 bought vault rooms (one creature each, door locked on a timer). Floors and vaults unlock three more base themes. Prices rise each step; see GDD §6.1 and `Config/Economy.luau` (`floors`, `vaults`).
 - **World:** walled, level-gated biome zones between plots, each with harvest nodes (biome Essence) and a shrine (forge an egg or take the biome's blessing); round island, beach and sea. Releasing creatures also pays Essence. See GDD §7.3 and `Config/Zones.luau`.
 - **Zone set-piece events** (approved 2026-09-30): bloom, pearl, eruption, boulder, strike and meteor, each paying Essence, spins or a luck charge. See GDD §7.3.
   - Later, per the owner: taming, training, biome shops and larger biomes.

@@ -133,7 +133,9 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 - A thief must be inside the base for about a second before grabbing, so the alarm and auto-lock get their chance.
 - A carry that moves faster than its carry speed allows (a teleport or speed hack) drops the creature, and delivery must take about as long as the run would.
 - A creature stolen again within 30 minutes still changes hands, but pays no XP, bonus or announcement. This stops two accounts farming each other.
-- While someone is in your base, you can't pull pedestal creatures into storage, the nursery or a walk.
+- While someone is in your base, you can't pull pedestal creatures into storage, the nursery, a walk or another floor (menu or in-world prompt).
+- The server times every Steal hold (from when the button went down), so an exploit that fires the prompt instantly gets nothing.
+- Floors and vaults (§6.1): a creature can only be grabbed from its own floor, and one in a vault only from inside the room while its door is open.
 - A locked gate that pushes a thief out takes the owner's creature back.
 - Both saves are written right after a delivery.
 
@@ -141,10 +143,21 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 
 - **Base level 1 to 5:** upgrade at the gold-gem station by the lock (or in the Base menu) for 60K, 25M, 5B and 500B. Each level:
   - widens and deepens the plot (60×48 up to 76×68 studs), so thieves have a longer run out;
-  - adds pedestals (10 up to 30), spaced 11 studs apart; from level 4 the extra pedestals go on an upper deck reached by a ramp;
+  - adds ground pedestals at levels 2 and 3 (10 → 15 → 20), spaced 11 studs apart; levels 3 and 4 open the floors above;
   - adds 15 s to the laser lock (+60 s at max).
+- **Floors** (owner, 2026-10-01; Base menu, bought in order): the Second Floor (800M, needs base 3) and the Top Floor (60B, needs base 4) each add a row of 5 pedestals one story up (18 studs; 30 pedestals in all, as before). Higher floors are harder to steal from:
+  - Glass walls are too tall to jump, so thieves walk up the ramps (right side to the Second Floor, left side on to the Top Floor) and carry the creature all the way back down.
+  - The Steal hold is +50% per floor up, timed on the server.
+  - A grab only works from the creature's own floor, not from below.
+  - Creatures menu → **Move ▾** sends a creature to storage, a floor or a vault (swapping with the least valuable one there when it's full). **⬆ Rarest up top** sorts every pedestal creature by value into the vaults first, then the Top Floor, the Second Floor and the ground.
+- **Vaults** (bought in order; 2 per floor, in its back corners): Vault 1 1.5B and Vault 2 3B on the Second Floor, Vault 3 120B and Vault 4 250B on the Top Floor. Each holds one creature (it earns like a pedestal) behind a door:
+  - Hold E at the door to lock it for 3 minutes (×2 with Longer Lock; moon events scale it like the base lock), then it recharges for 1 minute. The sign over the door shows the countdown.
+  - While locked, nothing inside can be stolen. A locking door pushes everyone else out, and a thief caught inside drops what they took.
+  - Unlocked, the Steal hold is ×2 on top of the floor's, and only works from inside the room.
+  - Auto-Lock (security 3) locks every charged vault too when an intruder walks in.
+
 - **Security (Base menu):** three one-time upgrades — Intruder Alarm 40K (you're told when someone walks into your base and they glow red), Tripwire 10M (thieves carrying your creatures move 25% slower inside your base), Auto-Lock 2B (the laser lock turns itself on when an intruder enters, if it's off cooldown).
-- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 100K, Magma 25M, Frost 5B, Storm 500B, Moonfall 50T). Owned themes can be switched freely.
+- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 100K, Magma 25M, Frost 5B, Storm 500B, Moonfall 50T). Building up unlocks three more looks: **Stone Fortress** (Second Floor, 2B), **Sky Palace** (Top Floor, 150B) and **Royal Vault** (all 4 vaults, 1T). Themes also restyle the floors, glass walls, ramps and vault doors. Owned themes can be switched freely.
 - **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.
 
 ## 7. Economy (retuned 2026-09-30 for multi-week pacing; tune in playtests)
@@ -179,12 +192,16 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 | Coral Coast (Lv 4) | 22 min | 22 min | 22 min | 22 min |
 | Base level 2 | day 1 | day 1 | day 1 | day 1 |
 | Magma Rift | day 2 | day 2 | day 1 | day 1 |
-| Frost Shelf | day 8 | day 4 | day 2 | day 1 |
-| Storm Peaks | day 28 | day 11 | day 5 | day 3 |
-| Base level 5 (max) | — | day 19 | day 9 | day 7 |
-| Moonfall | — | day 22 | day 9 | day 7 |
-| Everything bought (6 Cosmic incubators) | — | — | day 19 | day 14 |
-| First rebirth | — | — | day 21 | day 16 |
+| Second Floor | day 4 | day 3 | day 2 | day 2 |
+| Vault 2 | day 7 | day 4 | day 2 | day 2 |
+| Frost Shelf | day 8 | day 4 | day 2 | day 2 |
+| Top Floor | day 17 | day 9 | day 6 | day 4 |
+| Vault 4 | — | day 16 | day 9 | day 7 |
+| Storm Peaks | day 27 | day 11 | day 5 | day 3 |
+| Base level 5 (max) | — | day 22 | day 11 | day 8 |
+| Moonfall | — | day 22 | day 11 | day 8 |
+| Everything bought (6 Cosmic incubators) | — | — | day 20 | day 15 |
+| First rebirth | — | — | day 22 | day 17 |
 
 Before the retune, a 3 h/day player had bought everything in about 3 hours of play. Rerun the sim after any economy change. Paid boosts, events and stealing make real players somewhat faster than this baseline.
 

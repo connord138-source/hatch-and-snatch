@@ -108,7 +108,7 @@ local function level(s): number
 end
 
 local function pedestals(s): number
-	return Economy.baseLevel(s.baseLevel).pedestals
+	return #Economy.slots(s.baseLevel, s.floors, s.vaults)
 end
 
 local function fmtCash(n: number): string
@@ -135,6 +135,8 @@ local function newState()
 		level = 1,
 		levelXp = 0,
 		baseLevel = 1,
+		floors = 1, -- counting the ground
+		vaults = 0,
 		rebirths = 0,
 		incubators = { { tier = 1, egg = nil } },
 		creatures = {},
@@ -310,6 +312,14 @@ local function nextUpgrade(s): (string?, number, any)
 	if nextLevel and nextLevel.cost < cost then
 		best, cost = "base", nextLevel.cost
 	end
+	local nextFloor = T.floors[s.floors]
+	if nextFloor and s.baseLevel >= nextFloor.baseLevel and nextFloor.cost < cost then
+		best, cost = "floor", nextFloor.cost
+	end
+	local nextVault = T.vaults[s.vaults + 1]
+	if nextVault and s.floors >= nextVault.floor and nextVault.cost < cost then
+		best, cost = "vault", nextVault.cost
+	end
 	local slotCost = Progression.incubatorSlotCosts[#s.incubators + 1]
 	if slotCost and slotCost < cost then
 		best, cost = "slot", slotCost
@@ -345,6 +355,16 @@ local function buyUpgrades(s)
 			addXp(s, Progression.xp.baseUpgradePerLevel * s.baseLevel)
 			s.incomeDirty = true
 			mark(s, "base " .. s.baseLevel)
+		elseif kind == "floor" then
+			s.floors += 1
+			addXp(s, Progression.xp.baseUpgradePerLevel * (s.floors + 2))
+			s.incomeDirty = true
+			mark(s, "floor " .. s.floors)
+		elseif kind == "vault" then
+			s.vaults += 1
+			addXp(s, Progression.xp.baseUpgradePerLevel * (s.vaults + 2))
+			s.incomeDirty = true
+			mark(s, "vault " .. s.vaults)
 		elseif kind == "slot" then
 			table.insert(s.incubators, { tier = 1, egg = nil })
 			s.stats.incubators = #s.incubators
@@ -510,8 +530,12 @@ local MILESTONES = {
 	"incubators 3",
 	"unlock MagmaRift",
 	"base 3",
+	"floor 2",
+	"vault 2",
 	"unlock FrostShelf",
 	"base 4",
+	"floor 3",
+	"vault 4",
 	"unlock StormPeaks",
 	"base 5",
 	"unlock Moonfall",

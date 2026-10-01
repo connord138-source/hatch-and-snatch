@@ -7,6 +7,10 @@
 --   • The owner can "Take back" (adults are easiest to knock loose), a Homegrown
 --     creature may break free once, and dying / leaving / timing out returns it.
 --   • Base lock: 60 s laser gate (then 45 s cooldown) that ejects intruders.
+--   • Floors and vaults: a creature can only be grabbed from its own floor, and one
+--     in a vault only from inside the vault while its door is open. The owner locks
+--     a vault for a few minutes (then it recharges); a locking door pushes visitors
+--     out, and a thief caught inside drops what they took.
 --   • The record stays in the owner's save until delivery, so a crash mid-steal
 --     can never lose or duplicate a creature; both saves are written right after.
 --   • Movement is the client's, so the server checks it: grabs only from inside
@@ -23,6 +27,7 @@ local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Analytics = require(script.Parent.Parent.Analytics)
 local Net = require(script.Parent.Parent.Net)
+local Reach = require(script.Parent.Parent.Reach)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
@@ -68,6 +73,7 @@ local ALARM_COOLDOWN = 10 -- seconds between alarms for the same intruder
 
 local carries: { [Player]: Carry } = {} -- keyed by thief
 local locks: { [number]: LockState } = {} -- keyed by plot index
+local vaultLocks: { [number]: { [number]: LockState } } = {} -- plot index -> vault -> lock
 local intruders: { [number]: { [Player]: number } } = {} -- plot index -> player -> os.clock() they walked in
 local lastAlarm: { [number]: { [Player]: number } } = {} -- plot index -> player -> os.clock() of the alarm
 local lastIntruderAt: { [number]: number } = {} -- plot index -> os.clock() someone was last inside
@@ -117,6 +123,24 @@ end
 local function isLocked(plot: WorldService.PlotLayout): boolean
 	local lock = locks[plot.index]
 	return lock ~= nil and serverNow() < lock.lockedUntil
+end
+
+local function vaultLocked(plot: WorldService.PlotLayout, vault: number): boolean
+	local lock = vaultLocks[plot.index] and vaultLocks[plot.index][vault]
+	return lock ~= nil and serverNow() < lock.lockedUntil
+end
+
+-- Each vault's lock timers, for the client (0 when it has never been locked).
+function StealService.vaultStates(player: Player): { LockState }
+	local plot = PlotService.get(player)
+	local states: { LockState } = {}
+	for vault = 1, #tunables.vaults do
+		local lock = plot and vaultLocks[plot.index] and vaultLocks[plot.index][vault]
+		states[vault] = if lock
+			then { lockedUntil = lock.lockedUntil, cooldownUntil = lock.cooldownUntil }
+			else { lockedUntil = 0, cooldownUntil = 0 }
+	end
+	return states
 end
 
 local function isProtected(owner: Player): boolean
@@ -252,6 +276,11 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 		Net.notify(thief, "That base is locked!", "bad")
 		return
 	end
+	local vault = Config.Economy.vaultOfSlot(record.slot)
+	if vault and vaultLocked(ownerPlot, vault) then
+		Net.notify(thief, "That vault is locked!", "bad")
+		return
+	end
 	if isProtected(owner) then
 		Net.notify(thief, `{owner.DisplayName} is new — their base is protected for a few minutes.`, "bad")
 		return
@@ -276,6 +305,15 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 	local enteredAt = intruders[ownerPlot.index] and intruders[ownerPlot.index][thief]
 	if enteredAt == nil or os.clock() - enteredAt < MIN_INSIDE_SECONDS then
 		return -- not seen inside yet (the tick records entries and sounds the alarm)
+	end
+	-- Upper floors: only from the creature's own floor (not from the one below);
+	-- vaults: only from inside the room
+	if WorldService.floorAt(ownerPlot, root.Position) ~= Config.Economy.slotFloor(record.slot :: number) then
+		return
+	end
+	if vault and not WorldService.inVault(ownerPlot, vault, root.Position) then
+		Net.notify(thief, "Get inside the vault to steal it!", "bad")
+		return
 	end
 
 	-- Lift the creature over the thief's head
@@ -405,6 +443,78 @@ local function tryLock(player: Player, plot: WorldService.PlotLayout, automatic:
 	DataService.markDirty(player)
 end
 
+-- Locks one of the owner's vaults (the door closes for vaultLockSeconds, then it
+-- recharges). Anyone else inside is pushed out, dropping what they took.
+local function tryLockVault(player: Player, plot: WorldService.PlotLayout, vault: number, automatic: boolean?)
+	local data = DataService.get(player)
+	local room = plot.vaults[vault]
+	if PlotService.ownerOf(plot) ~= player or data == nil or room == nil or not room.owned then
+		return
+	end
+	local now = serverNow()
+	local states = vaultLocks[plot.index] or {}
+	vaultLocks[plot.index] = states
+	local lock = states[vault]
+	if lock and now < lock.cooldownUntil then
+		if not automatic then
+			local wait = math.ceil(lock.cooldownUntil - now)
+			Net.notify(player, `Vault {vault} is recharging — {Format.duration(wait)}`, "bad")
+		end
+		return
+	end
+	local event = EventService.active()
+	local duration = tunables.vaultLockSeconds
+		* (if event then event.lockDurationMultiplier else 1)
+		* (
+			if MonetizationService.hasPass(player, "LongerLock")
+				then Config.Monetization.tuning.lockMultiplier
+				else 1
+		)
+	states[vault] =
+		{ lockedUntil = now + duration, cooldownUntil = now + duration + tunables.vaultCooldownSeconds }
+	for _, other in Players:GetPlayers() do
+		local _, root = humanoidOf(other)
+		if other ~= player and root and WorldService.inVault(plot, vault, root.Position) then
+			local carry = carries[other]
+			if carry and carry.owner == player then
+				endCarry(carry, "takenBack")
+			end
+			(other.Character :: Model):PivotTo(WorldService.vaultOutside(plot, vault))
+			Net.notify(other, "The vault door shut you out!", "bad")
+		end
+	end
+	if not automatic then
+		Net.notify(player, `Vault {vault} locked for {Format.duration(duration)}!`, "good")
+	end
+	DataService.markDirty(player)
+end
+
+local function refreshVaultDoors(now: number)
+	for _, plot in WorldService.plots do
+		local states = vaultLocks[plot.index]
+		for vault, room in plot.vaults do
+			if not room.owned then
+				continue
+			end
+			local lock = states and states[vault]
+			local locked = lock ~= nil and now < lock.lockedUntil
+			local text = if locked and lock
+				then `🔒 Vault {vault} · {Format.duration(math.ceil(lock.lockedUntil - now))}`
+				elseif lock and now < lock.cooldownUntil then `Vault {vault} · recharging {Format.duration(
+					math.ceil(lock.cooldownUntil - now)
+				)}`
+				else `Vault {vault} · open`
+			if room.locked ~= locked or room.label.Text ~= text then
+				WorldService.setVaultDoor(plot, vault, locked, text)
+				room.prompt.ActionText = if locked
+					then "Locked"
+					elseif lock and now < lock.cooldownUntil then "Recharging"
+					else "Lock Vault"
+			end
+		end
+	end
+end
+
 local function refreshLockVisuals(now: number)
 	for _, plot in WorldService.plots do
 		local lock = locks[plot.index]
@@ -519,6 +629,14 @@ local function tick()
 				if level >= 3 and owner and not isLocked(plot) then
 					tryLock(owner, plot, true)
 				end
+				if level >= 3 and owner then
+					-- Auto-Lock shuts the vaults too, each one that's charged
+					for vault, room in plot.vaults do
+						if room.owned and not vaultLocked(plot, vault) then
+							tryLockVault(owner, plot, vault, true)
+						end
+					end
+				end
 			elseif not isIn and inside[player] then
 				inside[player] = nil
 				local highlight = character and character:FindFirstChild("IntruderHighlight")
@@ -531,8 +649,24 @@ local function tick()
 
 	-- Laser gate: push intruders out of locked bases
 	for _, plot in WorldService.plots do
-		if locks[plot.index] and PlotService.ownerOf(plot) == nil then
+		if PlotService.ownerOf(plot) == nil then
 			locks[plot.index] = nil -- owner left
+			vaultLocks[plot.index] = nil
+		end
+		-- A locked vault keeps everyone else out
+		local states = vaultLocks[plot.index]
+		if states then
+			local owner = PlotService.ownerOf(plot)
+			for vault in states do
+				if vaultLocked(plot, vault) then
+					for _, player in Players:GetPlayers() do
+						local _, root = humanoidOf(player)
+						if player ~= owner and root and WorldService.inVault(plot, vault, root.Position) then
+							(player.Character :: Model):PivotTo(WorldService.vaultOutside(plot, vault))
+						end
+					end
+				end
+			end
 		end
 		if isLocked(plot) then
 			local owner = PlotService.ownerOf(plot)
@@ -554,6 +688,7 @@ local function tick()
 	end
 
 	refreshLockVisuals(now)
+	refreshVaultDoors(now)
 end
 
 function StealService.start()
@@ -563,6 +698,13 @@ function StealService.start()
 		plot.lockPrompt.Triggered:Connect(function(player)
 			tryLock(player, plot)
 		end)
+		for vault, room in plot.vaults do
+			room.prompt.Triggered:Connect(function(player)
+				if Reach.prompt(player, room.prompt) then
+					tryLockVault(player, plot, vault)
+				end
+			end)
+		end
 	end
 
 	Players.PlayerRemoving:Connect(function(player)

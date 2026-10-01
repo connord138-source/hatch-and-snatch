@@ -1,8 +1,9 @@
 --!strict
 -- Base menu: base level (what the next upgrade gives and costs), security
--- upgrades (alarm -> tripwire -> auto-lock), and base themes,
--- one per biome. A theme is buyable once its biome's eggs are unlocked; owned
--- themes can be switched freely. The server checks every request.
+-- upgrades (alarm -> tripwire -> auto-lock), floors and vault rooms (bought in
+-- order, each needing the one before), and base themes: one per biome (buyable
+-- once its biome's eggs are unlocked) plus looks the floors and vaults unlock.
+-- Owned themes can be switched freely. The server checks every request.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -11,20 +12,18 @@ local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
 
 local Progression = Config.Progression
-local levels = Config.Economy.tunables.baseLevels
-local securityLevels = Config.Economy.tunables.securityLevels
+local tunables = Config.Economy.tunables
+local levels = tunables.baseLevels
+local securityLevels = tunables.securityLevels
 
 type ThemeRow = { frame: Frame, status: TextLabel, button: TextButton }
+type BuyRow = { title: TextLabel, info: TextLabel, button: TextButton, ready: boolean }
 
-local levelLabel: TextLabel
-local levelInfo: TextLabel
-local upgradeButton: TextButton
-local securityLabel: TextLabel
-local securityInfo: TextLabel
-local securityButton: TextButton
+local levelRow: BuyRow
+local securityRow: BuyRow
+local floorRow: BuyRow
+local vaultRow: BuyRow
 local themeRows: { [string]: ThemeRow } = {}
-local affordable = false
-local securityAffordable = false
 
 local BaseMenu = {}
 
@@ -34,67 +33,87 @@ local function text(parent: Instance, props: { [string]: any }): TextLabel
 	return Ui.label(parent, props)
 end
 
-function BaseMenu.build(content: Frame)
-	levelLabel = text(content, { Size = UDim2.new(1, -230, 0, 26), TextSize = 22 })
-	levelInfo = text(content, {
-		Position = UDim2.fromOffset(0, 28),
-		Size = UDim2.new(1, -230, 0, 40),
-		TextSize = 14,
-		TextWrapped = true,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextColor3 = Ui.colors.muted,
-	})
-	upgradeButton = Ui.button(content, {
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, 0, 0, 4),
-		Size = UDim2.fromOffset(220, 52),
-	})
-	upgradeButton.Activated:Connect(function()
-		if affordable then
-			ClientState.request("UpgradeBase")
-		end
-	end)
-
-	securityLabel = text(content, {
-		Position = UDim2.fromOffset(0, 76),
-		Size = UDim2.new(1, -230, 0, 24),
-		TextSize = 19,
-		TextColor3 = Color3.fromRGB(255, 130, 130),
-	})
-	securityInfo = text(content, {
-		Position = UDim2.fromOffset(0, 102),
-		Size = UDim2.new(1, -230, 0, 36),
-		TextSize = 13,
-		TextWrapped = true,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextColor3 = Ui.colors.muted,
-	})
-	securityButton = Ui.button(content, {
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, 0, 0, 80),
-		Size = UDim2.fromOffset(220, 48),
-	})
-	securityButton.Activated:Connect(function()
-		if securityAffordable then
-			ClientState.request("Security")
-		end
-	end)
-
-	local header = text(content, {
-		Position = UDim2.fromOffset(0, 146),
-		Size = UDim2.new(1, 0, 0, 22),
+local function header(list: Instance, order: number, value: string)
+	local label = text(list, {
+		Size = UDim2.new(1, -10, 0, 26),
 		TextSize = 17,
-		Text = "Base themes — restyle your plot in a biome's look",
+		Text = value,
+		TextColor3 = Color3.fromRGB(255, 220, 120),
+		LayoutOrder = order,
 	})
-	header.TextColor3 = Color3.fromRGB(255, 220, 120)
-	local list =
-		Ui.scrollList(content, { Position = UDim2.fromOffset(0, 174), Size = UDim2.new(1, 0, 1, -174) })
+	label.TextStrokeTransparency = 0.6
+end
+
+-- A row with a title, a line of detail and a buy button that sends `request`.
+local function buyRow(list: Instance, order: number, titleColor: Color3, request: string): BuyRow
+	local frame = Ui.panel(list, {
+		Size = UDim2.new(1, -10, 0, 74),
+		BackgroundColor3 = Ui.colors.row,
+		BackgroundTransparency = 0,
+		LayoutOrder = order,
+	})
+	local row: BuyRow = {
+		title = text(frame, {
+			Position = UDim2.fromOffset(12, 6),
+			Size = UDim2.new(1, -250, 0, 24),
+			TextSize = 19,
+			TextColor3 = titleColor,
+		}),
+		info = text(frame, {
+			Position = UDim2.fromOffset(12, 31),
+			Size = UDim2.new(1, -250, 0, 38),
+			TextSize = 13,
+			TextWrapped = true,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			TextColor3 = Ui.colors.muted,
+			TextStrokeTransparency = 1,
+		}),
+		button = Ui.button(frame, {
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, -10, 0.5, 0),
+			Size = UDim2.fromOffset(220, 48),
+		}),
+		ready = false,
+	}
+	row.button.Activated:Connect(function()
+		if row.ready then
+			ClientState.request(request)
+		end
+	end)
+	return row
+end
+
+-- The button of a buy row: buy now, short of cash, or blocked with a reason.
+local function offer(row: BuyRow, cash: number, label: string, cost: number?, blocked: string?)
+	if cost == nil then
+		row.ready = false
+		row.button.Text = label
+	elseif blocked then
+		row.ready = false
+		row.button.Text = blocked
+	elseif cash >= cost then
+		row.ready = true
+		row.button.Text = `{label} — {Format.cash(cost)}`
+	else
+		row.ready = false
+		row.button.Text = `Need {Format.cash(cost - cash)} more`
+	end
+	row.button.BackgroundColor3 = if row.ready then Ui.colors.good else Ui.colors.disabled
+end
+
+function BaseMenu.build(content: Frame)
+	local list = Ui.scrollList(content, { Size = UDim2.fromScale(1, 1) })
+	levelRow = buyRow(list, 1, Color3.new(1, 1, 1), "UpgradeBase")
+	securityRow = buyRow(list, 2, Color3.fromRGB(255, 130, 130), "Security")
+	floorRow = buyRow(list, 3, Color3.fromRGB(150, 220, 255), "BuyFloor")
+	vaultRow = buyRow(list, 4, Color3.fromRGB(255, 200, 90), "BuyVault")
+	header(list, 5, "Base themes: restyle your plot (biome looks, and looks your floors and vaults unlock)")
 	for i, theme in Progression.themes do
 		local frame = Ui.panel(list, {
 			Size = UDim2.new(1, -10, 0, 50),
 			BackgroundColor3 = Ui.colors.row,
 			BackgroundTransparency = 0,
-			LayoutOrder = i,
+			LayoutOrder = 10 + i,
 		})
 		local swatch = Instance.new("Frame")
 		swatch.BorderSizePixel = 0
@@ -110,7 +129,7 @@ function BaseMenu.build(content: Frame)
 			Position = UDim2.fromOffset(52, 5),
 			Size = UDim2.new(1, -200, 0, 22),
 			TextSize = 17,
-			Text = Config.Biomes[theme.id].displayName,
+			Text = Progression.themeName(theme),
 		})
 		local status = text(frame, {
 			Position = UDim2.fromOffset(52, 27),
@@ -131,50 +150,99 @@ function BaseMenu.build(content: Frame)
 	end
 end
 
+local function floorName(floors: number): string
+	return if floors <= 1 then "Ground" else tunables.floors[floors - 1].name
+end
+
 function BaseMenu.refresh(state: { [string]: any })
+	local cash: number = state.cash
 	local level: number = state.baseLevel or 1
 	local current = levels[level]
 	local nextLevel = levels[level + 1]
-	levelLabel.Text = `Base level {level} / {#levels}`
+	levelRow.title.Text = `Base level {level} / {#levels}`
 	if nextLevel then
-		levelInfo.Text =
-			`Now: {current.pedestals} pedestals, lock +{current.lockBonusSeconds}s.  Next: {nextLevel.pedestals} pedestals, a bigger plot (longer run for thieves), lock +{nextLevel.lockBonusSeconds}s.`
-		affordable = state.cash >= nextLevel.cost
-		upgradeButton.Text = if affordable
-			then `Upgrade — {Format.cash(nextLevel.cost)}`
-			else `Need {Format.cash(nextLevel.cost - state.cash)} more`
-		upgradeButton.BackgroundColor3 = if affordable then Ui.colors.good else Ui.colors.disabled
+		local gain = nextLevel.pedestals - current.pedestals
+		local opens: string? = nil
+		for _, floor in tunables.floors do
+			if floor.baseLevel == level + 1 then
+				opens = floor.name
+			end
+		end
+		local gains: { string } = {}
+		if gain > 0 then
+			table.insert(gains, `+{gain} pedestals`)
+		end
+		if opens then
+			table.insert(gains, `opens the {opens}`)
+		end
+		table.insert(gains, "a bigger plot (longer run for thieves)")
+		table.insert(gains, `lock +{nextLevel.lockBonusSeconds}s`)
+		levelRow.info.Text = `Next: {table.concat(gains, ", ")}.`
+		offer(levelRow, cash, "Upgrade", nextLevel.cost)
 	else
-		levelInfo.Text = `Fully upgraded: {current.pedestals} pedestals, lock +{current.lockBonusSeconds}s.`
-		affordable = false
-		upgradeButton.Text = "Max level"
-		upgradeButton.BackgroundColor3 = Ui.colors.disabled
+		levelRow.info.Text = `Fully upgraded: lock +{current.lockBonusSeconds}s.`
+		offer(levelRow, cash, "Max level")
 	end
 
 	local security: number = state.security or 0
 	local nextSecurity = securityLevels[security + 1]
-	securityLabel.Text = if security > 0
+	securityRow.title.Text = if security > 0
 		then `Security: {securityLevels[security].name} ({security} / {#securityLevels})`
 		else `Security: none (0 / {#securityLevels})`
 	if nextSecurity then
-		securityInfo.Text = `Next — {nextSecurity.name}: {nextSecurity.description}.`
-		securityAffordable = state.cash >= nextSecurity.cost
-		securityButton.Text = if securityAffordable
-			then `{nextSecurity.name} — {Format.cash(nextSecurity.cost)}`
-			else `Need {Format.cash(nextSecurity.cost - state.cash)} more`
-		securityButton.BackgroundColor3 = if securityAffordable then Ui.colors.good else Ui.colors.disabled
+		securityRow.info.Text = `Next: {nextSecurity.name}. {nextSecurity.description}.`
+		offer(securityRow, cash, nextSecurity.name, nextSecurity.cost)
 	else
-		securityInfo.Text = "Fully secured: alarm, tripwire and auto-lock are all active."
-		securityAffordable = false
-		securityButton.Text = "Max security"
-		securityButton.BackgroundColor3 = Ui.colors.disabled
+		securityRow.info.Text = "Fully secured: alarm, tripwire and auto-lock (it locks your vaults too)."
+		offer(securityRow, cash, "Max security")
+	end
+
+	-- Floors: a row of pedestals a story up, harder to steal from
+	local floors: number = state.floors or 1
+	local nextFloor = tunables.floors[floors]
+	floorRow.title.Text = `Floors: up to the {floorName(floors)} ({floors} / {#tunables.floors + 1})`
+	if nextFloor then
+		floorRow.info.Text =
+			`Next: {nextFloor.name}. +{nextFloor.pedestals} pedestals up the ramps, where thieves take longer to grab and must carry it back down. Room for 2 vaults.`
+		offer(
+			floorRow,
+			cash,
+			"Build",
+			nextFloor.cost,
+			if level < nextFloor.baseLevel then `Needs base Lv {nextFloor.baseLevel}` else nil
+		)
+	else
+		floorRow.info.Text = "Every floor built. Use Creatures → Rarest up top to move your best up high."
+		offer(floorRow, cash, "All floors built")
+	end
+
+	-- Vaults: single rooms the owner locks on a timer
+	local vaults: number = state.vaults or 0
+	local nextVault = tunables.vaults[vaults + 1]
+	vaultRow.title.Text = `Vaults: {vaults} / {#tunables.vaults}`
+	local how =
+		`One creature each, behind a door you lock for {Format.duration(tunables.vaultLockSeconds)} (hold E at the door). Nothing in a locked vault can be stolen.`
+	if nextVault then
+		vaultRow.info.Text = `Next: Vault {vaults + 1} on the {floorName(nextVault.floor)}. {how}`
+		offer(
+			vaultRow,
+			cash,
+			"Build",
+			nextVault.cost,
+			if floors < nextVault.floor then `Needs the {floorName(nextVault.floor)}` else nil
+		)
+	else
+		vaultRow.info.Text = `Every vault built. {how}`
+		offer(vaultRow, cash, "All vaults built")
 	end
 
 	for id, row in themeRows do
 		local theme = Progression.themesById[id]
 		local owned = state.ownedThemes and state.ownedThemes[id] == true
 		local active = state.baseTheme == id
-		local unlocked = Config.Biomes[id].order <= state.unlockedBiome
+		local unlocked = if theme.requires
+			then Progression.themeBuilt(theme, floors, vaults)
+			else Config.Biomes[id].order <= state.unlockedBiome
 		if active then
 			row.status.Text = "Active"
 			row.button.Text = "Active"
@@ -184,11 +252,16 @@ function BaseMenu.refresh(state: { [string]: any })
 			row.button.Text = "Use"
 			row.button.BackgroundColor3 = Ui.colors.blue
 		elseif unlocked then
-			row.status.Text = `Unlocked — {Format.cash(theme.cost)}`
+			row.status.Text = `Unlocked: {Format.cash(theme.cost)}`
 			row.button.Text = `Buy {Format.cash(theme.cost)}`
-			row.button.BackgroundColor3 = if state.cash >= theme.cost
-				then Ui.colors.good
-				else Ui.colors.disabled
+			row.button.BackgroundColor3 = if cash >= theme.cost then Ui.colors.good else Ui.colors.disabled
+		elseif theme.requires then
+			local need = theme.requires
+			row.status.Text = if need.vaults
+				then `Build all {need.vaults} vaults to unlock`
+				else `Build the {floorName(need.floors or 2)} to unlock`
+			row.button.Text = "Locked"
+			row.button.BackgroundColor3 = Ui.colors.disabled
 		else
 			local need = Progression.biomeRequirements[id]
 			row.status.Text = `Unlock {Config.Biomes[id].displayName} first (Hatcher Lv {need.level})`

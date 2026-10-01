@@ -74,6 +74,7 @@ local function release(player: Player)
 	plot.model:SetAttribute("OwnerUserId", nil)
 	-- Back to a starter plot for the next owner
 	WorldService.setLevel(plot, 1)
+	WorldService.setFloors(plot, 1, 0)
 	WorldService.applyTheme(plot, Config.Progression.themes[1])
 	WorldService.setNursery(plot, Config.Economy.tunables.nurserySlotsBase)
 	PlotService.released:fire(plot)
