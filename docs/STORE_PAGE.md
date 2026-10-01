@@ -26,18 +26,22 @@ Tips:
 
 ## Description (paste as is)
 
+976 characters, under Roblox's 1,000 limit. Rewritten 2026-10-01 (owner: the first version read as AI): concrete moments from a session instead of a feature list.
+
 ```
-🥚 Hatch creatures from the conveyor, raise them from baby to adult, and build the richest base on Crackpoint Island... then SNATCH the rarest creatures from everyone else! 🏃‍♂️💨
+Every egg on the conveyor could hatch a 1 in 50,000 Secret. Raise it, show it off, and keep it safe, because everyone in your server wants it. 🥚
 
-🐾 41 creatures across 6 biomes, from a magma lynx to a coral axolotl
-✨ Rare finishes: Gold, Chrome, Diamond, Molten, Galaxy, Prismatic and Blood Moon
-🌕 Moon events: Blood, Gold, Void and Prism moons shake up the island every hour
-🔒 Lock your base, set tripwires and alarms, and guard your nursery
-🎡 Spin the Luck Wheel and chase 1 in 50,000 Secrets
-🌋 Explore biome zones for Essence, shrines and wild set-piece events
+🆕 FLOORS & VAULTS: put your rarest on the top floor and lock it in a vault when a thief walks in.
 
-👍 Like the game! New codes drop at like goals.
-🎁 Codes: HATCH · MOONEGG · SNATCH (Shop → Free rewards)
+🐣 Grab eggs off the hatchery belt, carry them home and watch the incubator glow. Every hatch rolls a species, a shiny finish and a mutation.
+🐾 Babies grow into Juveniles and Adults. Bigger creatures earn more, but they're harder to protect.
+🏃 Sneak into other bases and run off with their creatures. Adults slow you to half speed, so the owner can knock them loose.
+🔒 Lock your laser gate, set alarms and tripwires, and guard your nursery.
+🌋 41 creatures across 6 biomes: a magma lynx, a black-hole tortoise, a toaster that thinks it's a turtle...
+🌕 When the Moon Egg turns red, gold, void or prism, the odds change for the whole server.
+
+🎁 Free codes: HATCH · MOONEGG · SNATCH (Shop → Free rewards)
+👍 Like the game for more codes!
 ```
 
 Keep the first line punchy, because only the first ~150 characters show in search and on mobile.

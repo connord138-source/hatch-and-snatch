@@ -1,0 +1,116 @@
+{
+ "jobs": [
+  {
+   "name": "Lurehound_RedoA",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. LUREHOUND, a Mythic abyssal sea-hound from the deep ocean: a huge heavy seal-like body (blubbery, big-floppy silhouette) with wide front flippers and a tapered tail ending in broad rear flippers, and the head of a deep-sea anglerfish crossed with a hound: a wide jaw lined with thin needle teeth and a long glowing bioluminescent lure on a curved stalk growing from its forehead. Deep navy and abyssal black skin with rows of glowing cyan photophore spots, translucent fin frills along the spine, pale grey-blue belly. Majestic and a little menacing. Pose: reared up high on its front flippers, chest out, head tilted down so the glowing lure dangles in front of its half-open mouth."
+  },
+  {
+   "name": "Lurehound_RedoB",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. LUREHOUND, a Mythic abyssal sea-hound from the deep ocean: a massive, heavy sea-lion-like body (big-floppy silhouette, thick neck, broad flippers, no long legs), and an anglerfish-hound head with a huge underbite of needle teeth and a long glowing lure on a stalk from its forehead. Midnight-blue and black hide covered in glowing cyan photophore spots, ragged translucent fins on its back, pale belly. Majestic and menacing. Pose: lunging forward on its front flippers with its mouth wide open, the lure swinging out ahead of it."
+  },
+  {
+   "name": "Glacierion_RedoA",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. GLACIERION, a Mythic glacier guardian that stands UPRIGHT on two thick legs like a yeti: a broad, powerful ape-like build with long heavy arms and big knuckled hands, a lion-like face with realistic eyes, and a huge mane of jagged glacier-ice shards and icicles around its head and shoulders that glows faintly aurora green and violet inside. Pale ice-blue shaggy fur, translucent blue ice plates on the forearms and chest. Majestic. Pose: standing tall, one fist resting on a block of ice, chest out, mane flared, looking down regally."
+  },
+  {
+   "name": "Glacierion_RedoB",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. GLACIERION, a Mythic glacier guardian that walks UPRIGHT on two thick legs like a yeti: huge shoulders, long heavy arms, big hands, a lion-like face with realistic eyes, and a towering mane of jagged glacier-ice shards and icicles glowing faintly aurora green and violet. Pale ice-blue shaggy fur with translucent glacier-ice armor plates on its forearms and shins. Majestic. Pose: mid-stride walking toward the viewer, one arm raised and roaring, mane bristling."
+  },
+  {
+   "name": "Solarion_RedoA",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. SOLARION, a Celestial sun pangolin: a long armored body covered in overlapping white-gold scales like a pangolin, each scale edged with glowing molten gold, a thick armored tail, small clawed forelimbs, and a radiant frill of flame-like gold sun rays around its neck like a sun corona. Soft gold face with realistic amber eyes. Majestic and radiant. Pose: standing up on its hind legs, balanced on its thick tail, forepaws tucked to its chest, sun frill fully flared behind its head like a rising sun."
+  },
+  {
+   "name": "Solarion_RedoB",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. SOLARION, a Celestial sun pangolin: long low armored body covered in overlapping white-gold scales like a pangolin, scale edges glowing molten gold, thick armored tail held high and curled, small clawed legs, and a radiant gold sun-corona frill of flame-like rays around its neck. Soft gold face with realistic amber eyes. Majestic and radiant. Pose: walking on all fours with its tail raised in a curl and the frill blazing, head turned toward the viewer."
+  },
+  {
+   "name": "Quasarfox_RedoA",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. QUASARFOX, a Cosmic star fox built like a jerboa or kangaroo: very long, powerful hind legs made for hopping, small forepaws held to its chest, a compact body, huge fennec-fox ears, and two long tails that end in blazing blue-white plasma jets like a quasar. Dark indigo fur sprinkled with tiny stars, a glowing blue core in its chest. Majestic and fast. Pose: mid-leap, launching upward and forward with both plasma-jet tails firing behind it like rocket boosters."
+  },
+  {
+   "name": "Quasarfox_RedoB",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. QUASARFOX, a Cosmic star fox built like a kangaroo: long muscular hind legs and big hind feet for hopping, short forearms, an upright posture, huge fennec-fox ears, and two long tails ending in blue-white plasma jets like a quasar, used for balance. Dark indigo fur with a starfield of tiny stars and a glowing blue core in its chest. Majestic. Pose: standing tall on its hind legs and tails like a kangaroo, ears up, looking alert, plasma jets glowing at its feet."
+  },
+  {
+   "name": "Nullcat_RedoA",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. NULLCAT, a Secret glitched house cat sitting in a perfect 'cat loaf' pose: legs and paws tucked under, a round bread-loaf silhouette, grey tabby fur, but parts of it are missing-texture glitches: magenta-and-black checkerboard squares and pixel fragments breaking off its back and tail, one ear shifted a few pixels sideways like a rendering error, and a small red warning-triangle icon floating above its head. Funny and deadpan. Pose: loafing calmly, eyes half closed, completely unbothered."
+  },
+  {
+   "name": "Nullcat_RedoB",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "assets/tripo/concepts/refs/style_sheet.png",
+   "prompt": "Match ONLY the rendering style of the three creatures in the reference sheet: semi-realistic Roblox-engine creature, low-poly faceted geometry with smooth shading, solid color regions, realistic eyes with natural proportions (not cartoon or anime eyes), plain light gray background, even lighting. Do NOT copy their species, body shapes, poses or camera angles, and do not draw them. Draw exactly ONE new creature, full body, three-quarter view, in a dynamic signature pose. No text, no scenery, no ground shadow props. NULLCAT, a Secret glitched house cat in a round 'cat loaf' pose (paws tucked, bread-loaf shape), grey tabby fur, with missing-texture glitches: magenta-and-black checkerboard patches, a duplicated ghost copy of its head offset to one side like a frame-skip, pixel fragments drifting off its tail. Funny and deadpan. Pose: loafing, staring straight at the viewer with a flat expression."
+  },
+  {
+   "name": "Capybaron_Juvenile_RedoA",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_e1838f3f-aa84-41de-9020-28e623b8f896.png",
+   "prompt": "Clean 3D model sheet of the JUVENILE (young) stage of this exact creature: same species, same solid-gold material, faceted low-poly style with smooth shading and realistic eyes. It must look clearly YOUNGER and SMALLER than the reference adult: a chubby capybara pup about half the adult's size, a bigger head for its body, short stubby legs, a smaller rounder body, slightly larger realistic eyes. Its golden crown is too big for it and slips down over one ear. Instead of the full royal cape it wears a short red velvet bib-cape with white trim. Side three-quarter view, neutral stance with all four legs straight and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no text."
+  },
+  {
+   "name": "Capybaron_Juvenile_RedoB",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030631_e1838f3f-aa84-41de-9020-28e623b8f896.png",
+   "prompt": "Clean 3D model sheet of the JUVENILE (young) stage of this exact creature: same species, same solid-gold material, faceted low-poly style with smooth shading and realistic eyes. It must look clearly YOUNGER and SMALLER than the reference adult: a chubby capybara pup about half the adult's size, a bigger head for its body, short stubby legs, a smaller rounder body, slightly larger realistic eyes. Its golden crown is too big for it and slips down over one ear. Instead of the full royal cape it wears a short red velvet bib-cape with white trim. Side three-quarter view, neutral stance with all four legs straight and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no text. Make it extra round and pudgy, like a baby animal."
+  },
+  {
+   "name": "Halosaur_HaloFixA",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030655_cf9c787c-139e-408b-bcea-182a816a5cf6.png",
+   "prompt": "Clean 3D character reference render of this exact creature: same design, colors, armor and style, with ONE change: the golden halo floats freely ABOVE the top of its head, level and centered over the skull, with a clear gap, NOT touching or resting on any horn, nose, crest or spike. Full body including the tail, side three-quarter view, neutral stance with all four legs straight and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no particles, no text."
+  },
+  {
+   "name": "Halosaur_HaloFixB",
+   "group": "concepts",
+   "type": "generate_image",
+   "model": "gemini_2.5_flash_image_preview",
+   "ref": "https://d8j0ntlcm91z4.cloudfront.net/user_3064wa0TplLG2iNgb80G3unfKiu/hf_20260929_030655_cf9c787c-139e-408b-bcea-182a816a5cf6.png",
+   "prompt": "Clean 3D character reference render of this exact creature: same design, colors, armor and style, with ONE change: the golden halo floats freely ABOVE the top of its head, level and centered over the skull, with a clear gap, NOT touching or resting on any horn, nose, crest or spike. Full body including the tail, side three-quarter view, neutral stance with all four legs straight and slightly apart, mouth closed, no ground, plain flat light gray background, even neutral lighting, no particles, no text. The halo hovers a little higher, like a saint's halo."
+  }
+ ]
+}
