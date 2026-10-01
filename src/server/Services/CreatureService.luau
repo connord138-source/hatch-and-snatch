@@ -324,8 +324,8 @@ local HALO_DISTANCE = 220 -- readable from across the island
 local function addHalo(primary: BasePart, center: Vector3, extents: Vector3, color: Color3, strength: number)
 	local attachment = Instance.new("Attachment")
 	attachment.Name = "RarityHalo"
-	attachment.WorldPosition = center
 	attachment.Parent = primary
+	attachment.WorldPosition = center -- after parenting: unparented, it's taken as a local offset
 	local diameter = math.max(extents.X, extents.Y, extents.Z) * 1.35
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "RarityHalo"
@@ -496,8 +496,8 @@ local function addStageEffects(model: Model, creature: Types.Creature, stage: st
 	local _, size = model:GetBoundingBox()
 	local attachment = Instance.new("Attachment")
 	attachment.Name = "ElementFx"
-	attachment.WorldPosition = model:GetBoundingBox().Position
 	attachment.Parent = primary
+	attachment.WorldPosition = model:GetBoundingBox().Position -- after parenting (see addHalo)
 	local emitter = Instance.new("ParticleEmitter")
 	emitter.Texture = fx.texture
 	emitter.Color = ColorSequence.new(fx.color)
