@@ -3,6 +3,7 @@
 local Types = require(script.Types)
 local Creatures = require(script.Creatures)
 local Progression = require(script.Progression)
+local BaseBuilds = require(script.BaseBuilds)
 
 export type BiomeId = Types.BiomeId
 export type RarityId = Types.RarityId
@@ -12,6 +13,7 @@ export type Finish = Types.Finish
 export type MoonEvent = Types.MoonEvent
 export type BaseTheme = Progression.BaseTheme
 export type Achievement = Progression.Achievement
+export type BaseBuild = BaseBuilds.Item
 
 local creaturesById: { [string]: Types.Creature } = {}
 for _, creature in Creatures do
@@ -30,6 +32,7 @@ return {
 	Economy = require(script.Economy),
 	Eggs = require(script.Eggs),
 	Progression = Progression,
+	BaseBuilds = BaseBuilds,
 	Zones = require(script.Zones),
 	Monetization = require(script.Monetization),
 	Codes = require(script.Codes),

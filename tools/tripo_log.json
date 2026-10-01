@@ -161,6 +161,24 @@
   "task_id": "c4c4677c-d81b-47fd-a445-ad72de94a59d",
   "type": "generate_image"
  },
+ "concepts/FortressCitadel": {
+  "credits": 10,
+  "files": [
+   "FortressCitadel.png"
+  ],
+  "status": "success",
+  "task_id": "e21b71a0-6193-480c-8795-b516343fe8e1",
+  "type": "generate_image"
+ },
+ "concepts/FortressStages": {
+  "credits": 10,
+  "files": [
+   "FortressStages.png"
+  ],
+  "status": "success",
+  "task_id": "d31cd197-4e83-40de-ab94-b4cabaf39069",
+  "type": "generate_image"
+ },
  "concepts/Fridgehog": {
   "credits": 5,
   "files": [
@@ -177,6 +195,42 @@
   ],
   "status": "success",
   "task_id": "bbb69369-a136-42e6-b11c-53062b0cdac5",
+  "type": "generate_image"
+ },
+ "concepts/GatehouseCitadel": {
+  "credits": 5,
+  "files": [
+   "GatehouseCitadel.png"
+  ],
+  "status": "success",
+  "task_id": "5719126a-5581-4ec0-ac1e-95b91102606f",
+  "type": "generate_image"
+ },
+ "concepts/GatehouseCitadelOpen": {
+  "credits": 5,
+  "files": [
+   "GatehouseCitadelOpen.png"
+  ],
+  "status": "success",
+  "task_id": "db9382ff-881f-4cdc-bf28-b359e2eb3589",
+  "type": "generate_image"
+ },
+ "concepts/GatehouseStone": {
+  "credits": 5,
+  "files": [
+   "GatehouseStone.png"
+  ],
+  "status": "success",
+  "task_id": "3eb4f7ab-342d-4769-9f82-e7cf27c84a70",
+  "type": "generate_image"
+ },
+ "concepts/GatehouseStoneOpen": {
+  "credits": 5,
+  "files": [
+   "GatehouseStoneOpen.png"
+  ],
+  "status": "success",
+  "task_id": "efba50a7-79b0-4d36-9b2f-2cfefbdd9602",
   "type": "generate_image"
  },
  "concepts/Glacibear_gpt4o": {
@@ -321,6 +375,15 @@
   ],
   "status": "success",
   "task_id": "2a96036d-3863-49d7-a362-659dabe68466",
+  "type": "generate_image"
+ },
+ "concepts/IslandDressed": {
+  "credits": 10,
+  "files": [
+   "IslandDressed.png"
+  ],
+  "status": "success",
+  "task_id": "3e471c6d-676e-4d7a-a31d-fc32b9780027",
   "type": "generate_image"
  },
  "concepts/Laundrophant_Juvenile": {
@@ -827,6 +890,42 @@
   "task_id": "d4ef1baf-74e7-4ae8-9ee3-c51cb396e70d",
   "type": "generate_image"
  },
+ "concepts/TowerCitadel": {
+  "credits": 5,
+  "files": [
+   "TowerCitadel.png"
+  ],
+  "status": "success",
+  "task_id": "98c38da0-ec02-4ca6-be9d-f936b6249b6f",
+  "type": "generate_image"
+ },
+ "concepts/TowerRoofed": {
+  "credits": 5,
+  "files": [
+   "TowerRoofed.png"
+  ],
+  "status": "success",
+  "task_id": "a0be8004-39f1-4d59-a2f8-0748b6e87772",
+  "type": "generate_image"
+ },
+ "concepts/TowerStone": {
+  "credits": 5,
+  "files": [
+   "TowerStone.png"
+  ],
+  "status": "success",
+  "task_id": "e4d133be-eefd-40e3-bf73-1f6808720eff",
+  "type": "generate_image"
+ },
+ "concepts/WatchtowerWood": {
+  "credits": 5,
+  "files": [
+   "WatchtowerWood.png"
+  ],
+  "status": "success",
+  "task_id": "28733b9e-dd30-44be-9b89-a99cae99b703",
+  "type": "generate_image"
+ },
  "concepts/Zapybara": {
   "credits": 5,
   "files": [
@@ -1252,6 +1351,66 @@
   "task_id": "a2fb48d8-2a5f-4f18-88c8-44fd8f7a79f4",
   "type": "generate_image"
  },
+ "props/AlarmBell": {
+  "credits": 20,
+  "files": [
+   "AlarmBell.glb",
+   "AlarmBell_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "d2df805b-e23a-4567-8e79-0c7added228c",
+  "type": "text_to_model"
+ },
+ "props/Boulders": {
+  "credits": 20,
+  "files": [
+   "Boulders.glb",
+   "Boulders_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "42de7511-0cd7-44d5-8775-abb2af09ec38",
+  "type": "text_to_model"
+ },
+ "props/Brazier": {
+  "credits": 20,
+  "files": [
+   "Brazier.glb",
+   "Brazier_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "a9b8194f-a1c1-4c00-8226-5db2d13f1da6",
+  "type": "text_to_model"
+ },
+ "props/CampSupplies": {
+  "credits": 20,
+  "files": [
+   "CampSupplies.glb",
+   "CampSupplies_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "05b52252-618d-47ca-b356-9478c9971168",
+  "type": "text_to_model"
+ },
+ "props/CampTents": {
+  "credits": 20,
+  "files": [
+   "CampTents.glb",
+   "CampTents_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "ec334caf-bb34-4b64-b1f2-2e74b9534de0",
+  "type": "text_to_model"
+ },
+ "props/Campfire": {
+  "credits": 20,
+  "files": [
+   "Campfire.glb",
+   "Campfire_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "c7dc2735-5234-431e-aba0-ad0f46f5c3ef",
+  "type": "text_to_model"
+ },
  "props/CraterRim": {
   "credits": 20,
   "files": [
@@ -1260,6 +1419,56 @@
   ],
   "status": "success",
   "task_id": "04f67810-3c52-477a-9f41-82d754e1af32",
+  "type": "text_to_model"
+ },
+ "props/Dock": {
+  "credits": 20,
+  "files": [
+   "Dock.glb",
+   "Dock_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "24bc63ff-1dae-4743-b1c1-31596514b0a1",
+  "type": "text_to_model"
+ },
+ "props/FishingHut": {
+  "credits": 20,
+  "files": [
+   "FishingHut.glb",
+   "FishingHut_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "79028350-240b-4f99-a85f-a3324a9b9d35",
+  "type": "text_to_model"
+ },
+ "props/FlowerMeadow": {
+  "credits": 20,
+  "files": [
+   "FlowerMeadow.glb",
+   "FlowerMeadow_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "305dc812-8256-494a-a8c3-24f0b45b0d71",
+  "type": "text_to_model"
+ },
+ "props/FlowerPlanter": {
+  "credits": 20,
+  "files": [
+   "FlowerPlanter.glb",
+   "FlowerPlanter_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "bc8cb92c-ab74-46a6-9c8b-8f0e12c051ca",
+  "type": "text_to_model"
+ },
+ "props/Fountain": {
+  "credits": 20,
+  "files": [
+   "Fountain.glb",
+   "Fountain_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "fc71130e-fb28-4ce6-bbb6-5bab6a7ae113",
   "type": "text_to_model"
  },
  "props/FrozenBoulder": {
@@ -1271,6 +1480,14 @@
   "status": "success",
   "task_id": "893575e2-f38b-4b36-a255-6b6d5682d0d7",
   "type": "text_to_model"
+ },
+ "props/GatehouseCitadelOpen": {
+  "error": "[Errno 2] No such file or directory: '/home/user/hatch-and-snatch/assets/tripo/concepts/GatehouseCitadelOpen.png'",
+  "status": "submit_failed"
+ },
+ "props/GatehouseStoneOpen": {
+  "error": "[Errno 2] No such file or directory: '/home/user/hatch-and-snatch/assets/tripo/concepts/GatehouseStoneOpen.png'",
+  "status": "submit_failed"
  },
  "props/GiantClam": {
   "credits": 20,
@@ -1322,6 +1539,16 @@
   "task_id": "49b02563-b3fd-4c09-af5b-c35a2abdde8a",
   "type": "text_to_model"
  },
+ "props/Lighthouse": {
+  "credits": 20,
+  "files": [
+   "Lighthouse.glb",
+   "Lighthouse_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "f2466883-201e-4009-affc-212f7d51bf4c",
+  "type": "text_to_model"
+ },
  "props/LightningCrag": {
   "credits": 20,
   "files": [
@@ -1330,6 +1557,16 @@
   ],
   "status": "success",
   "task_id": "f753db9f-0f0f-45f2-bc4a-f7ad090a995f",
+  "type": "text_to_model"
+ },
+ "props/MarketStall": {
+  "credits": 20,
+  "files": [
+   "MarketStall.glb",
+   "MarketStall_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "4e2a7f24-e674-40b7-84c2-058ded71357b",
   "type": "text_to_model"
  },
  "props/MoonMonolith": {
@@ -1342,6 +1579,26 @@
   "task_id": "07760467-5fa2-4fe2-9392-18ec157b1245",
   "type": "text_to_model"
  },
+ "props/NetBallista": {
+  "credits": 20,
+  "files": [
+   "NetBallista.glb",
+   "NetBallista_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "48a9e99e-0b54-4206-a88b-4768840f16a0",
+  "type": "text_to_model"
+ },
+ "props/OakTree": {
+  "credits": 20,
+  "files": [
+   "OakTree.glb",
+   "OakTree_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "ad1549cf-b2c0-40e7-b5fe-b6a3e5506f24",
+  "type": "text_to_model"
+ },
  "props/ObsidianSpikes": {
   "credits": 20,
   "files": [
@@ -1350,6 +1607,86 @@
   ],
   "status": "success",
   "task_id": "304be4df-e948-4174-92f6-1f4c278da0e4",
+  "type": "text_to_model"
+ },
+ "props/PalmTree": {
+  "credits": 20,
+  "files": [
+   "PalmTree.glb",
+   "PalmTree_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "0d341d56-efbc-48ef-a219-9d8c7becc8c7",
+  "type": "text_to_model"
+ },
+ "props/RuinsArch": {
+  "credits": 20,
+  "files": [
+   "RuinsArch.glb",
+   "RuinsArch_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "765350de-3bed-4705-b095-cd4be86d8379",
+  "type": "text_to_model"
+ },
+ "props/SearchlightTower": {
+  "credits": 20,
+  "files": [
+   "SearchlightTower.glb",
+   "SearchlightTower_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "1251fd2d-260b-4f53-9dc7-235d91b8dda0",
+  "type": "text_to_model"
+ },
+ "props/Shipwreck": {
+  "credits": 20,
+  "files": [
+   "Shipwreck.glb",
+   "Shipwreck_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "eac607bb-54be-4c11-a413-b95f366fdc41",
+  "type": "text_to_model"
+ },
+ "props/Signpost": {
+  "credits": 20,
+  "files": [
+   "Signpost.glb",
+   "Signpost_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "29188f1b-fdea-4585-84d3-566009b6d046",
+  "type": "text_to_model"
+ },
+ "props/SpikeStrip": {
+  "credits": 20,
+  "files": [
+   "SpikeStrip.glb",
+   "SpikeStrip_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "f2132a7f-f7e7-4c14-a885-6e3d438d5ce6",
+  "type": "text_to_model"
+ },
+ "props/StoneCircle": {
+  "credits": 20,
+  "files": [
+   "StoneCircle.glb",
+   "StoneCircle_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "fa470e44-d32e-48af-834a-716dd9873b59",
+  "type": "text_to_model"
+ },
+ "props/StoneWell": {
+  "credits": 20,
+  "files": [
+   "StoneWell.glb",
+   "StoneWell_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "3bd6b6ca-e87b-4a40-b542-1709582a7235",
   "type": "text_to_model"
  },
  "props/TideArch": {
@@ -1362,6 +1699,76 @@
   "task_id": "78dfeb40-ff37-4c73-955c-a97261415f52",
   "type": "text_to_model"
  },
+ "props/TowerCitadel": {
+  "credits": 30,
+  "files": [
+   "TowerCitadel.glb",
+   "TowerCitadel_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "96667c37-4ab1-4948-92e5-74415b09d347",
+  "type": "image_to_model"
+ },
+ "props/TowerRoofed": {
+  "credits": 30,
+  "files": [
+   "TowerRoofed.glb",
+   "TowerRoofed_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "3676450d-1414-4488-aba3-9f9dc86dee03",
+  "type": "image_to_model"
+ },
+ "props/TowerStone": {
+  "credits": 30,
+  "files": [
+   "TowerStone.glb",
+   "TowerStone_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "3f8b0ddb-0de2-4ecb-a98a-52bda15a5f3c",
+  "type": "image_to_model"
+ },
+ "props/TrainingDummy": {
+  "credits": 20,
+  "files": [
+   "TrainingDummy.glb",
+   "TrainingDummy_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "cb7283f0-f3b5-4aae-9380-adbdd0c024c4",
+  "type": "text_to_model"
+ },
+ "props/WallTorch": {
+  "credits": 20,
+  "files": [
+   "WallTorch.glb",
+   "WallTorch_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "8eda74f0-4d63-401e-a415-22923b34219f",
+  "type": "text_to_model"
+ },
+ "props/WatchtowerWood": {
+  "credits": 30,
+  "files": [
+   "WatchtowerWood.glb",
+   "WatchtowerWood_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "d0d9cc00-91cd-40b5-ba80-d9839a1f628d",
+  "type": "image_to_model"
+ },
+ "props/WaterfallCliff": {
+  "credits": 20,
+  "files": [
+   "WaterfallCliff.glb",
+   "WaterfallCliff_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "0c56f214-35b4-494b-afea-c8460987e821",
+  "type": "text_to_model"
+ },
  "props/WindSpire": {
   "credits": 20,
   "files": [
@@ -1370,6 +1777,26 @@
   ],
   "status": "success",
   "task_id": "c9c95566-8cec-4874-8572-f5d6e5a5023d",
+  "type": "text_to_model"
+ },
+ "props/Windmill": {
+  "credits": 20,
+  "files": [
+   "Windmill.glb",
+   "Windmill_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "33e5cddd-c810-4b6e-b5a3-eaf046e5f70d",
+  "type": "text_to_model"
+ },
+ "props/WoodBridge": {
+  "credits": 20,
+  "files": [
+   "WoodBridge.glb",
+   "WoodBridge_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "0e706f23-145e-4fa7-a21a-5bb178360c54",
   "type": "text_to_model"
  },
  "rework/Capybaron_Baby": {

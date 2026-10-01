@@ -1,0 +1,28 @@
+{
+  "jobs": [
+    {
+      "name": "FortressStages",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "marketing/raw/shot_5_fortress.png",
+      "prompt": "Concept sheet for a Roblox creature-collecting game. The reference screenshot shows a player's base today: a plain rectangular plot with glass-walled floors that looks boxy and unfinished. Keep the game's look (Roblox engine, stylized semi-realistic low-poly props with smooth shading and solid color regions, bright daylight, grass island) but redesign the base as a FORTRESS that grows with each upgrade. Draw FIVE stages side by side left to right on one wide sheet, same three-quarter aerial camera for each, labeled 1 to 5 under each stage: 1 CAMP: wooden picket fence, a simple timber gate arch, torches, a few crates. 2 STOCKADE: sharpened log palisade walls around the plot, two wooden watchtowers at the back corners, banners. 3 KEEP: low gray stone walls with battlements, round stone corner towers, a stone gatehouse with an iron portcullis over the front entrance, braziers. 4 FORTRESS: taller stone walls with a walkway, four tall towers with pointed blue slate roofs and flags, a two-story stone keep inside with arched windows, glowing pedestals with creatures visible. 5 CITADEL: grand white and gold stone citadel, tall spires with glowing crystal tips, big royal banners, a moat with a drawbridge, statues of creatures flanking the gate. Each stage clearly bigger and grander than the last. No people, no UI, no text other than the stage numbers."
+    },
+    {
+      "name": "FortressCitadel",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "marketing/raw/shot_5_fortress.png",
+      "prompt": "Redraw this Roblox game screenshot from the same aerial camera, keeping the island, trees, lighting and the Roblox-engine look (stylized semi-realistic low-poly props, smooth shading, solid color regions), but turn the player's boxy glass-walled base into a fully upgraded fantasy CITADEL: thick gray-and-cream stone outer walls with battlements and a walkway, four round corner towers with pointed slate-blue roofs, gold trim and long banners, a grand stone gatehouse at the front with a glowing laser portcullis, braziers with fire along the walls. Inside the walls the three stories stay but become a stone keep: arched openings, stone balconies with glowing creature pedestals on each floor, two small vault rooms with heavy glowing doors on the top floor corners, ramps turned into stone stairways with railings. Add security details: a bronze alarm bell tower, a spike trap strip at the gate, a mounted net ballista on a tower. Creatures with colored halos sit on the pedestals. No people, no UI, no text."
+    },
+    {
+      "name": "IslandDressed",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "marketing/raw/shot_9_biome.png",
+      "prompt": "Concept art for a Roblox creature game island, same Roblox-engine look as the reference screenshot (stylized semi-realistic low-poly props, smooth shading, solid color regions, bright daylight). High aerial three-quarter view of a big round grassy island in a calm blue ocean, with plenty of open walkable space so it never feels cramped. In the middle a glowing hatchery reactor with a conveyor loop; a ring of six player fortresses around it; between the fortresses six walled biome zones (forest, coral, lava, ice, storm, moon). Fill the land between them with lots of life and landmarks: a tall striped lighthouse and a long wooden pier on the beach (room for boats to future islands), a wooden windmill on a hill, crumbling ancient stone ruins with arches, a rocky cliff with a waterfall and a stream with small wooden bridges, a campsite with tents and a campfire, a beached shipwreck, a stone circle, winding dirt paths with signposts and lanterns, flower meadows, berry bushes, boulders, clusters of pine and oak trees, palm trees along the sandy beach. No people, no UI, no text."
+    }
+  ]
+}

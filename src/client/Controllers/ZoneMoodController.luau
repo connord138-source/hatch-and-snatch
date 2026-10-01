@@ -10,6 +10,8 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
+local ZoneShape = require(game:GetService("ReplicatedStorage").Shared.ZoneShape)
+
 type Look = { [string]: any }
 type Mood = { grade: Look, atmosphere: Look, rain: number }
 
@@ -101,17 +103,21 @@ function ZoneMoodController.start()
 		if root and root:IsA("BasePart") then
 			for _, zone in zones do
 				local mood = zone:GetAttribute("Mood")
-				local center = zone:GetAttribute("Center")
-				local radius = zone:GetAttribute("Radius")
+				local inner, outer = zone:GetAttribute("Inner"), zone:GetAttribute("Outer")
+				local from, to = zone:GetAttribute("From"), zone:GetAttribute("To")
 				if
 					typeof(mood) == "string"
-					and typeof(center) == "Vector3"
-					and typeof(radius) == "number"
+					and MOODS[mood]
+					and typeof(inner) == "number"
+					and typeof(outer) == "number"
+					and typeof(from) == "number"
+					and typeof(to) == "number"
+					and ZoneShape.contains(
+						{ inner = inner, outer = outer, from = from, to = to },
+						root.Position
+					)
 				then
-					local offset = root.Position - center
-					if MOODS[mood] and Vector3.new(offset.X, 0, offset.Z).Magnitude < radius then
-						inside = mood
-					end
+					inside = mood
 				end
 			end
 		end

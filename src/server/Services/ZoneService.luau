@@ -8,6 +8,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Net = require(script.Parent.Parent.Net)
@@ -316,10 +317,7 @@ local function enforceGates()
 			continue
 		end
 		for _, zone in WorldService.zones do
-			local offset = root.Position - zone.center
-			if
-				Vector3.new(offset.X, 0, offset.Z).Magnitude < zone.radius and not unlocked(data, zone.biome)
-			then
+			if ZoneShape.contains(zone.sector, root.Position) and not unlocked(data, zone.biome) then
 				character:PivotTo(zone.outside)
 				if now - (lastWarned[player] or 0) > 3 then
 					lastWarned[player] = now

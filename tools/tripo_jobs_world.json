@@ -1,0 +1,172 @@
+{
+ "jobs": [
+  {
+   "name": "CampSupplies",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A cluster of camp supplies: three stacked wooden crates with iron corners, two banded wooden barrels and a couple of golden hay bales tied with rope, arranged in a compact pile. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "WallTorch",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A medieval torch on a tall wooden post: an iron cup bracket at the top holding a burning torch with a bright orange flame, the post wrapped with a little rope. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Campfire",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A campfire: a ring of gray stones around crossed burning logs with orange flames, two short log benches beside it and a small iron cooking pot on a tripod. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "FlowerPlanter",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A long rectangular wooden planter box overflowing with colorful flowers: red, yellow, purple and white blooms with green leaves, dark soil. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "TrainingDummy",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A medieval training yard set: a straw training dummy on a wooden post with a burlap sack head and a red target painted on its chest, next to a small wooden weapon rack holding a wooden sword, a spear and a round shield. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "StoneWell",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A round stone water well with a small wooden shingle roof on two posts, a rope winch with a crank handle and a wooden bucket hanging over the opening. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Fountain",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tiered round stone fountain: a wide basin with a carved rim, a central pillar with two smaller bowls stacked above, clear blue water spilling down between the tiers. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Brazier",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tall iron brazier on three curved legs with a wide bowl full of glowing coals and bright orange fire. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "SpikeStrip",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A long low security trap strip: a flat wooden plank base studded with a row of sharp iron spikes pointing up, iron straps across the planks. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "NetBallista",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A mounted wooden ballista: a big crossbow-style siege weapon on a rotating wooden base, iron fittings, loaded with a bundled rope net instead of a bolt. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "SearchlightTower",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A small iron lookout tower about three times as tall as wide: a lattice of riveted iron beams with a ladder, topped by a big brass searchlight lamp with a glass lens. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "AlarmBell",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A big bronze alarm bell hanging in a sturdy wooden A-frame with a small shingle roof, a pull rope hanging down. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Lighthouse",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tall round lighthouse painted with wide red and white stripes, a black iron gallery with railing near the top and a glass lantern room with a glowing yellow light, a small stone base with a wooden door. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Windmill",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A rustic wooden windmill: a tapered stone and timber tower with four large lattice sails with canvas, a small wooden door and a little balcony. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "RuinsArch",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "Crumbling ancient stone ruins: a row of three weathered stone arches with broken tops, fallen blocks at their feet, ivy and moss growing on the stones. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "StoneCircle",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A ring of seven tall rough standing stones of different heights, two of them joined by a lintel stone on top, patches of moss and lichen. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "WaterfallCliff",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tall rocky cliff with a waterfall: layered gray stone ledges with grass and small bushes on top, a wide white waterfall pouring down the front into a shallow round pool at the bottom. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "CampTents",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A small campsite: two canvas A-frame tents, one blue and one orange, a tiny campfire between them and a log seat. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Shipwreck",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A beached wooden shipwreck lying on its side: a broken pirate ship hull with exposed ribs, a snapped mast with torn sails, scattered barrels and a treasure chest. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "PalmTree",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A tall tropical palm tree with a gently curved segmented trunk and a crown of long green fronds, a few coconuts. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Signpost",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A wooden crossroads signpost with three pointed arrow signs pointing in different directions on a tall post, small stones around its base. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "WoodBridge",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A small arched wooden footbridge with plank decking and simple rope-and-post railings on both sides, long enough to cross a stream. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "OakTree",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A big broad oak tree with a thick gnarled trunk, wide spreading branches and a full round leafy green canopy. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "FishingHut",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A small wooden fishing hut on short stilts: plank walls, a slanted shingle roof, fishing nets hanging on the side, a rod leaning by the door and a barrel of fish. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Dock",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A long straight wooden pier on thick wooden pilings: wide plank walkway with rope posts along the sides and a small rowboat tied at the end. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "MarketStall",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A wooden market stall with a striped red and cream canopy, a counter piled with fruit baskets and crates, a hanging lantern. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "FlowerMeadow",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A wide low patch of wildflowers and tall grass: clumps of red, yellow, blue and white flowers, slightly mounded, roughly round. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  },
+  {
+   "name": "Boulders",
+   "group": "props",
+   "type": "text_to_model",
+   "prompt": "A group of three large rounded gray boulders of different sizes with patches of green moss and a few grass tufts at their base. Stylized semi-realistic fantasy game prop, faceted low-poly shapes with smooth shading and solid color regions. Single object standing upright, no ground plane."
+  }
+ ]
+}

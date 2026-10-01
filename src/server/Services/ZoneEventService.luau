@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
 local Net = require(script.Parent.Parent.Net)
 local Reach = require(script.Parent.Parent.Reach)
 local SetPieces = require(script.Parent.Parent.SetPieces)
@@ -113,7 +114,7 @@ local function playersInZone(zone: Zone): { Player }
 	local inside = {}
 	for _, player in Players:GetPlayers() do
 		local root = rootOf(player)
-		if root and flatDistance(root.Position, zone.center) < zone.radius then
+		if root and ZoneShape.contains(zone.sector, root.Position) then
 			table.insert(inside, player)
 		end
 	end

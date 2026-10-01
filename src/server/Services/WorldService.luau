@@ -15,6 +15,9 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Props = require(script.Parent.Parent.Props)
 local SetPieces = require(script.Parent.Parent.SetPieces)
+local Fortress = require(script.Parent.Parent.Fortress)
+local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
+local Landmarks = require(script.Parent.Parent.Landmarks)
 
 export type PlotLayout = {
 	index: number,
@@ -42,6 +45,8 @@ export type PlotLayout = {
 	floors: number, -- floors shown, counting the ground
 	width: number,
 	depth: number,
+	arch: Model?, -- the timber gate arch (Camp and Stockade; a gatehouse replaces it)
+	fortress: Fortress.Layout?, -- where the fortress walls stand (applyTheme)
 }
 
 -- A part of the floors above the ground: shown while the base has `from`+ floors
@@ -62,10 +67,12 @@ export type VaultRoom = {
 	locked: boolean,
 }
 
-local PLOT_RADIUS = 118
+local PLOT_RADIUS = 128 -- room between neighbours for the fortress walls and towers
 local PLOT_FRONT = -22 -- local Z of a plot's front edge (the side facing the hub)
 local GROUND_Y = 0.2
-local ISLAND_RADIUS = 262
+local ISLAND_RADIUS = 410 -- roomy (owner, 2026-10-01): open land and landmarks past the zones
+local ZONE_INNER = 205 -- the biome ring's inner wall radius (buildZones)
+local ZONE_OUTER = 295 -- and its outer wall radius
 local INCUBATOR_GLASS = 0.45 -- transparency of the imported incubator model
 local TOP = 1 -- plot floor top, relative to the plot origin
 
@@ -77,6 +84,7 @@ export type LuckWheel = {
 }
 
 local WorldService = {
+	eventBoard = nil :: TextLabel?, -- the moon event board at the South Event Grounds
 	plots = {} :: { PlotLayout },
 	luckWheel = nil :: LuckWheel?,
 	moon = nil :: BasePart?,
@@ -157,7 +165,6 @@ local FLOOR_Z0: { [number]: number } = { [2] = 2, [3] = 14 } -- front edges (the
 local FLOOR_Z1 = 46
 local FLOOR_ROW_Z: { [number]: number } = { [2] = 20, [3] = 22 } -- the pedestal row on each floor
 local FLOOR_WALL = 9 -- taller than a jump
-local WALL_GLASS = 0.6
 local VAULT_SIZE = 11 -- inside width and depth of a vault room
 local VAULT_Z0 = FLOOR_Z1 - 1 - VAULT_SIZE -- vault front walls
 local DOOR_WIDTH = 6
@@ -289,14 +296,20 @@ local function buildSeaAndIsland()
 	-- ends). Too tall to jump; ignored by raycasts, so the camera and grabs see through
 	-- it. A bridge or dock to a future island would leave a gap here.
 	local shore = ISLAND_RADIUS + 21
-	local segments = 48
-	local width = 2 * shore * math.sin(math.pi / segments) + 1
-	for i = 1, segments do
-		local angle = (i / segments) * 2 * math.pi
+	local pier = Landmarks.at(Landmarks.PIER_BEARING, 1, 0)
+	local pierAngle = math.atan2(pier.Z, pier.X)
+	local gap = (Landmarks.PIER_WIDTH / 2 + 0.4) / shore -- the pier's own rails close it
+	local from, to = pierAngle + gap, pierAngle - gap + 2 * math.pi
+	local segments = 96
+	local step = (to - from) / segments
+	local width = 2 * shore * math.sin(step / 2) + 0.5
+	for i = 0, segments - 1 do
+		local angle = from + (i + 0.5) * step
+		local inset = shore * math.cos(step / 2)
 		part({
 			Name = "ShoreWall",
 			Size = Vector3.new(width, 80, 2),
-			CFrame = CFrame.new(math.cos(angle) * shore, GROUND_Y + 36, math.sin(angle) * shore)
+			CFrame = CFrame.new(math.cos(angle) * inset, GROUND_Y + 36, math.sin(angle) * inset)
 				* CFrame.Angles(0, math.pi / 2 - angle, 0),
 			Transparency = 1,
 			CanQuery = false,
@@ -466,8 +479,8 @@ local WHEEL_RADIUS = 9
 local WHEEL_HEIGHT = 12.5
 
 local function buildLuckWheel()
-	local angle = math.rad(210)
-	local ground = Vector3.new(math.cos(angle), 0, math.sin(angle)) * 76 + Vector3.new(0, GROUND_Y, 0)
+	-- At the North Commons, out past the biome ring (owner, 2026-10-01)
+	local ground = Landmarks.at(0, Landmarks.outerLoop(ZONE_OUTER, ISLAND_RADIUS) + 30, GROUND_Y)
 	local base =
 		CFrame.lookAt(ground + Vector3.new(0, WHEEL_HEIGHT, 0), Vector3.new(0, GROUND_Y + WHEEL_HEIGHT, 0))
 	local folder = Instance.new("Model")
@@ -693,6 +706,10 @@ local function buildPlot(index: number): PlotLayout
 	-- The floors above the ground, their glass walls, ramps and vault rooms (setFloors
 	-- shows what the owner has bought)
 	local floorPieces: { FloorPiece } = {}
+	-- `glass` pieces are the walls: solid stone in the fortress's style (applyTheme;
+	-- owner 2026-10-01: the glass boxes looked see-through and unfinished). A
+	-- `barrier` is an invisible wall (behind the arched fronts); `keep` marks stone
+	-- trim (pillars, arches, battlements) styled the same way.
 	local function piece(
 		from: number,
 		to: number?,
@@ -700,29 +717,144 @@ local function buildPlot(index: number): PlotLayout
 		size: Vector3,
 		offset: CFrame,
 		glass: boolean?,
-		vault: number?
+		vault: number?,
+		barrier: boolean?,
+		keep: boolean?
 	): Part
 		local p = part({
 			Name = name,
 			Size = size,
 			CFrame = origin * offset,
-			Material = if glass then Enum.Material.Glass else Enum.Material.WoodPlanks,
-			Color = if glass then Color3.fromRGB(200, 230, 255) else Color3.fromRGB(120, 95, 70),
+			Material = if glass or keep then Enum.Material.Cobblestone else Enum.Material.WoodPlanks,
+			Color = if glass or keep then Color3.fromRGB(140, 134, 126) else Color3.fromRGB(120, 95, 70),
 			Transparency = 1,
 			CanCollide = false,
 			CanQuery = false,
 			Parent = model,
 		})
-		p:SetAttribute("Glass", glass == true)
+		p:SetAttribute("Glass", glass == true and not barrier)
+		p:SetAttribute("Keep", keep == true)
 		local entry: FloorPiece = {
 			part = p :: BasePart,
 			from = from,
 			to = to,
-			transparency = if glass then WALL_GLASS else 0,
+			transparency = if barrier then 1 else 0,
 			vault = vault,
 		}
 		table.insert(floorPieces, entry)
 		return p
+	end
+	-- The side of a floor facing the hub: an arcade of stone arches over low
+	-- balustrades, so the creatures inside show, with an invisible wall behind it
+	-- that's still too tall to jump
+	local function arcade(story: number, x0: number, x1: number, z: number, top: number)
+		piece(
+			story,
+			nil,
+			"FloorWall",
+			Vector3.new(math.abs(x1 - x0), FLOOR_WALL, 0.4),
+			CFrame.new((x0 + x1) / 2, top + FLOOR_WALL / 2, z),
+			true,
+			nil,
+			true
+		)
+		local bays = math.max(1, math.floor(math.abs(x1 - x0) / 10.5 + 0.5))
+		local bay = (x1 - x0) / bays
+		for i = 0, bays do
+			piece(
+				story,
+				nil,
+				"ArchPillar",
+				Vector3.new(1.8, FLOOR_WALL, 1.8),
+				CFrame.new(x0 + i * bay, top + FLOOR_WALL / 2, z),
+				nil,
+				nil,
+				nil,
+				true
+			)
+		end
+		for i = 0, bays - 1 do
+			local x = x0 + (i + 0.5) * bay
+			local span = math.abs(bay) - 1.8
+			piece(
+				story,
+				nil,
+				"ArchLintel",
+				Vector3.new(span, 1.8, 1.4),
+				CFrame.new(x, top + FLOOR_WALL - 0.9, z),
+				nil,
+				nil,
+				nil,
+				true
+			)
+			for _, side in { -1, 1 } do
+				piece(
+					story,
+					nil,
+					"ArchCorner",
+					Vector3.new(2.4, 2.4, 1.2),
+					CFrame.new(x + side * (span / 2 - 0.5), top + FLOOR_WALL - 1.8, z)
+						* CFrame.Angles(0, 0, math.rad(45)),
+					nil,
+					nil,
+					nil,
+					true
+				)
+			end
+			piece(
+				story,
+				nil,
+				"Balustrade",
+				Vector3.new(span, 2.6, 0.9),
+				CFrame.new(x, top + 1.3, z),
+				nil,
+				nil,
+				nil,
+				true
+			)
+		end
+		piece(
+			story,
+			nil,
+			"ArchCap",
+			Vector3.new(math.abs(x1 - x0) + 2, 0.8, 2.2),
+			CFrame.new((x0 + x1) / 2, top + FLOOR_WALL + 0.4, z),
+			nil,
+			nil,
+			nil,
+			true
+		)
+		-- A stone band along the slab's edge underneath
+		piece(
+			story,
+			nil,
+			"FloorFascia",
+			Vector3.new(math.abs(x1 - x0) + 1, 1.6, 0.8),
+			CFrame.new((x0 + x1) / 2, top - 1.1, z - 0.2),
+			nil,
+			nil,
+			nil,
+			true
+		)
+	end
+	-- Battlements along the top of a wall (the Top Floor is open to the sky)
+	local function merlons(story: number, a: Vector3, b: Vector3, top: number)
+		local length = (b - a).Magnitude
+		local count = math.max(1, math.floor(length / 4))
+		for i = 0, count do
+			local at = a:Lerp(b, i / count)
+			piece(
+				story,
+				nil,
+				"Merlon",
+				Vector3.new(1.8, 1.8, 1.8),
+				CFrame.new(at.X, top + FLOOR_WALL + 0.9, at.Z),
+				nil,
+				nil,
+				nil,
+				true
+			)
+		end
 	end
 	-- A wall along x (from x0 to x1 at z) or along z (from z0 to z1 at x), standing on a floor
 	local function wallX(from: number, to: number?, x0: number, x1: number, z: number, top: number)
@@ -797,17 +929,26 @@ local function buildPlot(index: number): PlotLayout
 				story,
 				nil,
 				"FloorPost",
-				Vector3.new(1.6, FLOOR_HEIGHT, 1.6),
+				Vector3.new(2.4, FLOOR_HEIGHT, 2.4),
 				CFrame.new(
 					corner.X * (FLOOR_X - 1),
 					top - FLOOR_HEIGHT / 2,
 					if corner.Y == 0 then z0 + 1 else FLOOR_Z1 - 1
-				)
+				),
+				nil,
+				nil,
+				nil,
+				true
 			)
 		end
-		-- Glass walls round the edge, open where the ramps arrive
-		wallX(story, nil, -FLOOR_X, FLOOR_X, z0, top)
+		-- Stone walls round the edge, open where the ramps arrive; arches at the front
+		arcade(story, -FLOOR_X, FLOOR_X, z0, top)
 		wallX(story, nil, -FLOOR_X, FLOOR_X, FLOOR_Z1, top)
+		if story == #Config.Economy.tunables.floors + 1 then
+			merlons(story, Vector3.new(-FLOOR_X, 0, FLOOR_Z1), Vector3.new(FLOOR_X, 0, FLOOR_Z1), top)
+			merlons(story, Vector3.new(FLOOR_X, 0, z0 + 2), Vector3.new(FLOOR_X, 0, FLOOR_Z1 - 2), top)
+			merlons(story, Vector3.new(-FLOOR_X, 0, 36), Vector3.new(-FLOOR_X, 0, FLOOR_Z1 - 2), top)
+		end
 		if story == 2 then
 			-- Right: the ramp from the ground lands at z 6-12. Left: the way up to the
 			-- Top Floor leaves at z 2-8 (walled off until it's bought).
@@ -1059,7 +1200,7 @@ local function buildPlot(index: number): PlotLayout
 
 	-- Entrance arch over the front edge (decor only). The model spans its own Z
 	-- axis, so turn it 90° to span the front edge and let players walk through.
-	Props.spawn(
+	local arch = Props.spawn(
 		"PlotArch",
 		origin * CFrame.new(0, TOP, PLOT_FRONT + 0.5) * CFrame.Angles(0, math.pi / 2, 0),
 		13,
@@ -1094,6 +1235,8 @@ local function buildPlot(index: number): PlotLayout
 		floors = 1,
 		width = 44,
 		depth = 44,
+		arch = arch,
+		fortress = nil,
 	}
 	return plot
 end
@@ -1300,11 +1443,16 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	for _, laser in plot.lasers do
 		laser.Color = theme.laserColor
 	end
-	-- The floors above take the theme too: its floor on slabs and ramps, its trim
-	-- color in the glass, its laser color on the vault doors
+	-- The floors above take the theme too: the fortress's stone on their walls,
+	-- arches and pillars, its floor on slabs and ramps, its laser color on the doors
+	local stoneMaterial, stoneColor = Fortress.stone(plot.level, theme)
 	for _, entry in plot.floorPieces do
 		if entry.part:GetAttribute("Glass") then
-			entry.part.Color = theme.trimColor:Lerp(Color3.new(1, 1, 1), 0.45)
+			entry.part.Material = stoneMaterial
+			entry.part.Color = stoneColor
+		elseif entry.part:GetAttribute("Keep") then
+			entry.part.Material = stoneMaterial
+			entry.part.Color = stoneColor:Lerp(Color3.new(1, 1, 1), 0.12)
 		else
 			entry.part.Material = theme.floorMaterial
 			entry.part.Color = theme.floorColor:Lerp(Color3.new(0, 0, 0), 0.12)
@@ -1312,6 +1460,14 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	end
 	for _, room in plot.vaults do
 		room.door.Color = theme.laserColor
+	end
+
+	-- The fortress around the plot follows the level and takes the theme's colors
+	local layout =
+		Fortress.build(plot.model, plot.origin, plot.level, plot.width, plot.depth, PLOT_FRONT, theme)
+	plot.fortress = layout
+	if plot.arch then
+		plot.arch.Parent = if Fortress.style(plot.level).gatehouse then nil else plot.model
 	end
 
 	local existing = plot.model:FindFirstChild("ThemeDecor")
@@ -1330,16 +1486,17 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	if #available == 0 then
 		return
 	end
-	-- Along both sides and the back, just outside the plot edge
+	-- Along both sides and the back, just outside the fortress walls (clear of the
+	-- corner towers)
 	local rng = Random.new(plot.index * 97 + #theme.id)
-	local halfW = plot.width / 2
+	local halfW = layout.halfW
 	local spots: { Vector3 } = {}
-	for z = PLOT_FRONT + 8, PLOT_FRONT + plot.depth - 2, 9 do
-		table.insert(spots, Vector3.new(-halfW - 3.5, 0, z))
-		table.insert(spots, Vector3.new(halfW + 3.5, 0, z))
+	for z = layout.front + 10, layout.back - 9, 9 do
+		table.insert(spots, Vector3.new(-halfW - 5, 0, z))
+		table.insert(spots, Vector3.new(halfW + 5, 0, z))
 	end
-	for x = -halfW + 4, halfW - 4, 9 do
-		table.insert(spots, Vector3.new(x, 0, PLOT_FRONT + plot.depth + 3.5))
+	for x = -halfW + 9, halfW - 9, 9 do
+		table.insert(spots, Vector3.new(x, 0, layout.back + 5))
 	end
 	for _, spot in spots do
 		local name = available[rng:NextInteger(1, #available)]
@@ -1461,8 +1618,9 @@ local ZONES: { Zone } = {
 -- the gate (its label shows the requirement), harvest nodes and the shrine.
 export type ZoneLayout = {
 	biome: string,
-	center: Vector3,
-	radius: number, -- inside the wall
+	center: Vector3, -- the middle of the zone, on the ground
+	radius: number, -- half its depth (a rough size; use `sector` for inside checks)
+	sector: ZoneShape.Sector, -- its walls (ZoneShape.contains)
 	outside: CFrame, -- just outside the gate, facing away from it
 	gate: BasePart,
 	gateLabel: TextLabel,
@@ -1482,21 +1640,51 @@ export type Landmark = {
 }
 WorldService.zones = {} :: { ZoneLayout }
 
-local ZONE_RADIUS = 195 -- distance from the hub
-local ZONE_SIZE = 88 -- diameter of each zone's ground patch
-local WALL_RADIUS = ZONE_SIZE / 2 + 2
+-- The biome ring (owner, 2026-10-01, the approved island concept): six walled
+-- sectors between the fortresses and the open land, with the ring open to the north
+-- and south where the main paths run out to the beach. East half from the north:
+-- Frost Shelf, Magma Rift, Storm Peaks; west half from the south: Coral Coast,
+-- Mossvale, Moonfall. Each zone's gate faces the fortresses.
+local ZONE_GAP = math.rad(8) -- the open paths through the ring, north and south
+local NORTH = -math.pi / 2 -- atan2 angle of north (-Z)
 local WALL_HEIGHT = 11
-local WALL_SEGMENTS = 24
+local WALL_THICKNESS = 2.5
 local GATE_WIDTH = 12
+local ZONE_SLOT: { [string]: number } = {
+	FrostShelf = 1,
+	MagmaRift = 2,
+	StormPeaks = 3,
+	CoralCoast = 4,
+	Mossvale = 5,
+	Moonfall = 6,
+}
 
-local function zoneCenters(): { Vector3 }
-	local centers = {}
-	local plots = Config.Economy.tunables.basePlotsPerServer
-	for i = 1, plots do
-		local angle = plotAngle(i) + math.pi / plots
-		centers[i] = Vector3.new(math.cos(angle) * ZONE_RADIUS, GROUND_Y, math.sin(angle) * ZONE_RADIUS)
+local function zoneSector(biome: string): ZoneShape.Sector
+	local slot = ZONE_SLOT[biome] or 1
+	local span = (math.pi - ZONE_GAP) / 3
+	local halfStart = if slot <= 3 then NORTH + ZONE_GAP / 2 else NORTH + math.pi + ZONE_GAP / 2
+	local from = halfStart + ((slot - 1) % 3) * span
+	return { inner = ZONE_INNER, outer = ZONE_OUTER, from = from, to = from + span }
+end
+
+-- True when a spot is inside a zone's walls, or within `margin` studs of them.
+local function nearZone(position: Vector3, margin: number): boolean
+	local distance = Vector3.new(position.X, 0, position.Z).Magnitude
+	for _, zone in ZONES do
+		local sector = zoneSector(zone.biome)
+		local pad = margin / math.max(distance, 1)
+		if
+			ZoneShape.contains({
+				inner = sector.inner - margin,
+				outer = sector.outer + margin,
+				from = sector.from - pad,
+				to = sector.to + pad,
+			}, position)
+		then
+			return true
+		end
 	end
-	return centers
+	return false
 end
 
 -- True when a spot would sit on a (max-size) plot or its walkway.
@@ -1512,9 +1700,9 @@ local function onPlotOrWalkway(position: Vector3): boolean
 	for _, plot in WorldService.plots do
 		local localPos = plot.origin:PointToObjectSpace(position)
 		if
-			math.abs(localPos.X) < maxWidth / 2 + 7
-			and localPos.Z > PLOT_FRONT - 7
-			and localPos.Z < PLOT_FRONT + maxDepth + 7
+			math.abs(localPos.X) < maxWidth / 2 + 14
+			and localPos.Z > PLOT_FRONT - 12
+			and localPos.Z < PLOT_FRONT + maxDepth + 14
 		then
 			return true
 		end
@@ -1561,46 +1749,116 @@ local function buildNode(cframe: CFrame, color: Color3, rng: Random, folder: Ins
 	return model
 end
 
+-- One arc of a zone wall at `radius`, from angle a0 to a1, in chord segments.
+local function arcWall(folder: Instance, zone: Zone, radius: number, a0: number, a1: number)
+	if a1 - a0 <= 0 then
+		return
+	end
+	local segments = math.max(1, math.ceil(radius * (a1 - a0) / 14))
+	local step = (a1 - a0) / segments
+	local length = 2 * radius * math.sin(step / 2) + 0.6
+	for s = 0, segments - 1 do
+		local angle = a0 + (s + 0.5) * step
+		local position = Vector3.new(
+			math.cos(angle) * radius * math.cos(step / 2),
+			GROUND_Y + WALL_HEIGHT / 2,
+			math.sin(angle) * radius * math.cos(step / 2)
+		)
+		part({
+			Name = "Wall",
+			Size = Vector3.new(length, WALL_HEIGHT, WALL_THICKNESS),
+			CFrame = CFrame.lookAt(position, Vector3.new(0, position.Y, 0)),
+			Material = zone.wall,
+			Color = zone.wallColor,
+			Parent = folder,
+		})
+	end
+end
+
+-- A straight wall along a sector edge, from the inner arc to the outer one.
+local function radialWall(folder: Instance, zone: Zone, angle: number)
+	local direction = Vector3.new(math.cos(angle), 0, math.sin(angle))
+	local from = direction * (ZONE_INNER - WALL_THICKNESS / 2)
+	local to = direction * (ZONE_OUTER + WALL_THICKNESS / 2)
+	local middle = (from + to) / 2 + Vector3.new(0, GROUND_Y + WALL_HEIGHT / 2, 0)
+	part({
+		Name = "Wall",
+		Size = Vector3.new(WALL_THICKNESS, WALL_HEIGHT, (to - from).Magnitude),
+		CFrame = CFrame.lookAt(middle, middle + direction),
+		Material = zone.wall,
+		Color = zone.wallColor,
+		Parent = folder,
+	})
+	-- A sturdier post where it meets each arc
+	for _, radius in { ZONE_INNER, ZONE_OUTER } do
+		part({
+			Name = "WallPost",
+			Size = Vector3.new(4, WALL_HEIGHT + 1.5, 4),
+			CFrame = CFrame.new(direction * radius + Vector3.new(0, GROUND_Y + (WALL_HEIGHT + 1.5) / 2, 0))
+				* CFrame.Angles(0, -angle, 0),
+			Material = zone.wall,
+			Color = zone.wallColor:Lerp(Color3.new(0, 0, 0), 0.2),
+			Parent = folder,
+		})
+	end
+end
+
 local function buildZones(folder: Folder)
-	local terrain = Workspace.Terrain
 	local rng = Random.new(6061)
-	for i, center in zoneCenters() do
-		local zone = ZONES[(i - 1) % #ZONES + 1]
+	for _, zone in ZONES do
+		local sector = zoneSector(zone.biome)
+		local slot = ZONE_SLOT[zone.biome] or 1
 		local biomeColor = Config.Eggs.eggColors[zone.biome]
 		local zoneFolder = Instance.new("Folder")
 		zoneFolder.Name = `{zone.biome}Zone`
 		zoneFolder.Parent = folder
-		disc("Ground", center + Vector3.new(0, -0.1, 0), ZONE_SIZE, 0.5, {
-			Material = zone.material,
-			Color = zone.color,
-			CanCollide = false,
-			Parent = zoneFolder,
-		})
-		-- A hill behind the zone, out toward the beach (clear of the wall)
-		local outward = Vector3.new(center.X, 0, center.Z).Unit
-		local inward = -outward
-		terrain:FillBall(center + outward * 72 + Vector3.new(0, -18, 0), 26, zone.terrain)
 
-		-- Wall ring with a gap for the gate on the side facing the hub
-		local inwardAngle = math.atan2(inward.Z, inward.X)
-		local step = 2 * math.pi / WALL_SEGMENTS
-		local length = 2 * WALL_RADIUS * math.sin(step / 2) + 0.6
-		for s = 1, WALL_SEGMENTS - 1 do
-			local angle = inwardAngle + s * step
-			local position = center
-				+ Vector3.new(math.cos(angle) * WALL_RADIUS, WALL_HEIGHT / 2, math.sin(angle) * WALL_RADIUS)
+		local middleAngle = (sector.from + sector.to) / 2
+		local outward = Vector3.new(math.cos(middleAngle), 0, math.sin(middleAngle))
+		local inward = -outward
+		local tangent = Vector3.new(-math.sin(middleAngle), 0, math.cos(middleAngle)) -- toward `to`
+		local center = outward * ((ZONE_INNER + ZONE_OUTER) / 2) + Vector3.new(0, GROUND_Y, 0)
+		local halfArc = (sector.to - sector.from) / 2 * (ZONE_INNER + ZONE_OUTER) / 2
+		local halfDepth = (ZONE_OUTER - ZONE_INNER) / 2
+
+		-- Ground: wedge-ish strips across the sector. Zones sit a hair apart in height
+		-- so the strips that overlap under a shared wall don't flicker.
+		local strips = math.ceil(math.deg(sector.to - sector.from) / 2)
+		local stripAngle = (sector.to - sector.from) / strips
+		for k = 0, strips - 1 do
+			local angle = sector.from + (k + 0.5) * stripAngle
+			local direction = Vector3.new(math.cos(angle), 0, math.sin(angle))
+			local middle = direction * ((ZONE_INNER + ZONE_OUTER) / 2)
+				+ Vector3.new(0, GROUND_Y - 0.2 + slot * 0.03, 0)
 			part({
-				Name = "Wall",
-				Size = Vector3.new(length, WALL_HEIGHT, 2.5),
-				CFrame = CFrame.lookAt(position, Vector3.new(center.X, position.Y, center.Z)),
-				Material = zone.wall,
-				Color = zone.wallColor,
+				Name = "Ground",
+				Size = Vector3.new(
+					2 * ZONE_OUTER * math.sin(stripAngle / 2) + 0.4,
+					0.5,
+					ZONE_OUTER - ZONE_INNER
+				),
+				CFrame = CFrame.lookAt(middle, middle + direction),
+				Material = zone.material,
+				Color = zone.color,
+				CanCollide = false,
 				Parent = zoneFolder,
 			})
 		end
 
+		-- Walls: the inner arc (with the gate in its middle), the outer arc, and the
+		-- straight edges. A shared edge is built once, by the zone after it; the zone
+		-- before a gap also closes its far edge.
+		local gateHalf = (GATE_WIDTH / 2 + 3) / ZONE_INNER
+		arcWall(zoneFolder, zone, ZONE_INNER, sector.from, middleAngle - gateHalf)
+		arcWall(zoneFolder, zone, ZONE_INNER, middleAngle + gateHalf, sector.to)
+		arcWall(zoneFolder, zone, ZONE_OUTER, sector.from, sector.to)
+		radialWall(zoneFolder, zone, sector.from)
+		if slot % 3 == 0 then
+			radialWall(zoneFolder, zone, sector.to)
+		end
+
 		-- Gate: two pillars, a lintel and a shimmering barrier across the gap
-		local gateCenter = center + inward * WALL_RADIUS
+		local gateCenter = outward * ZONE_INNER + Vector3.new(0, GROUND_Y, 0)
 		local gateFrame = CFrame.lookAt(gateCenter, gateCenter + inward) -- -Z faces the hub
 		for _, side in { -1, 1 } do
 			part({
@@ -1636,9 +1894,9 @@ local function buildZones(folder: Folder)
 		gateLabel.Text = Config.Biomes[zone.biome].displayName
 		gateLabel.TextColor3 = biomeColor:Lerp(Color3.new(1, 1, 1), 0.35)
 
-		-- Shrine at the back of the zone
-		local shrineAt = center + outward * (WALL_RADIUS - 12)
-		local shrineFrame = CFrame.lookAt(shrineAt, center)
+		-- Shrine at the back of the zone, facing the gate
+		local shrineAt = outward * (ZONE_OUTER - 14) + Vector3.new(0, GROUND_Y, 0)
+		local shrineFrame = CFrame.lookAt(shrineAt, gateCenter)
 		part({
 			Name = "ShrineStep",
 			Size = Vector3.new(12, 1.2, 10),
@@ -1669,42 +1927,17 @@ local function buildZones(folder: Folder)
 		shrineLabel.Text = `{Config.Zones.byBiome[zone.biome].essence} Shrine`
 		shrineLabel.TextColor3 = biomeColor:Lerp(Color3.new(1, 1, 1), 0.35)
 
-		-- Harvest nodes spread around the inner ring, leaving the gate path clear
-		local nodes: { Model } = {}
-		local count = Config.Zones.nodesPerZone
-		for n = 1, count do
-			local angle = inwardAngle + math.rad(45) + (n - 1) / (count - 1) * math.rad(270)
-			local distance = if n % 2 == 0 then 22 else 32
-			local position = center + Vector3.new(math.cos(angle) * distance, 1, math.sin(angle) * distance)
-			local node = buildNode(CFrame.new(position), biomeColor, rng, zoneFolder)
-			node:SetAttribute("Biome", zone.biome)
-			table.insert(nodes, node)
+		-- Hero set pieces, laid out around the zone's middle: their angle (from the
+		-- gate direction) and distance stretch along the arc, which is much wider
+		-- than it is deep. Side ones face the middle, central ones face the gate.
+		local function spread(angleDegrees: number, distance: number): Vector3
+			local a = math.rad(angleDegrees)
+			return center + inward * (math.cos(a) * distance * 1.1) + tangent * (math.sin(a) * distance * 2.2)
 		end
-
 		local landmarks: { [string]: Landmark } = {}
-		table.insert(WorldService.zones, {
-			biome = zone.biome,
-			center = center,
-			radius = WALL_RADIUS - 1,
-			outside = CFrame.lookAt(
-				gateCenter + inward * 8 + Vector3.new(0, 3, 0),
-				gateCenter + inward * 20 + Vector3.new(0, 3, 0)
-			),
-			gate = gate,
-			gateLabel = gateLabel,
-			nodes = nodes,
-			shrine = shrine,
-			shrineLabel = shrineLabel,
-			folder = zoneFolder,
-			landmarks = landmarks,
-		})
-
-		-- Hero set pieces: side ones face the middle, central ones face the gate
 		local heroSpots: { { position: Vector3, radius: number } } = {}
 		for _, hero in zone.heroes do
-			local angle = inwardAngle + math.rad(hero.angle)
-			local position = center
-				+ Vector3.new(math.cos(angle) * hero.distance, 0, math.sin(angle) * hero.distance)
+			local position = spread(hero.angle, hero.distance)
 			local facing = if hero.distance > 20 then center else gateCenter
 			local frame = CFrame.lookAt(position, Vector3.new(facing.X, position.Y, facing.Z))
 			local radius, model = SetPieces.build(hero.name, frame, hero.scale or 1, zoneFolder, rng)
@@ -1720,15 +1953,72 @@ local function buildZones(folder: Folder)
 				}
 			end
 		end
+		local function clearOfHeroes(position: Vector3, margin: number): boolean
+			for _, spot in heroSpots do
+				if
+					(Vector3.new(spot.position.X, position.Y, spot.position.Z) - position).Magnitude
+					< spot.radius + margin
+				then
+					return false
+				end
+			end
+			return true
+		end
+		-- The walk from the gate to the middle stays open
+		local function inGatePath(position: Vector3): boolean
+			local offset = position - center
+			return offset:Dot(inward) > -6 and math.abs(offset:Dot(tangent)) < 10
+		end
 
-		-- The weather blows around the ring; ZoneMoodController reads these attributes
-		local wind = outward:Cross(Vector3.yAxis)
+		-- Harvest nodes in two rows across the zone, clear of the set pieces and the gate path
+		local nodes: { Model } = {}
+		local count = Config.Zones.nodesPerZone
+		for n = 1, count do
+			local along = ((n - 0.5) / count * 2 - 1) * halfArc * 0.8
+			local rows: { number } = if n % 2 == 0 then { 16, -18, 30, -32 } else { -18, 16, -32, 30 }
+			local position = center + tangent * along + inward * rows[1] + Vector3.new(0, 1, 0)
+			for _, row in rows do
+				local spot = center + tangent * along + inward * row + Vector3.new(0, 1, 0)
+				if clearOfHeroes(spot, 5) and not inGatePath(spot) then
+					position = spot
+					break
+				end
+			end
+			local node = buildNode(CFrame.new(position), biomeColor, rng, zoneFolder)
+			node:SetAttribute("Biome", zone.biome)
+			table.insert(nodes, node)
+		end
+
+		table.insert(WorldService.zones, {
+			biome = zone.biome,
+			center = center,
+			radius = halfDepth,
+			sector = sector,
+			outside = CFrame.lookAt(
+				gateCenter + inward * 8 + Vector3.new(0, 3, 0),
+				gateCenter + inward * 20 + Vector3.new(0, 3, 0)
+			),
+			gate = gate,
+			gateLabel = gateLabel,
+			nodes = nodes,
+			shrine = shrine,
+			shrineLabel = shrineLabel,
+			folder = zoneFolder,
+			landmarks = landmarks,
+		})
+
+		-- The weather blows along the ring; ZoneMoodController reads these attributes
+		local wind = tangent
 		if zone.storm then
-			SetPieces.stormSky(center, WALL_RADIUS, wind, zoneFolder)
+			SetPieces.stormSky(center, halfDepth + 20, wind, zoneFolder)
 			zoneFolder:SetAttribute("Mood", "storm")
 		end
 		zoneFolder:SetAttribute("Center", center)
-		zoneFolder:SetAttribute("Radius", WALL_RADIUS)
+		zoneFolder:SetAttribute("Radius", halfDepth)
+		zoneFolder:SetAttribute("Inner", sector.inner)
+		zoneFolder:SetAttribute("Outer", sector.outer)
+		zoneFolder:SetAttribute("From", sector.from)
+		zoneFolder:SetAttribute("To", sector.to)
 
 		-- Decor inside the walls, clear of the nodes, the shrine, the set pieces and the gate path
 		local available: { string } = {}
@@ -1739,58 +2029,44 @@ local function buildZones(folder: Folder)
 		end
 		if #available > 0 then
 			local placed = 0
-			for _ = 1, 120 do
-				if placed >= 26 then
+			for _ = 1, 260 do
+				if placed >= 48 then
 					break
 				end
-				local angle = rng:NextNumber() * 2 * math.pi
-				local distance = rng:NextNumber(6, WALL_RADIUS - 5)
-				local position = center
-					+ Vector3.new(math.cos(angle) * distance, 0, math.sin(angle) * distance)
-				local blocked = (position - shrineAt).Magnitude < 11
-				local fromCenter = position - center
-				-- The walk from the gate to the middle
-				if
-					fromCenter:Dot(inward) > 0
-					and (fromCenter - inward * fromCenter:Dot(inward)).Magnitude < 9
-				then
-					blocked = true
-				end
+				local position =
+					ZoneShape.point(sector, rng:NextNumber(0.04, 0.96), rng:NextNumber(0.08, 0.92), GROUND_Y)
+				local blocked = (position - shrineAt).Magnitude < 11 or inGatePath(position)
 				for _, node in nodes do
 					local nodePos = (node.PrimaryPart :: BasePart).Position
 					if (Vector3.new(nodePos.X, position.Y, nodePos.Z) - position).Magnitude < 6 then
 						blocked = true
 					end
 				end
-				for _, spot in heroSpots do
-					if (position - spot.position).Magnitude < spot.radius + 3 then
-						blocked = true
+				if blocked or not clearOfHeroes(position, 3) then
+					continue
+				end
+				local name = available[rng:NextInteger(1, #available)]
+				if SetPieces.has(name) then
+					-- Part-built decor leans downwind
+					local frame = CFrame.lookAt(position, position + wind)
+					SetPieces.build(name, frame, rng:NextNumber(0.85, 1.2), zoneFolder, rng)
+				else
+					local height = if name == "MossTree" or name == "PineTree"
+						then 20
+						elseif name == "IceSpire" then 11
+						else 5
+					local model = Props.spawn(
+						name,
+						CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0),
+						height * rng:NextNumber(0.8, 1.25),
+						zoneFolder
+					)
+					local skin = zone.decorSkin
+					if model and skin then
+						Props.reskin(model, skin.material, skin.color)
 					end
 				end
-				if not blocked then
-					local name = available[rng:NextInteger(1, #available)]
-					if SetPieces.has(name) then
-						-- Part-built decor leans downwind
-						local frame = CFrame.lookAt(position, position + wind)
-						SetPieces.build(name, frame, rng:NextNumber(0.85, 1.2), zoneFolder, rng)
-					else
-						local height = if name == "MossTree" or name == "PineTree"
-							then 20
-							elseif name == "IceSpire" then 11
-							else 5
-						local model = Props.spawn(
-							name,
-							CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0),
-							height * rng:NextNumber(0.8, 1.25),
-							zoneFolder
-						)
-						local skin = zone.decorSkin
-						if model and skin then
-							Props.reskin(model, skin.material, skin.color)
-						end
-					end
-					placed += 1
-				end
+				placed += 1
 			end
 		end
 	end
@@ -1812,6 +2088,14 @@ local function scatterDecor()
 	folder.Name = "Decor"
 	folder.Parent = worldFolder
 	buildZones(folder)
+	local land = Landmarks.build(folder, {
+		groundY = GROUND_Y,
+		islandRadius = ISLAND_RADIUS,
+		zoneInner = ZONE_INNER,
+		zoneOuter = ZONE_OUTER,
+		plazaRadius = Config.Eggs.conveyor.radius + 10,
+	})
+	WorldService.eventBoard = land.eventBoard
 
 	-- Lamp posts ring the conveyor so the egg loop reads at night
 	local lampRadius = Config.Eggs.conveyor.radius + 7
@@ -1856,11 +2140,33 @@ local function scatterDecor()
 	if total == 0 then
 		return
 	end
-	local zones = zoneCenters()
+	local function offPaths(position: Vector3, margin: number): boolean
+		for _, segment in land.paths do
+			local along = segment.to - segment.from
+			local t =
+				math.clamp((position - segment.from):Dot(along) / math.max(along:Dot(along), 1e-6), 0, 1)
+			local nearest = segment.from + along * t
+			if
+				Vector3.new(position.X - nearest.X, 0, position.Z - nearest.Z).Magnitude
+				< segment.width / 2 + margin
+			then
+				return false
+			end
+		end
+		for _, circle in land.clear do
+			if
+				Vector3.new(position.X - circle.position.X, 0, position.Z - circle.position.Z).Magnitude
+				< circle.radius + margin
+			then
+				return false
+			end
+		end
+		return true
+	end
 	local rng = Random.new(20260929)
 	local placed = 0
 	local attempts = 0
-	while placed < 150 and attempts < 2000 do
+	while placed < 240 and attempts < 4000 do
 		attempts += 1
 		local angle = rng:NextNumber() * 2 * math.pi
 		local radius = rng:NextNumber(Config.Eggs.conveyor.radius + 14, ISLAND_RADIUS - 8)
@@ -1875,16 +2181,11 @@ local function scatterDecor()
 			end
 		end
 		local height = pick.height * rng:NextNumber(0.75, 1.3)
-		local blocked = onPlotOrWalkway(position)
 		-- Keep the biome zones clear, including a big tree's canopy hanging over the
-		-- patch edge (green forest trees were shading the Coral and Magma patches)
+		-- walls (green forest trees were shading the Coral and Magma patches), and
+		-- the paths and landmarks
 		local margin = 2 + height * 0.45
-		for _, zoneCenter in zones do
-			if (position - zoneCenter).Magnitude < WALL_RADIUS + margin then
-				blocked = true
-			end
-		end
-		if blocked then
+		if onPlotOrWalkway(position) or nearZone(position, margin) or not offPaths(position, margin) then
 			continue
 		end
 		local cframe = CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * 2 * math.pi, 0)

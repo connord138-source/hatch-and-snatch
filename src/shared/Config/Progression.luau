@@ -234,6 +234,9 @@ export type BaseTheme = {
 	trimColor: Color3,
 	laserColor: Color3,
 	decor: { string }, -- WorldProps names scattered around the plot edge
+	-- The fortress's stone walls and towers from the Keep up (wooden tiers stay wood);
+	-- without one they're gray cobblestone. Roofs take trimColor, flags laserColor.
+	wall: { material: Enum.Material, color: Color3 }?,
 }
 local themes: { BaseTheme } = {
 	{
@@ -253,6 +256,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(240, 150, 150),
 		laserColor = Color3.fromRGB(60, 220, 255),
 		decor = { "CoralCluster", "RockCluster" },
+		wall = { material = Enum.Material.Sandstone, color = Color3.fromRGB(232, 206, 168) },
 	},
 	{
 		id = "MagmaRift",
@@ -262,6 +266,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(255, 110, 30),
 		laserColor = Color3.fromRGB(255, 120, 20),
 		decor = { "LavaRock", "RockCluster" },
+		wall = { material = Enum.Material.Basalt, color = Color3.fromRGB(70, 60, 58) },
 	},
 	{
 		id = "FrostShelf",
@@ -271,6 +276,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(255, 255, 255),
 		laserColor = Color3.fromRGB(150, 220, 255),
 		decor = { "IceSpire", "PineTree" },
+		wall = { material = Enum.Material.Glacier, color = Color3.fromRGB(205, 232, 250) },
 	},
 	{
 		id = "StormPeaks",
@@ -280,6 +286,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(255, 240, 90),
 		laserColor = Color3.fromRGB(255, 240, 90),
 		decor = { "RockCluster", "PineTree" },
+		wall = { material = Enum.Material.Slate, color = Color3.fromRGB(92, 97, 118) },
 	},
 	{
 		id = "Moonfall",
@@ -289,6 +296,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(190, 120, 255),
 		laserColor = Color3.fromRGB(190, 90, 255),
 		decor = { "CrystalCluster", "RockCluster" },
+		wall = { material = Enum.Material.Limestone, color = Color3.fromRGB(152, 138, 188) },
 	},
 	{
 		id = "Fortress",
@@ -300,6 +308,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(205, 165, 80),
 		laserColor = Color3.fromRGB(255, 150, 40),
 		decor = { "RockCluster", "FallenLog" },
+		wall = { material = Enum.Material.Cobblestone, color = Color3.fromRGB(132, 127, 120) },
 	},
 	{
 		id = "SkyPalace",
@@ -311,6 +320,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(120, 200, 255),
 		laserColor = Color3.fromRGB(120, 220, 255),
 		decor = { "CrystalCluster", "FlowerPatch" },
+		wall = { material = Enum.Material.Marble, color = Color3.fromRGB(240, 240, 246) },
 	},
 	{
 		id = "RoyalVault",
@@ -322,6 +332,7 @@ local themes: { BaseTheme } = {
 		trimColor = Color3.fromRGB(255, 200, 60),
 		laserColor = Color3.fromRGB(255, 210, 80),
 		decor = { "CrystalCluster", "RockCluster" },
+		wall = { material = Enum.Material.Granite, color = Color3.fromRGB(48, 42, 58) },
 	},
 }
 local themesById: { [string]: BaseTheme } = {}

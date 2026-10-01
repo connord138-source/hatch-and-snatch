@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Net = require(script.Parent.Parent.Net)
@@ -97,8 +98,30 @@ function EventService.start()
 		else Config.Economy.tunables.moonEventIntervalSeconds
 	task.spawn(function()
 		while true do
+			Workspace:SetAttribute("MoonEventNextAt", Timing.now() + interval)
 			task.wait(interval)
+			Workspace:SetAttribute("MoonEventNextAt", nil)
 			EventService.run(pickEvent())
+		end
+	end)
+	-- The board at the South Event Grounds: what's up now, or when the next moon rises
+	task.spawn(function()
+		while true do
+			local board = WorldService.eventBoard
+			if board then
+				local now = Timing.now()
+				local endsAt = Workspace:GetAttribute("MoonEventEndsAt")
+				local nextAt = Workspace:GetAttribute("MoonEventNextAt")
+				if active and typeof(endsAt) == "number" then
+					board.Text =
+						`🌙 {active.displayName}\n{Format.duration(math.max(0, endsAt - now))} left`
+				elseif typeof(nextAt) == "number" then
+					board.Text = `🌙 Next moon event\nin {Format.duration(math.max(0, nextAt - now))}`
+				else
+					board.Text = "🌙 Moon Events"
+				end
+			end
+			task.wait(1)
 		end
 	end)
 end

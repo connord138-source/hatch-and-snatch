@@ -3,6 +3,7 @@
 -- menu at a time. Each menu lives in Menus/ and only renders ClientState; its
 -- buttons send requests that the server validates.
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
@@ -144,6 +145,15 @@ function MenuController.start()
 		if claimable and not autoOpened and (state.onboarding or 0) >= 5 and open == nil then
 			autoOpened = true
 			show("Daily")
+		end
+	end)
+
+	-- World stations (the Quest Board, the Daily Chest, a base's command terminal)
+	-- open a menu: their prompts name it in an OpensMenu attribute
+	ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
+		local menu = prompt:GetAttribute("OpensMenu")
+		if typeof(menu) == "string" and contents[menu] then
+			show(menu)
 		end
 	end)
 end
