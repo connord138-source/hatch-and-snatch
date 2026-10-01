@@ -140,7 +140,9 @@ local function updateRow(row: Row, creature: Creature)
 			else FLOOR_NAMES[Config.Economy.slotFloor(creature.slot)] or "Pedestal"
 		where = `{spot} · +{Format.cash(creature.rate)}/s`
 	end
-	local parts = { creature.stage, species.rarity, where }
+	-- Where it is comes first: the line is narrow beside the buttons and truncates at
+	-- the end, and the vault state ("(locked 2:31)") is the part that changes
+	local parts = { where, creature.stage, species.rarity }
 	if creature.stolenFrom then
 		table.insert(parts, `stolen from {creature.stolenFrom}`)
 	elseif creature.homegrown then
@@ -156,10 +158,11 @@ local function updateRow(row: Row, creature: Creature)
 	if isWalking then
 		row.details.Text = `On a walk (grows faster) · {row.details.Text}`
 	end
+	-- ▼/▲: the small triangles (▾ ▴) don't exist in Roblox's fonts and show as boxes
 	row.move.Text = if row.expanded
-		then "Close ▴"
-		elseif creature.slot == nil then "Place ▾"
-		else "Move ▾"
+		then "Close ▲"
+		elseif creature.slot == nil then "Place ▼"
+		else "Move ▼"
 	setButton(row.move, free, Ui.colors.button)
 	if creature.carried and row.expanded then
 		row.expanded = false
@@ -243,11 +246,16 @@ local function makeRow(uid: string): Row
 		picker.Visible = false
 		frame.Size = UDim2.new(1, -10, 0, ROW_HEIGHT)
 	end
-	local function choice(order: number, label: string, enabled: boolean, onPick: () -> ())
-		local button = Ui.button(
-			picker,
-			{ Size = UDim2.fromOffset(76, PICKER_HEIGHT - 8), LayoutOrder = order, Text = label }
-		)
+	local function choice(order: number, count: number, label: string, enabled: boolean, onPick: () -> ())
+		-- `count` buttons share the row (a full base has 8, which don't fit at 76 wide)
+		local button = Ui.button(picker, {
+			Size = UDim2.new(1 / count, -6 * (count - 1) / count, 0, PICKER_HEIGHT - 8),
+			LayoutOrder = order,
+			Text = label,
+		})
+		local widest = Instance.new("UISizeConstraint")
+		widest.MaxSize = Vector2.new(76, math.huge)
+		widest.Parent = button
 		setButton(button, enabled, Ui.colors.blue)
 		button.Activated:Connect(function()
 			if enabled then
@@ -274,16 +282,17 @@ local function makeRow(uid: string): Row
 				and not isNursery(here)
 			then Config.Economy.slotFloor(here)
 			else nil
-		choice(1, "Storage", here ~= nil, function()
+		local count = 1 + (state.floors or 1) + (state.vaults or 0)
+		choice(1, count, "Storage", here ~= nil, function()
 			request("store")
 		end)
 		for floor = 1, state.floors or 1 do
-			choice(1 + floor, FLOOR_NAMES[floor] or `Floor {floor}`, hereFloor ~= floor, function()
+			choice(1 + floor, count, FLOOR_NAMES[floor] or `Floor {floor}`, hereFloor ~= floor, function()
 				ClientState.request("CreatureAction", "move", uid, `F{floor}`)
 			end)
 		end
 		for vault = 1, state.vaults or 0 do
-			choice(10 + vault, `🔒 Vault {vault}`, hereVault ~= vault, function()
+			choice(10 + vault, count, `🔒 Vault {vault}`, hereVault ~= vault, function()
 				ClientState.request("CreatureAction", "move", uid, `V{vault}`)
 			end)
 		end
