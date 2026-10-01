@@ -283,6 +283,28 @@ local function buildSeaAndIsland()
 		Color = Color3.fromRGB(88, 132, 66),
 		Parent = worldFolder,
 	})
+
+	-- An invisible wall at the beach's outer edge keeps players out of the sea (owner,
+	-- 2026-10-01: the open ocean is the border, but swimming out showed where the map
+	-- ends). Too tall to jump; ignored by raycasts, so the camera and grabs see through
+	-- it. A bridge or dock to a future island would leave a gap here.
+	local shore = ISLAND_RADIUS + 21
+	local segments = 48
+	local width = 2 * shore * math.sin(math.pi / segments) + 1
+	for i = 1, segments do
+		local angle = (i / segments) * 2 * math.pi
+		part({
+			Name = "ShoreWall",
+			Size = Vector3.new(width, 80, 2),
+			CFrame = CFrame.new(math.cos(angle) * shore, GROUND_Y + 36, math.sin(angle) * shore)
+				* CFrame.Angles(0, math.pi / 2 - angle, 0),
+			Transparency = 1,
+			CanQuery = false,
+			CanTouch = false,
+			CastShadow = false,
+			Parent = worldFolder,
+		})
+	end
 end
 
 ---------------------------------------------------------------------------

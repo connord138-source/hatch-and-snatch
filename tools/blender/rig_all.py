@@ -10,8 +10,9 @@ for the adult, "frontBaby" and "frontJuvenile" for the other stages (each GLB ha
 orientation). "auto" squares the body up and guesses the head end; "flip" takes the other
 end when that guess is wrong (a raised tail club or tuft fools it). Rerun after a change.
 
-Only models that changed are rigged again: a new GLB, or a different body plan or
-front for that stage (remembered in assets/fbx/.rigged.json). --all rigs everything.
+Only models that changed are rigged again: a new GLB, a different body plan or front
+for that stage, or a new RIG_VERSION (remembered in assets/fbx/.rigged.json). --all
+rigs everything.
 """
 
 import json
@@ -20,6 +21,10 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
+# Bump when rig_creature.py's output changes, so every model is rigged again.
+# 2: weights smoothed along the surface (no more stringing at legs and tails).
+RIG_VERSION = 2
+RIG_SCRIPT = ROOT / "tools/blender/rig_creature.py"
 args = [a for a in sys.argv[1:] if a != "--all"]
 BLENDER = args[0] if args else "blender"
 EVERYTHING = "--all" in sys.argv
@@ -39,14 +44,16 @@ for glb in sorted(glb_dir.glob("*.glb")):
     stage = "Baby" if glb.stem.endswith("_Baby") else "Juvenile" if glb.stem.endswith("_Juvenile") else ""
     front = entry.get(f"front{stage}", "auto")  # "front" (adult), "frontBaby", "frontJuvenile"
     out = fbx_dir / f"{glb.stem}.fbx"
-    signature = f"{entry['bodyPlan']}|{front}|{glb.stat().st_size}|{int(glb.stat().st_mtime)}"
+    signature = f"v{RIG_VERSION}|{entry['bodyPlan']}|{front}|{glb.stat().st_size}|{int(glb.stat().st_mtime)}"
     if not EVERYTHING and out.exists():
         # No record yet (rigged before .rigged.json existed): current if the FBX is newer
+        # than both its GLB and the rig script
         known = rigged.get(glb.stem)
-        if known == signature or (known is None and out.stat().st_mtime >= glb.stat().st_mtime):
+        newest = max(glb.stat().st_mtime, RIG_SCRIPT.stat().st_mtime)
+        if known == signature or (known is None and out.stat().st_mtime >= newest):
             rigged[glb.stem] = signature
             continue
-    cmd = [BLENDER, "--background", "--python", str(ROOT / "tools/blender/rig_creature.py"), "--",
+    cmd = [BLENDER, "--background", "--python", str(RIG_SCRIPT), "--",
            str(glb), str(out), entry["bodyPlan"], front]
     print(">>", glb.stem)
     if subprocess.run(cmd).returncode != 0 or not out.exists():

@@ -250,15 +250,91 @@ def allowed(name, p):
     return ((p.x - foot.x) ** 2 + (p.y - foot.y) ** 2) ** 0.5 <= reach
 
 
-groups = {name: body.vertex_groups.new(name=name) for name in bone_segments}
-for i, v in enumerate(body.data.vertices):
+# Raw weights: each vertex's nearest bones, by inverse distance
+verts = body.data.vertices
+weights = []
+for v in verts:
     p = body.matrix_world @ v.co
     candidates = [(seg_dist(p, a, b), name) for name, (a, b) in bone_segments.items() if allowed(name, p)]
-    dists = sorted(candidates)[:4]
-    ws = [(1.0 / max(d, 1e-4) ** 4, name) for d, name in dists]
-    total = sum(w for w, _ in ws)
-    for w, name in ws:
-        if w / total > 0.02:
+    ws = {name: 1.0 / max(d, 1e-4) ** 4 for d, name in sorted(candidates)[:4]}
+    total = sum(ws.values())
+    weights.append({name: w / total for name, w in ws.items()})
+
+# Smooth the weights along the surface. Nearest-bone weights flip from one bone to
+# the next within a single edge, so a leg swing or tail sway stretched those edges
+# into strings where the leg met the belly and where the tail hung by the hind legs
+# (Mossmunk, owner 2026-10-01). Averaging with neighbors spreads each switch over a
+# few rings of the mesh. glTF splits vertices along UV seams, so vertices at the same
+# spot count as one; otherwise the seams would tear open.
+weld = {}
+node_of = []
+for v in verts:
+    key = (round(v.co.x, 5), round(v.co.y, 5), round(v.co.z, 5))
+    node_of.append(weld.setdefault(key, len(weld)))
+nodes = len(weld)
+members = [[] for _ in range(nodes)]
+for i, n in enumerate(node_of):
+    members[n].append(i)
+links = [set() for _ in range(nodes)]
+for e in body.data.edges:
+    a, b = node_of[e.vertices[0]], node_of[e.vertices[1]]
+    if a != b:
+        links[a].add(b)
+        links[b].add(a)
+node_w = []
+for n in range(nodes):
+    merged = {}
+    for i in members[n]:
+        for name, w in weights[i].items():
+            merged[name] = merged.get(name, 0.0) + w / len(members[n])
+    node_w.append(merged)
+SMOOTH_PASSES, SMOOTH_FACTOR = 16, 0.5
+for _ in range(SMOOTH_PASSES):
+    smoothed = []
+    for n in range(nodes):
+        if not links[n]:
+            smoothed.append(node_w[n])
+            continue
+        avg = {}
+        for m in links[n]:
+            for name, w in node_w[m].items():
+                avg[name] = avg.get(name, 0.0) + w / len(links[n])
+        mixed = {name: w * (1 - SMOOTH_FACTOR) for name, w in node_w[n].items()}
+        for name, w in avg.items():
+            mixed[name] = mixed.get(name, 0.0) + w * SMOOTH_FACTOR
+        smoothed.append(mixed)
+    node_w = smoothed
+
+# Loose bits (fur tufts, mushrooms, spikes that aren't joined to the body) move as one
+# piece: a tuft split between a leg and the belly would stretch just like a seam.
+seen = [False] * nodes
+for start in range(nodes):
+    if seen[start]:
+        continue
+    island, stack = [], [start]
+    seen[start] = True
+    while stack:
+        n = stack.pop()
+        island.append(n)
+        for m in links[n]:
+            if not seen[m]:
+                seen[m] = True
+                stack.append(m)
+    if len(island) < 0.02 * nodes:
+        avg = {}
+        for n in island:
+            for name, w in node_w[n].items():
+                avg[name] = avg.get(name, 0.0) + w / len(island)
+        for n in island:
+            node_w[n] = avg
+
+groups = {name: body.vertex_groups.new(name=name) for name in bone_segments}
+for n in range(nodes):
+    top = sorted(node_w[n].items(), key=lambda kv: -kv[1])[:4]  # Roblox: 4 influences
+    top = [(name, w) for name, w in top if w > 0.02]
+    total = sum(w for _, w in top)
+    for i in members[n]:
+        for name, w in top:
             groups[name].add([i], w / total, "REPLACE")
 
 mod = body.modifiers.new("Armature", "ARMATURE")

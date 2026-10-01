@@ -49,6 +49,7 @@ Don't scale or position anything; the code does it:
   - Then rerun `rig_all.py` and re-import that model. Re-running the organizer replaces the old copy.
   - All 105 current models were checked with `tools/blender/facing_check.py` (2026-09-29) and 23 carry a flip.
 - **Legs:** if they bend the wrong way, flip `pitch` in `src/client/Controllers/CreatureAnimator.luau`.
+- **Stringing** (mesh stretched into strings at a leg or tail when it moves): rig v2 (2026-10-01) smooths the skin weights along the surface (16 passes, seam vertices welded, loose tufts moved as one piece). Over all 123 models, posed like the run and the sit, stretched edges fell 60% (Mossmunk 88%), and feet stay on their lower-leg bones. `rig_all.py` re-rigs everything when `RIG_VERSION` changes, so re-import every FBX after that.
 - **Props:** a prop that sits sideways was modeled lying down. Rotate the imported model once in WorldProps and save.
 
 ## What the code does with them

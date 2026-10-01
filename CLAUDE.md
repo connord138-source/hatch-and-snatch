@@ -109,6 +109,7 @@ How to prompt for concepts:
 - **Rigging:** `tools/blender/rig_all.py` auto-rigs GLBs to FBX headless, and CreatureAnimator drives the bone names procedurally.
   - All 105 creature models rig cleanly in the sandbox (`pip install bpy pillow`; bpy 5.0 needs Python 3.11).
   - Tripo keeps the concept's three-quarter turn, so the rig squares each body up (PCA) before guessing the head end.
+  - Skin weights are smoothed along the surface (rig v2, 2026-10-01): raw nearest-bone weights stretched legs and tails into strings (Mossmunk). Bump `RIG_VERSION` in `rig_all.py` whenever the rig's output changes, so every model is rigged again.
   - The head guess (higher end = head) fails on raised tail clubs, tufts and swirls. Wrong ones carry `"flip"` in `bodyplans.json`, under `front`, `frontBaby` or `frontJuvenile` (each GLB has its own orientation).
   - After adding models, check them with `tools/blender/facing_check.py`: colored side and top views, head should be on the left.
   - If antlers or wings are wider than the body is long, PCA squares the model up sideways and the top view isn't lengthwise. Give the head's axis instead (`+x`, `-x`, `+y` or `-y`; the Sylvanox Juvenile is `+x`).
