@@ -33,7 +33,7 @@ local LOOKS: { [string]: Look } = {
 		color = Color3.fromRGB(58, 34, 138),
 		material = Enum.Material.SmoothPlastic,
 		reflectance = 0.35,
-		sky = { texture = "", studsPerTile = 6 },
+		sky = { texture = "rbxassetid://129645056585841", studsPerTile = 6 },
 	},
 	Prismatic = { material = Enum.Material.Neon }, -- the client cycles the color
 	BloodMoon = { color = Color3.fromRGB(120, 0, 10), material = Enum.Material.CrackedLava },
