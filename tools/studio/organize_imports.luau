@@ -19,6 +19,18 @@ local PROPS = {
 	HollowStump = true, GiantGlowcap = true, TideArch = true, GiantClam = true, LavaVent = true,
 	ObsidianSpikes = true, IceArch = true, FrozenBoulder = true, LightningCrag = true, WindSpire = true,
 	MoonMonolith = true, CraterRim = true,
+	-- Fortress kit (src/server/Fortress.luau)
+	WatchtowerWood = true, TowerStone = true, TowerRoofed = true, TowerCitadel = true,
+	GatehouseStone = true, GatehouseCitadel = true, Brazier = true,
+	-- Base fixtures, hiding spots and decor (BaseKit.luau, BaseDecor.luau)
+	BaseTerminal = true, BuyPad = true, HideHaystack = true, HideBarrels = true, HideHedge = true,
+	HideChest = true, SpikeStrip = true, NetBallista = true, SearchlightTower = true, AlarmBell = true,
+	CampSupplies = true, WallTorch = true, Campfire = true, FlowerPlanter = true, TrainingDummy = true,
+	StoneWell = true, Fountain = true,
+	-- The open land (src/server/Landmarks.luau)
+	Lighthouse = true, Windmill = true, RuinsArch = true, StoneCircle = true, WaterfallCliff = true,
+	CampTents = true, Shipwreck = true, PalmTree = true, Signpost = true, WoodBridge = true,
+	OakTree = true, FishingHut = true, Dock = true, MarketStall = true, FlowerMeadow = true, Boulders = true,
 }
 local species = {}
 for _, creature in require(ReplicatedStorage.Shared.Config).Creatures do

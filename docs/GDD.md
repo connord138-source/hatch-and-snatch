@@ -23,11 +23,13 @@ doing so.
 ## 2. World: Crackpoint Island
 
 - **Hatchery Reactor** (center): a glowing glass dome. The **egg conveyor loop** starts here and circles the island.
-- **8 base plots** are arranged in a ring around the loop, so every base is equally close to the eggs and to each other. Each plot has:
-  - pedestals (10 to start, upgradeable to 30),
+- **6 base plots** are arranged in a ring around the loop, so every base is equally close to the eggs and to each other. Each plot grows into a **fortress** (§6.1) and has:
+  - pedestals (10 to start, upgradeable to 30, plus vaults and hiding spots),
   - a laser-gate **base lock** with a countdown light,
-  - a cash collector and an incubator rack,
+  - a cash collector, an incubator rack and a **Command Terminal**,
+  - walk-over **buy pads** for every upgrade,
   - **nursery** slots.
+- **Layout** (owner-approved concept, 2026-10-01): the reactor and belt in the middle; the ring of fortresses; a ring of six walled biome zones, open to the north and south; and the open land out to the beach with the landmarks and the two station plazas (§7.3).
 - **The Moon Egg** hangs in the sky. Its color is the server's event alarm (section 8). Long-term, a big update lets the moon hatch, releasing Lunaris.
 - **Biome eggs:** the conveyor carries eggs from biomes the player has unlocked through rebirths, and the map's look expands with them. The biomes, in order: Mossvale Forest → Coral Coast → Magma Rift → Frost Shelf → Storm Peaks → Moonfall.
 
@@ -57,7 +59,7 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
   Upgrading while an egg is inside speeds up the rest of its time. Junk Eggs fit in any tier.
 - **Rarity tease:** each incubator shows a countdown and a progress bar. From 40% progress the bar, the timer and a glow take on the egg's rarity color, fading in from white; the egg wobbles harder and harder over the last 15%.
-- **Luck Wheel:** a physical wheel stands by the plaza. Walk up and hold E to spend a spin; everyone nearby watches it turn. Prizes: ×2 luck 30%, cash (5 min of income) 24%, ×3 luck 18%, +2 spins 12%, ×10 luck 12%, ×25 jackpot 4%. A luck prize charges your **next egg** (bought or forged); its Epic+ weights are multiplied by the luck. Spins come from playtime (1 per 20 minutes, up to 10 banked), achievements, rebirths, the Coral Coast shrine and releasing rare creatures.
+- **Luck Wheel:** a physical wheel stands at the North Commons, out past the biome ring (§7.3). Walk up and hold E to spend a spin; everyone nearby watches it turn. Prizes: ×2 luck 30%, cash (5 min of income) 24%, ×3 luck 18%, +2 spins 12%, ×10 luck 12%, ×25 jackpot 4%. A luck prize charges your **next egg** (bought or forged); its Epic+ weights are multiplied by the luck. Spins come from playtime (1 per 20 minutes, up to 10 banked), achievements, rebirths, the Coral Coast shrine and releasing rare creatures.
 - **Odds panel** (paid random items, 2026-10-01): while an egg's Buy prompt (or a shrine's Forge prompt) is on screen, a panel lists every species, finish and genetic mutation that egg can give, with percentages that add up to 100%. It updates live with the player's luck charge, Server Luck and moon events. Everything is rolled the moment the egg is bought, with exactly those odds (`Shared/Odds.luau`, `OddsController`), so Skip Hatch and incubator upgrades never change what's inside.
 - **Hatch reveal:** a case-opening reel of creature cards from that egg's odds slows down and lands on what hatched, with rare cards teased right beside it. Then a big rarity-colored reveal shows the creature spinning; Mythic and rarer flash the whole screen, and the server announces it once the reveal ends.
 
@@ -141,12 +143,22 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 
 ### 6.1 Base upgrades and themes
 
-- **Base level 1 to 5:** upgrade at the gold-gem station by the lock (or in the Base menu) for 60K, 25M, 5B and 500B. Each level:
+- **Buying:** every upgrade is a walk-over **buy pad** in the front yard (owner, 2026-10-01; `BaseKit.luau`, `BaseService`). Stand on one for 0.6 s to buy; step off to buy again, so walking past never buys anything. Eight pads, one each for the next base level, security level, floor, vault and hiding spot, then the three cheapest decor or security items open to you. A pad only shows once its step is open, green when you can afford it, red when not.
+- **Command Terminal:** a console with a monitor by the lock button (it replaced the old upgrade gem). Its screen shows the base's tier and counts, and its prompt opens the **Base menu** (it has no menu-bar button): status and what's next, decor switched on or off, the security items, and themes.
+- **The fortress** (`Fortress.luau`; owner, 2026-10-01): the walls round the plot grow with the base level, free with each upgrade. From the Stockade up the walls are too tall to jump, so the gate (where the laser lock is) is the only way in.
+  1. **Camp:** a picket fence and a timber arch.
+  2. **Stockade:** log palisade walls and wooden watchtowers at the back corners.
+  3. **Keep:** stone walls with battlements, round stone towers at the back and a stone gatehouse.
+  4. **Fortress:** taller walls, four towers with slate cone roofs and flags, braziers at the gate.
+  5. **Citadel:** pale stone and gold, crystal-tipped spires.
+  - The theme sets the stone (its `wall` material and color), the roof color (trim) and the flags (laser color). Tower and gatehouse models replace the part-built ones when imported (a 9-stud walk-through arch between invisible colliders).
+  - The floors above are a **stone keep**: solid stone walls (the glass boxes looked see-through and unfinished), an arched front with balustrades so the creatures show, stone pillars, battlements on the Top Floor.
+- **Base level 1 to 5:** 60K, 25M, 5B and 500B. Each level:
   - widens and deepens the plot (60×48 up to 76×68 studs), so thieves have a longer run out;
   - adds ground pedestals at levels 2 and 3 (10 → 15 → 20), spaced 11 studs apart; levels 3 and 4 open the floors above;
   - adds 15 s to the laser lock (+60 s at max).
 - **Floors** (owner, 2026-10-01; Base menu, bought in order): the Second Floor (800M, needs base 3) and the Top Floor (60B, needs base 4) each add a row of 5 pedestals one story up (18 studs; 30 pedestals in all, as before). Higher floors are harder to steal from:
-  - Glass walls are too tall to jump, so thieves walk up the ramps (right side to the Second Floor, left side on to the Top Floor) and carry the creature all the way back down.
+  - Stone walls are too tall to jump, so thieves walk up the ramps (right side to the Second Floor, left side on to the Top Floor) and carry the creature all the way back down.
   - The Steal hold is +50% per floor up, timed on the server.
   - A grab only works from the creature's own floor, not from below.
   - Creatures menu → **Move ▾** sends a creature to storage, a floor or a vault (swapping with the least valuable one there when it's full). **⬆ Rarest up top** sorts every pedestal creature by value into the vaults first, then the Top Floor, the Second Floor and the ground.
@@ -156,8 +168,18 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
   - Unlocked, the Steal hold is ×2 on top of the floor's, and only works from inside the room.
   - Auto-Lock (security 3) locks every charged vault too when an intruder walks in.
 
-- **Security (Base menu):** three one-time upgrades — Intruder Alarm 40K (you're told when someone walks into your base and they glow red), Tripwire 10M (thieves carrying your creatures move 25% slower inside your base), Auto-Lock 2B (the laser lock turns itself on when an intruder enters, if it's off cooldown).
-- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 100K, Magma 25M, Frost 5B, Storm 500B, Moonfall 50T). Building up unlocks three more looks: **Stone Fortress** (Second Floor, 2B), **Sky Palace** (Top Floor, 150B) and **Royal Vault** (all 4 vaults, 1T). Themes also restyle the floors, glass walls, ramps and vault doors. Owned themes can be switched freely.
+- **Security levels** (pad): three one-time upgrades — Intruder Alarm 40K (you're told when someone walks into your base and they glow red; a bell appears by the left wall), Tripwire 10M (thieves carrying your creatures move 25% slower inside your base), Auto-Lock 2B (the laser lock turns itself on when an intruder enters, if it's off cooldown).
+- **Security items** (pads; `Config.BaseBuilds`). The owner's rule: every measure runs on a timer or a recharge, so no base is ever unbreakable; a patient thief can always wait one out.
+  - **Spike Strip** 5M (base 2): spikes inside the gate root the first intruder for 1.5 s, then reset for 40 s.
+  - **Searchlight Tower** 400M (base 3): a thief who grabs one of your creatures is lit up and tagged "THIEF!" for everyone for 10 s (30 s recharge).
+  - **Ramp Gates** 6B (base 3, needs the Second Floor): pull the lever by the ramp to bar both ramps for 45 s, so nobody gets up or down (90 s recharge).
+  - **Net Ballista** 40B (base 4): hold E at it to net the nearest thief carrying your creature within 80 studs; they drop it and it goes home (2 min reload).
+- **Hiding spots** (pads, bought in order): the Haystack 3M (base 2), Barrel Pile 300M (base 3), Hedge 8B (base 4) and Secret Chest 150B (base 5) stand inside the side walls. Each holds one creature out of sight (Creatures → Move; slots 51-54), and it still earns.
+  - Thieves hold E for 3 s to **search** any spot. An empty one is a decoy ("Nothing in there but hay!"); an occupied one gives up its creature under the normal grab rules (locked base, new-player protection and so on).
+  - Hidden **Mythic and rarer** creatures give themselves away with a burst of sparkles in their rarity color every ~12 s, so an ultra-rare is never hidden for good.
+  - Hiding spots aren't auto-filled and Rarest up top leaves them alone; moving a creature in or out isn't allowed while an intruder is in the base.
+- **Decor** (pads; switch each on or off at the terminal; `BaseDecor.luau`): Camp Supplies 15K, Wall Torches 40K, Campfire 150K, Flower Planters 600K, Banners 2.5M (theme colors), Training Yard 8M, Stone Well 40M, Lantern Path 150M, Fountain 900M, Guardian Statues 4B (stone statues of your two rarest creatures by the gate), Moat & Drawbridge 30B, Royal Gold Trim 350B (base 5).
+- **Base themes:** each biome has a look for your plot: floor material, trim, laser color and edge decor. A theme can be bought once its biome's eggs are unlocked (Coral 100K, Magma 25M, Frost 5B, Storm 500B, Moonfall 50T). Building up unlocks three more looks: **Stone Fortress** (Second Floor, 2B), **Sky Palace** (Top Floor, 150B) and **Royal Vault** (all 4 vaults, 1T). Themes also restyle the fortress, the keep's stone, the ramps and the vault doors. Owned themes can be switched freely.
 - **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.
 
 ## 7. Economy (retuned 2026-09-30 for multi-week pacing; tune in playtests)
@@ -229,9 +251,14 @@ Before the retune, a 3 h/day player had bought everything in about 3 hours of pl
 
 ### 7.3 World
 
-- **The island:** a round grass island with a sandy beach and the sea around it, and a cobblestone plaza under the hub and conveyor. Stone paths run from each plot to the plaza.
+- **The island** (rebuilt 2026-10-01 to the owner-approved concept; `WorldService`, `Landmarks.luau`): a round grass island 410 studs across the radius, with a sandy beach and the open sea around it. The sea is the border: an invisible wall at the beach's edge keeps players out of the water, with a gap only for the pier, where boats to future islands will tie up.
+  - **Rings:** the hub and belt (plaza out to 56 studs, with a dirt ring path); the six fortresses (128 studs out); a ring road past the zone gates (196); the biome ring (205–295); an outer loop path through the open land (~334); the beach.
+  - **Main paths** run north and south from the plaza, through the two gaps in the biome ring, out to the beach, with lanterns and signposts. Spur paths lead to the landmarks.
+  - **Landmarks:** a striped lighthouse, a fishing hut and a walled pier on the northwest beach; a windmill, a stone circle and crumbling ruins in the north; a cliff waterfall in the northeast whose stream runs along the coast to the sea under a footbridge, with a campsite beyond; a second stone circle and palms to the southeast; a campsite and pines to the south; a beached shipwreck on the southwest beach; oak and pine woods in the west; meadows and boulders everywhere. Each uses its imported model and has a part-built stand-in.
+  - **North Commons:** the Luck Wheel, the Quest Board (opens Daily quests) and the Daily Chest (opens Daily rewards), with market stalls.
+  - **South Event Grounds:** a board showing the moon event now on, or when the next one rises, with stalls and a campfire.
 - **Hub:** the hatchery tunnel over the belt, with 12 egg-lantern lamp posts around the loop.
-- **Biome zones:** one walled zone in each gap between plots (Mossvale, Coral Coast, Magma Rift, Frost Shelf, Storm Peaks, Moonfall), 88 studs across. The gate faces the hub and shows the requirement (the same Hatcher Level + base level that unlocks the biome's eggs); it glows green once you qualify. Locked-out players are bounced back out.
+- **Biome zones:** walled sectors of the ring around the fortresses (`ZoneShape.luau` is the inside test), open to the north and south. East half from the north: Frost Shelf, Magma Rift, Storm Peaks; west half from the south: Coral Coast, Mossvale, Moonfall. Each is 90 studs deep and about 250 studs along its arc. The gate faces the hub and shows the requirement (the same Hatcher Level + base level that unlocks the biome's eggs); it glows green once you qualify. Locked-out players are bounced back out.
   - **Harvest nodes:** 7 glowing crystal nodes per zone (hold E). Each gives 1–2 of that biome's Essence and regrows after 40 s. Nodes are shared, so it pays to get there first.
   - **Shrine:** spend Essence on a **forged egg** of that biome (15) or on the biome's **blessing** (8): Mossvale cash (3 min of income), Coral +3 spins, Magma halves the time left on every incubating egg, Frost ×5 luck on the next egg, Storm XP (400 × level), Moonfall ×25 luck on the next egg.
   - **Set pieces:** each zone has 2–3 landmark props (`src/server/SetPieces.luau`), placed clear of the nodes, the shrine and the gate path:

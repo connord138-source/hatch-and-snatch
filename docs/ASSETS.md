@@ -91,3 +91,18 @@ HollowStump ef9b172f · GiantGlowcap 3d45884a · TideArch 78dfeb40 · GiantClam 
 Settings match the old Higgsfield route: v3.1, 8000 faces, standard texture with PBR. Tripo's download links expire within minutes, so host each GLB on Higgsfield file storage (`media_upload` → PUT → `media_confirm` with type `file`) before adding its permanent URL to the manifest.
 
 Ultra-rare rework (2026-10-01, Tripo direct; jobs in `tools/tripo_jobs_ultrarework.json`). These 18 models replaced the earlier ones: Glacierion, Lurehound, Solarion, Quasarfox and Nullcat (all three stages), the Capybaron Baby and Juvenile, and the Halosaur adult. All were rigged and facing-checked in the sandbox; Solarion (adult) and Nullcat (adult and Juvenile) needed `"flip"`.
+
+## Fortress, base and island props (2026-10-01)
+
+40 props from the Tripo API (text-to-3D, or a clean concept sheet then image-to-3D for the towers and gatehouses), hosted on Higgsfield file storage and listed under `props` in `tools/assets_manifest.json`. Every one has a part-built stand-in in code, so nothing breaks before they're imported.
+
+| Group | Props | Used by |
+|---|---|---|
+| Fortress kit | WatchtowerWood, TowerStone, TowerRoofed, TowerCitadel, GatehouseStone, GatehouseCitadel, Brazier | `Fortress.luau`: towers fit to the tower's height (an invisible column keeps it solid); gatehouses fit by width with a 9-stud arch between invisible colliders |
+| Base | BaseTerminal, BuyPad, HideHaystack, HideBarrels, HideHedge, HideChest, SpikeStrip, NetBallista, SearchlightTower, AlarmBell | `BaseKit.luau` (BuyPad isn't placed yet; the pads are part-built rings) |
+| Decor | CampSupplies, WallTorch, Campfire, FlowerPlanter, TrainingDummy, StoneWell, Fountain | `BaseDecor.luau` |
+| Open land | Lighthouse, Windmill, RuinsArch, StoneCircle, WaterfallCliff, CampTents, Shipwreck, PalmTree, Signpost, WoodBridge, OakTree, FishingHut, Dock, MarketStall, FlowerMeadow, Boulders | `Landmarks.luau` |
+
+- The gatehouses were redrawn with open archways (the first drafts had closed gates), and the Citadel one wide, with a tower at each end, so its arch spans the gate.
+- **Facing:** the landmarks and fixtures face the hub (or the way the code says) along the model's -Z. A model that comes in turned, or lying down, gets rotated once in WorldProps and saved, as for the earlier props.
+

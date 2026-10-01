@@ -43,6 +43,7 @@ unrelated to the Polymarket worker.
   - Each base has protected **nursery** slots for players who prefer raising their own.
 - **Rarity layers:** species rarity, then genetic mutations at hatch, then **finishes** (Gold → Chrome → Diamond → Molten → Galaxy → Prismatic, plus event-only Blood Moon), then color palettes.
   - The owner loved the finish-sheet look (the toaster tortoise in 7 finishes).
+  - **Galaxy** (owner, 2026-10-01): the starfield holds still on screen while the creature moves through it (like galaxy skins elsewhere). Roblox has no custom shaders, so CreatureAnimator slides a tiling Texture on each face (`FinishLooks` `sky`); it's off until `assets/textures/galaxy_sky.png` is uploaded and its id pasted in.
 - **Junk Egg:** rare and event-only, containing comic household-object creatures such as the Toaster Tortoise and Fridge Hedgehog.
 - **Roster:** 30 launch creatures are final. See `docs/ROSTER.md` and `src/shared/Config/Creatures.luau`.
 - **Ultra-rares above Legendary** (owner asked for them): Mythic (1 per biome, about 1/1,000), Celestial (moon events only), Cosmic (Moonfall only, about 1/10,000) and Secret (about 1/50,000, ??? in the Index). That adds 11 species, all approved 2026-10-01 after a rework (docs/ROSTER.md). See docs/GDD.md §7.1.
@@ -54,12 +55,19 @@ unrelated to the Polymarket worker.
   - Players start with 1 incubator and can buy up to 6.
   - Incubator tiers (Basic → Cosmic) hatch faster and accept later biomes.
   - The rarity color fades in from 40% incubation.
-  - There is a physical Luck Wheel by the plaza (charges the next egg's luck) and a case-opening hatch reveal. See GDD §3.1.
+  - There is a physical Luck Wheel at the North Commons (charges the next egg's luck) and a case-opening hatch reveal. See GDD §3.1.
 - **Belt:** eggs roll out of and back into the hatchery tunnel; they never vanish in view.
 - **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed.
 - **Bases:** 5 upgrade levels (bigger plot, ground pedestals up to 20, longer lock), 3 security upgrades (alarm, tripwire, auto-lock) and biome base themes. See GDD §6.1.
+- **Fortress bases** (owner, 2026-10-01; approved concepts FortressStages/FortressCitadel): the walls grow with base level, Camp → Stockade → Keep → Fortress → Citadel (`Fortress.luau`). The floors are a solid stone keep, never glass ("not see-through").
+  - **Every upgrade is a walk-over buy pad** in the front yard (stand 0.6 s). Customizing is in the Base menu, opened only at the base's **Command Terminal** (`BaseKit.luau`).
+  - **Security rule (owner):** every security measure has a timer or a release, so no base is ever unbreakable. Items: Spike Strip, Searchlight, Ramp Gates, Net Ballista (`Config/BaseBuilds.luau`).
+  - **Hiding spots** (owner): 4 buyable spots, one creature each; thieves can search them (empty ones are decoys) and Mythic+ sparkle now and then, so ultra-rares are never hidden for good.
+  - Decor items (torches, banners, moat, statues of your rarest, ...) can be switched on or off at the terminal.
 - **Floors and vaults** (owner, 2026-10-01; replaced the level-4 deck): two bought floors (+5 pedestals each, harder to steal from: ramps, longer Steal hold, grab only from the same floor) and 4 bought vault rooms (one creature each, door locked on a timer). Floors and vaults unlock three more base themes. Prices rise each step; see GDD §6.1 and `Config/Economy.luau` (`floors`, `vaults`).
-- **World:** walled, level-gated biome zones between plots, each with harvest nodes (biome Essence) and a shrine (forge an egg or take the biome's blessing); round island, beach and sea. Releasing creatures also pays Essence. See GDD §7.3 and `Config/Zones.luau`.
+- **World:** walled, level-gated biome zones, each with harvest nodes (biome Essence) and a shrine (forge an egg or take the biome's blessing). Releasing creatures also pays Essence. See GDD §7.3 and `Config/Zones.luau`.
+  - **Island layout (owner, 2026-10-01: "exactly like" the approved IslandDressed concept):** reactor in the middle, a ring of fortresses, a ring of six walled biome sectors open north and south (`ZoneShape.luau`), and roomy open land to the beach full of landmarks (`Landmarks.luau`). The outer land holds the stations: North Commons (Luck Wheel, Quest Board, Daily Chest) and South Event Grounds (moon event board).
+  - **The sea is the border** (owner): players can't go into it (an invisible shoreline wall); the pier leaves room for boats to more islands later.
 - **Zone set-piece events** (approved 2026-09-30): bloom, pearl, eruption, boulder, strike and meteor, each paying Essence, spins or a luck charge. See GDD §7.3.
   - Later, per the owner: taming, training, biome shops and larger biomes.
 - **Monetization** (built 2026-09-30): 6 game passes and 5 developer products, with Server Luck as the headline product. See GDD §9.
@@ -95,7 +103,7 @@ How to prompt for concepts:
 
 ## 3D assets
 
-- **Everything has a model now** (the Sept 2026 credit promo): 41 adults, babies, 8 eggs and 16 world props.
+- **Everything has a model now** (the Sept 2026 credit promo): 41 adults, babies, 8 eggs and 16 world props, plus 40 fortress, base and island props (2026-10-01, Tripo direct; `tools/tripo_jobs_world.json`, `_fortress_kit.json`, `_hiding.json`).
   - Juveniles: all 41 (the 12 ultra-rares and 6 Junk were added 2026-09-30).
   - Set pieces: 12 (`src/server/SetPieces.luau`, 2–3 per biome zone), each with a part-built stand-in.
   - The links are in `tools/assets_manifest.json`; the workflow is in `docs/ASSETS.md`.
@@ -151,6 +159,7 @@ How to prompt for concepts:
 - Team Test servers probably report `IsStudio() == false`, so they would use the live `PlayerData_v2` store.
 - Analytics: log through `src/server/Analytics.luau`. `EconomyService.spend` and `grant` take an item SKU for the economy dashboard, so keep SKUs to small fixed sets.
 - Services live in `src/server/Services`. The start order in `init.server.luau` matters: each service connects to `DataService.loaded` inside its `start()`, and DataService starts last.
+- **Previewing world code from a cloud session:** `bash tools/preview/run_fortress.sh <dir>` runs `Fortress.luau` in the luau CLI (Roblox shims in `tools/preview/world_stub.luau`) and renders every tier in Blender; `bash tools/preview/run_island.sh <png>` draws the island layout top-down from `Landmarks.luau`.
 - **Verifying from a cloud session** (no Studio available): use `rojo sourcemap`, then `luau-lsp analyze --definitions=<globalTypes.d.luau> --sourcemap=... --ignore="**/Packages/**" src`, then `stylua --check src`. Pure config and economy logic can run in the plain `luau` runtime after swapping `script.Parent.X` requires for `./X` and stubbing `Color3`.
 - Set an Attachment's `WorldPosition` only after parenting it. Set while unparented, it's stored as a local offset, so the attachment lands far away (this hid the rarity halo and the element glow light until b0e854b).
 - UI text: ✦ (U+2726) and ▾/▴ render as empty boxes in Roblox fonts, so use ✨ and ▼/▲. The other symbols in use (→ ⚠ ✓ ✔ ⬇ ★ ◆ and emoji) render fine.
