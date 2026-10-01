@@ -762,7 +762,18 @@ function Landmarks.build(parent: Instance, options: Options): Result
 	-- Northeast: the cliff waterfall, its stream to the sea and the footbridge
 	local cliff = Landmarks.at(50, island - 8, y)
 	keep(cliff, 22)
-	prop("WaterfallCliff", folder, CFrame.lookAt(cliff, Vector3.new(0, y, 0)), 30, standInCliff)
+	-- The imported cliff's waterfall is on the back of the model, so it is turned
+	-- round to pour toward the hub (into the stream's pool) like the stand-in's falls
+	local halfTurn = CFrame.Angles(0, math.pi, 0)
+	prop(
+		"WaterfallCliff",
+		folder,
+		CFrame.lookAt(cliff, Vector3.new(0, y, 0)) * halfTurn,
+		30,
+		function(standIn, base)
+			standInCliff(standIn, base * halfTurn)
+		end
+	)
 	-- The stream: from the waterfall's pool it runs along the coast, then out to sea
 	-- (the island ground is one solid part, so the water is a strip of parts)
 	local water = {
