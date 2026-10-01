@@ -160,17 +160,18 @@ end
 -- Galaxy finish: each face's starfield texture slides against the creature's
 -- movement relative to the camera, so the stars hold still on screen while the
 -- creature moves through them. The texture's right/down directions on each face,
--- in the part's own axes, as seen from outside that face:
+-- in the part's own axes, as seen from outside that face. Measured in Studio
+-- (PC round 473db78): raising OffsetStudsU/V moves a side face's stars left/up,
+-- hence SKY_SIGN -1, but moves the top face's stars along +X/+Z, so its entry is
+-- negated to match.
 local SKY_AXES: { [Enum.NormalId]: { Vector3 } } = {
 	[Enum.NormalId.Front] = { Vector3.new(-1, 0, 0), Vector3.new(0, -1, 0) },
 	[Enum.NormalId.Back] = { Vector3.new(1, 0, 0), Vector3.new(0, -1, 0) },
 	[Enum.NormalId.Right] = { Vector3.new(0, 0, -1), Vector3.new(0, -1, 0) },
 	[Enum.NormalId.Left] = { Vector3.new(0, 0, 1), Vector3.new(0, -1, 0) },
-	[Enum.NormalId.Top] = { Vector3.new(1, 0, 0), Vector3.new(0, 0, 1) },
+	[Enum.NormalId.Top] = { Vector3.new(-1, 0, 0), Vector3.new(0, 0, -1) },
 }
--- If the stars race along with the creature (twice as fast) instead of holding
--- still, the engine offsets the other way: flip this to -1.
-local SKY_SIGN = 1
+local SKY_SIGN = -1
 
 local function slideSky(info: Tracked, cameraPos: Vector3)
 	if info.skies == nil then
