@@ -2,8 +2,9 @@
 -- Studio-only test hook, for looking at things you'd otherwise wait hours for.
 -- During Play, switch the Command Bar to the Server view and run e.g.:
 --
---   game.ServerStorage.StudioDebug:Invoke("grant", "Tidalotl", "Galaxy", "Adult")
---       -- gives every player that creature (finish and stage optional)
+--   game.ServerStorage.StudioDebug:Invoke("grant", "Tidalotl", "Galaxy", "Adult", "Albino")
+--       -- gives every player that creature (finish, stage and mutation optional;
+--       -- "Normal" for no finish)
 --   game.ServerStorage.StudioDebug:Invoke("event", "BloodMoon")
 --       -- starts a moon event now
 --   game.ServerStorage.StudioDebug:Invoke("essence", "MagmaRift", 50)
@@ -27,9 +28,9 @@
 --       -- restarts the first-session guide for every player (from "buy an egg")
 --   game.ServerStorage.StudioDebug:Invoke("daily")
 --       -- pretends a day passed: the login reward and new daily quests come back
---   game.ServerStorage.StudioDebug:Invoke("reveal", "Capybaron", "Galaxy")
---       -- plays the hatch reveal for that species (finish optional) without granting
---       -- anything (store screenshots)
+--   game.ServerStorage.StudioDebug:Invoke("reveal", "Capybaron", "Galaxy", "Iridescent")
+--       -- plays the hatch reveal for that species (finish and mutation optional)
+--       -- without granting anything (store screenshots)
 --   game.ServerStorage.StudioDebug:Invoke("build")
 --       -- maxes every player's base: level 5, both floors, all 4 vaults, security,
 --       -- the 4 hiding spots and every decor and security item
@@ -59,12 +60,15 @@ local ZoneService = require(script.Parent.Services.ZoneService)
 
 local StudioDebug = {}
 
-local function grant(species: any, finish: any, stage: any): string
+local function grant(species: any, finish: any, stage: any, mutation: any): string
 	if typeof(species) ~= "string" or Config.CreaturesById[species] == nil then
 		return "unknown species"
 	end
 	local stageId = if typeof(stage) == "string" and Config.Stages[stage :: any] then stage else "Adult"
 	local finishId = if typeof(finish) == "string" then finish else "Normal"
+	local mutationId = if typeof(mutation) == "string" and Config.MutationsById[mutation]
+		then mutation
+		else nil
 	local given = 0
 	for player in DataService.loadedPlayers() do
 		CreatureService.add(player, {
@@ -72,12 +76,12 @@ local function grant(species: any, finish: any, stage: any): string
 			stage = stageId,
 			stageStartedAt = Timing.now(),
 			finish = finishId,
-			mutation = nil,
+			mutation = mutationId,
 			homegrown = true,
 		})
 		given += 1
 	end
-	return `gave {finishId} {stageId} {species} to {given} player(s)`
+	return `gave {mutationId or ""} {finishId} {stageId} {species} to {given} player(s)`
 end
 
 -- Moves every creature on a pedestal into storage, so fresh grants land on pedestals.
@@ -225,7 +229,7 @@ function StudioDebug.start()
 		elseif action == "guide" then
 			return restartGuide()
 		elseif action == "reveal" then
-			local species, finish = ...
+			local species, finish, mutation = ...
 			local creature = if typeof(species) == "string" then Config.CreaturesById[species] else nil
 			if not creature then
 				return "unknown species"
@@ -235,6 +239,9 @@ function StudioDebug.start()
 					species = species,
 					biome = creature.biome,
 					finish = if typeof(finish) == "string" then finish else "Normal",
+					mutation = if typeof(mutation) == "string" and Config.MutationsById[mutation]
+						then mutation
+						else nil,
 				})
 			end
 			return `revealing {species}`

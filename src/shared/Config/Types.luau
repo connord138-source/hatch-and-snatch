@@ -80,8 +80,8 @@ export type Finish = {
 export type Mutation = {
 	id: string,
 	displayName: string,
-	chance: number, -- 0..1 per hatch
-	valueBonus: number, -- additive earnings bonus, e.g. 0.05 = +5%
+	chance: number, -- 0..1 per egg
+	earningsMultiplier: number, -- multiplies earnings on top of the finish
 }
 
 export type MoonEvent = {

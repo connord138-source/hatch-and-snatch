@@ -11,6 +11,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local FinishLooks = require(ReplicatedStorage.Shared.FinishLooks)
+local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local RarityLooks = require(ReplicatedStorage.Shared.RarityLooks)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
@@ -321,7 +322,14 @@ local FINISH_FX: { [string]: ParticleSpec } = {
 local HALO_RINGS = 6 -- stacked discs: a soft edge without a texture
 local HALO_DISTANCE = 220 -- readable from across the island
 
-local function addHalo(primary: BasePart, center: Vector3, extents: Vector3, color: Color3, strength: number)
+local function addHalo(
+	primary: BasePart,
+	center: Vector3,
+	extents: Vector3,
+	color: Color3,
+	strength: number,
+	ring: Color3?
+)
 	local attachment = Instance.new("Attachment")
 	attachment.Name = "RarityHalo"
 	attachment.Parent = primary
@@ -350,10 +358,28 @@ local function addHalo(primary: BasePart, center: Vector3, extents: Vector3, col
 		corner.Parent = disc
 		disc.Parent = gui
 	end
+	if ring then
+		-- A mutation: one crisp ring in its accent color round the halo
+		local frame = Instance.new("Frame")
+		frame.Name = "MutationRing"
+		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+		frame.Position = UDim2.fromScale(0.5, 0.5)
+		frame.Size = UDim2.fromScale(0.86, 0.86)
+		frame.BackgroundTransparency = 1
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0.5, 0)
+		round.Parent = frame
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = ring
+		stroke.Thickness = 2
+		stroke.Transparency = 0.1
+		stroke.Parent = frame
+		frame.Parent = gui
+	end
 	gui.Parent = attachment
 end
 
-local function addRarityLook(model: Model, species: string, rarity: string, finish: string)
+local function addRarityLook(model: Model, species: string, rarity: string, finish: string, mutation: string?)
 	local primary = model.PrimaryPart
 	if primary == nil then
 		return
@@ -364,11 +390,19 @@ local function addRarityLook(model: Model, species: string, rarity: string, fini
 	if finish == "Normal" and tint then
 		RarityLooks.tint(model, tint)
 	end
-	if look.shimmer then
+	local mutationLook = MutationLooks.get(mutation)
+	if look.shimmer and not (mutationLook and mutationLook.iridescent) then
 		CollectionService:AddTag(model, "Shimmer") -- CreatureAnimator cycles the tint
 	end
 	local box, extents = model:GetBoundingBox()
-	addHalo(primary, box.Position, extents, color:Lerp(Color3.new(1, 1, 1), 0.15), look.halo)
+	addHalo(
+		primary,
+		box.Position,
+		extents,
+		color:Lerp(Color3.new(1, 1, 1), 0.15),
+		look.halo,
+		if mutationLook then mutationLook.accent else nil
+	)
 	local dust = look.stardust
 	if dust then
 		addParticles(primary, {
@@ -421,6 +455,29 @@ local function applyFinish(model: Model, finish: string)
 		planet:SetAttribute("KeepMaterial", true)
 		planet.CFrame = model.PrimaryPart.CFrame
 		planet.Parent = model
+	end
+end
+
+-- A genetic mutation (Shared/MutationLooks): its body look over the finish and
+-- rarity tint, plus a few soft glints in its colors.
+local function addMutationLook(model: Model, record: CreatureRecord)
+	local creature = Config.CreaturesById[record.species]
+	if not MutationLooks.apply(model, record.mutation, record.finish, creature.biome) then
+		return
+	end
+	local look = MutationLooks.get(record.mutation)
+	local glint = look and look.glint
+	if glint and model.PrimaryPart then
+		addParticles(model.PrimaryPart, {
+			texture = SPARKLE,
+			colors = glint.colors,
+			rate = glint.rate,
+			size = glint.size,
+			speed = 0.3,
+			lifetime = glint.lifetime,
+			rise = glint.rise,
+			brightness = 1.3,
+		})
 	end
 end
 
@@ -577,7 +634,14 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	end
 	applyFinish(model, record.finish)
 	addStageEffects(model, Config.CreaturesById[record.species], record.stage)
-	addRarityLook(model, record.species, Config.CreaturesById[record.species].rarity, record.finish)
+	addRarityLook(
+		model,
+		record.species,
+		Config.CreaturesById[record.species].rarity,
+		record.finish,
+		record.mutation
+	)
+	addMutationLook(model, record)
 
 	-- Stand the model's bounding box on the pedestal, whatever its pivot is
 	local boxCFrame, boxSize = model:GetBoundingBox()
@@ -602,11 +666,16 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	label.TextColor3 = Config.Rarities[creature.rarity].color
 	label.TextStrokeTransparency = 0.3
 	local finishText = if record.finish ~= "Normal" then `{record.finish} ` else ""
+	local mutation = record.mutation
+	local mutationText = if mutation and Config.MutationsById[mutation]
+		then MutationLooks.richName(mutation, Config.MutationsById[mutation].displayName) .. " "
+		else ""
 	local origin = if record.stolenFrom
 		then ` · stolen from {record.stolenFrom}`
 		elseif record.homegrown then " · Homegrown"
 		else ""
-	label.Text = `{finishText}{creature.displayName}\n{creature.rarity} {record.stage}{origin}`
+	label.RichText = true
+	label.Text = `{mutationText}{finishText}{creature.displayName}\n{creature.rarity} {record.stage}{origin}`
 	label.Parent = tag
 
 	model:SetAttribute("Uid", uid)
@@ -686,6 +755,7 @@ local function hide(model: Model, record: CreatureRecord)
 	CollectionService:RemoveTag(model, "Creature")
 	CollectionService:RemoveTag(model, "Prismatic")
 	CollectionService:RemoveTag(model, "Shimmer")
+	CollectionService:RemoveTag(model, MutationLooks.IRIDESCENT_TAG)
 	model:SetAttribute("Hidden", true)
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then

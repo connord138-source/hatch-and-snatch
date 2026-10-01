@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Analytics = require(script.Parent.Parent.Analytics)
@@ -405,12 +406,10 @@ local function hatch(player: Player, data: PlayerData, index: number)
 	local creature = Config.CreaturesById[egg.species]
 	local finish = finishById[finishId]
 	local rarity = Config.Rarities[creature.rarity]
+	local mutationEntry = if mutation then Config.MutationsById[mutation] else nil
 	local parts = {}
 	if finishId ~= "Normal" then
 		table.insert(parts, finish.displayName)
-	end
-	if mutation then
-		table.insert(parts, mutation)
 	end
 	table.insert(parts, creature.displayName)
 	local name = table.concat(parts, " ")
@@ -435,7 +434,17 @@ local function hatch(player: Player, data: PlayerData, index: number)
 	end
 	-- Server-wide news waits for the reveal to finish on the hatcher's screen
 	task.delay(5, function()
-		if rarity.announce then
+		if mutationEntry then
+			-- Mutations are the rarest roll in the game: everyone hears, with the odds
+			local look = MutationLooks.get(mutationEntry.id)
+			local odds = Format.count(1 / mutationEntry.chance)
+			local tier = if rarity.announce then `{creature.rarity:upper()} ` else ""
+			local article = if string.find(mutationEntry.displayName, "^[AEIOU]") then "an" else "a"
+			Net.announce(
+				`🧬 {player.DisplayName} hatched {article} {mutationEntry.displayName:upper()} {tier}{name}! (1 in {odds})`,
+				if look then look.accent else rarity.color
+			)
+		elseif rarity.announce then
 			Net.announce(`{player.DisplayName} hatched a {creature.rarity:upper()} {name}!`, rarity.color)
 		elseif finish.announce ~= "none" then
 			Net.announce(`{player.DisplayName} hatched a {name}!`, rarity.color)
@@ -447,6 +456,9 @@ local function hatch(player: Player, data: PlayerData, index: number)
 	ProgressionService.bump(player, "hatched")
 	if finishId ~= "Normal" then
 		ProgressionService.bump(player, "finishes")
+	end
+	if mutationEntry then
+		ProgressionService.bump(player, "mutations")
 	end
 end
 

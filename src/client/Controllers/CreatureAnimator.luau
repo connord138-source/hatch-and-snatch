@@ -18,6 +18,7 @@ local Workspace = game:GetService("Workspace")
 
 local CreatureGrounding = require(script.Parent.Parent.CreatureGrounding)
 local FinishLooks = require(game:GetService("ReplicatedStorage").Shared.FinishLooks)
+local MutationLooks = require(game:GetService("ReplicatedStorage").Shared.MutationLooks)
 
 type Tracked = {
 	model: Model,
@@ -45,6 +46,7 @@ type Tracked = {
 	parts: { BasePart }?, -- Prismatic recolor list, gathered once
 	skies: { Texture }?, -- Galaxy starfield textures, gathered once
 	appearances: { SurfaceAppearance }?, -- Secret shimmer tint list, gathered once
+	ring: UIStroke?, -- Iridescent: the mutation ring round the halo, found once
 }
 
 local STAGE_MOTION: { [string]: { stride: number, height: number, speed: number } } = {
@@ -446,6 +448,28 @@ function CreatureAnimator.start()
 				end
 				for _, part in info.parts :: { BasePart } do
 					part.Color = color
+				end
+			elseif CollectionService:HasTag(model, MutationLooks.IRIDESCENT_TAG) then
+				-- Iridescent mutation: its pearl sheen drifts slowly through soft hues,
+				-- and its ring with it
+				if info.parts == nil then
+					local parts: { BasePart } = {}
+					for _, descendant in model:GetDescendants() do
+						if descendant:IsA("BasePart") then
+							table.insert(parts, descendant)
+						elseif
+							descendant:IsA("UIStroke")
+							and descendant.Parent
+							and descendant.Parent.Name == "MutationRing"
+						then
+							info.ring = descendant
+						end
+					end
+					info.parts = parts
+				end
+				MutationLooks.shimmer(info.parts :: { BasePart }, MutationLooks.sheen(t, info.seed))
+				if info.ring then
+					info.ring.Color = Color3.fromHSV((t * 0.05 + info.seed) % 1, 0.55, 1)
 				end
 			elseif CollectionService:HasTag(model, "Shimmer") then
 				-- Secret rarity: its texture tint drifts slowly through the rainbow

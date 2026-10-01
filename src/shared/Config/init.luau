@@ -23,12 +23,19 @@ for _, creature in Creatures do
 	creaturesById[creature.id] = creature
 end
 
+local Mutations = require(script.Mutations)
+local mutationsById: { [string]: Types.Mutation } = {}
+for _, mutation in Mutations do
+	mutationsById[mutation.id] = mutation
+end
+
 return {
 	Rarities = require(script.Rarities),
 	Biomes = require(script.Biomes),
 	Stages = require(script.Stages),
 	Finishes = require(script.Finishes),
-	Mutations = require(script.Mutations),
+	Mutations = Mutations,
+	MutationsById = mutationsById,
 	MoonEvents = require(script.MoonEvents),
 	Creatures = Creatures,
 	CreaturesById = creaturesById,

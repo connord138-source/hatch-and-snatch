@@ -160,12 +160,8 @@ local function cashPerSecond(stats: CreatureInstanceStats): number
 	local stage = Stages[stats.stage]
 	local finish = finishById[stats.finish] or finishById.Normal
 	local bonus = 1
-	if stats.mutation then
-		local mutation = mutationById[stats.mutation]
-		if mutation then
-			bonus += mutation.valueBonus
-		end
-	end
+	local mutation = if stats.mutation then mutationById[stats.mutation] else nil
+	local mutationMultiplier = if mutation then mutation.earningsMultiplier else 1
 	if stats.homegrown then
 		bonus += Tunables.homegrownBonus
 	end
@@ -175,6 +171,7 @@ local function cashPerSecond(stats: CreatureInstanceStats): number
 		* biomeMultiplier
 		* stage.earningsMultiplier
 		* finish.earningsMultiplier
+		* mutationMultiplier
 		* bonus
 end
 

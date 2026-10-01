@@ -158,6 +158,15 @@ local achievements: { Achievement } = {
 		spins = 1,
 	},
 	{
+		id = "Mutant1",
+		name = "One in Ten Thousand",
+		description = "Hatch a mutated creature",
+		stat = "mutations",
+		goal = 1,
+		xp = 3000,
+		spins = 5,
+	},
+	{
 		id = "Upgrade1",
 		name = "Home Improvement",
 		description = "Upgrade your base",

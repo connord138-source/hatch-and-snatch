@@ -14,6 +14,8 @@ local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local FinishLooks = require(ReplicatedStorage.Shared.FinishLooks)
+local Format = require(ReplicatedStorage.Shared.Format)
+local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local RarityLooks = require(ReplicatedStorage.Shared.RarityLooks)
 local Ui = require(script.Parent.Parent.Ui)
 
@@ -186,7 +188,12 @@ local function starfield(parent: Instance, over: ViewportFrame)
 	end
 end
 
-local function viewport(parent: Instance, speciesId: string, finish: string): ViewportFrame?
+local function viewport(
+	parent: Instance,
+	speciesId: string,
+	finish: string,
+	mutation: string?
+): ViewportFrame?
 	local templates = ReplicatedStorage:FindFirstChild("CreatureModels")
 	local template = templates
 		and (templates:FindFirstChild(`{speciesId}_Baby`) or templates:FindFirstChild(speciesId))
@@ -215,10 +222,17 @@ local function viewport(parent: Instance, speciesId: string, finish: string): Vi
 			end
 		end
 	end
+	-- Then its mutation over that (Shared/MutationLooks)
+	local creature = Config.CreaturesById[speciesId]
+	local mutated = creature ~= nil and MutationLooks.apply(model, mutation, finish, creature.biome)
+	local look = MutationLooks.get(mutation)
+	local iridescent = mutated and look ~= nil and look.iridescent == true
+	local parts: { BasePart } = {}
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			-- A viewport has nothing to reflect, so reflectance only washes colors out
 			descendant.Reflectance = 0
+			table.insert(parts, descendant)
 		end
 	end
 	-- A viewport has one light and no sky. Its default light came from behind the
@@ -247,9 +261,14 @@ local function viewport(parent: Instance, speciesId: string, finish: string): Vi
 	frame.CurrentCamera = camera
 	task.spawn(function()
 		local angle = 0
+		local started = os.clock()
 		while frame.Parent do
 			angle += 0.03
 			model:PivotTo(CFrame.Angles(0, angle, 0) * toCenter)
+			if iridescent then
+				-- Faster than in the world, so the sheen shows during the reveal
+				MutationLooks.shimmer(parts, MutationLooks.sheen((os.clock() - started) * 4, 0))
+			end
 			task.wait()
 		end
 	end)
@@ -359,9 +378,15 @@ local function playReveal(reveal: { [string]: any })
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.69),
 		Size = UDim2.fromOffset(700, 44),
+		RichText = true,
 		Text = table.concat({
+			if typeof(reveal.mutation) == "string" and Config.MutationsById[reveal.mutation]
+				then MutationLooks.richName(
+					reveal.mutation,
+					Config.MutationsById[reveal.mutation].displayName
+				) .. " "
+				else "",
 			if finish then `{finish} ` else "",
-			if reveal.mutation then `{reveal.mutation} ` else "",
 			creature.displayName,
 		}),
 		ZIndex = 21,
@@ -375,7 +400,38 @@ local function playReveal(reveal: { [string]: any })
 		TextColor3 = Color3.fromRGB(210, 210, 220),
 		ZIndex = 21,
 	})
-	viewport(overlay, speciesId, if typeof(reveal.finish) == "string" then reveal.finish else "Normal")
+	local mutationId: string? = if typeof(reveal.mutation) == "string" then reveal.mutation else nil
+	viewport(
+		overlay,
+		speciesId,
+		if typeof(reveal.finish) == "string" then reveal.finish else "Normal",
+		mutationId
+	)
+	local mutationEntry = if mutationId then Config.MutationsById[mutationId] else nil
+	local mutationLook = MutationLooks.get(mutationId)
+	if mutationEntry and mutationLook then
+		-- The rarest roll in the game gets its own moment: a banner in its accent
+		-- color with the odds, and a second flash
+		local banner = label(overlay, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.535),
+			Size = UDim2.fromOffset(700, 30),
+			Text = `🧬 {mutationEntry.displayName:upper()} MUTATION · 1 in {Format.count(
+				1 / mutationEntry.chance
+			)}`,
+			TextColor3 = mutationLook.accent,
+			TextTransparency = 1,
+			TextStrokeTransparency = 1,
+			ZIndex = 21,
+		})
+		task.delay(0.7, function()
+			flash(mutationLook.accent, 0.55)
+			play(TICK_SOUND, 0.9, 0.4)
+			TweenService
+				:Create(banner, TweenInfo.new(0.35), { TextTransparency = 0, TextStrokeTransparency = 0.2 })
+				:Play()
+		end)
+	end
 	title.Size = UDim2.fromOffset(200, 20)
 	TweenService:Create(
 		title,
@@ -388,7 +444,7 @@ local function playReveal(reveal: { [string]: any })
 			flash(Color3.new(1, 1, 1), 0.6)
 		end)
 	end
-	task.wait(if ultra then 5 else 3.2)
+	task.wait(if ultra or mutationEntry then 5 else 3.2)
 	overlay:Destroy()
 end
 

@@ -25,6 +25,13 @@ function Format.cash(amount: number): string
 	return "$" .. text .. suffixes[tier]
 end
 
+-- 100000 -> "100,000" (whole numbers, for odds like "1 in 10,000")
+function Format.count(n: number): string
+	local text = tostring(math.round(n))
+	local formatted = string.reverse((string.gsub(string.reverse(text), "(%d%d%d)", "%1,")))
+	return (string.gsub(formatted, "^,", ""))
+end
+
 -- 3725 -> "1h 2m", 95 -> "1m 35s", 7 -> "7s"
 function Format.duration(seconds: number): string
 	local s = math.max(0, math.ceil(seconds))

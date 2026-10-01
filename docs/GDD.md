@@ -98,8 +98,20 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
    - **Stardust:** from Uncommon up, sparkles in the rarity color rise off the creature, thicker and brighter with each tier (Uncommon 1/s up to Legendary 8/s, then Mythic 16, Celestial 20, Cosmic 26 and Secret 32, which bloom).
    - **Color conversion (Mythic and up):** the creature's texture is tinted toward its rarity color (Mythic crimson, Celestial pale blue, Cosmic violet), keeping its details and eyes. Secret shifts slowly through the rainbow. A finish replaces the tint; the halo and stardust stay. Species whose own colors fight the tint have an override: Glacierion keeps its white ice (crimson turned it into a red lion) and gets a white light (the crimson one still turned it pink in shade), and Solarion gets warm gold instead of pale blue (which turned its mane olive).
    - Lights are added from Epic up. The name tag shows the rarity under the name.
-2. **Genetic mutations**, rolled at hatch. These give natural variety and are mostly cosmetic, with a small value bonus:
-   - Albino 5%, Melanistic 3%, Leucistic 2%, Piebald 2%, Iridescent 0.2%.
+2. **Genetic mutations** (owner, 2026-10-01: "like Galaxy, other people will want them; by far the most desirable yet rarest", and they must "look professional and clean"). Rolled when the egg is bought, at most one per egg. Each is rarer than a Galaxy finish, stacks with any finish and multiplies earnings on top of it (an Iridescent Prismatic earns ×600). `Config/Mutations.luau`, looks in `Shared/MutationLooks.luau`.
+
+   | Mutation | Odds | Earnings | Look |
+   |---|---|---|---|
+   | Albino | 1 in 10,000 | ×10 | Pearl white body, ruby accents |
+   | Melanistic | 1 in 10,000 | ×10 | Its own texture darkened to near-black (details survive), amber accents |
+   | Leucistic | 1 in 15,000 | ×12 | A soft pastel of its biome (mint, blush, peach, ice blue, butter, lavender) |
+   | Piebald | 1 in 15,000 | ×12 | Crisp white patches over its own colors (`assets/textures/piebald_spots.png`, uploaded like the Galaxy sky) |
+   | Iridescent | 1 in 100,000 | ×40 | Pearl body whose sheen drifts slowly through soft hues (the rarest roll in the game) |
+
+   - **One clean treatment each**, in the style of the finish sheet, plus a thin ring in the mutation's accent color round the rarity halo (readable across a base), its name in that color on the nameplate and in the Creatures menu, and a few soft glints. No outlines or particle clouds.
+   - **On a finish** the texture is already gone, so the mutation shifts the finish's color instead: a black-gold Melanistic, a white-gold Albino, a pale Leucistic. Piebald patches and a lighter Iridescent sheen go over any finish.
+   - **Hype:** every mutated hatch is announced to the whole server with its odds ("🧬 Connor hatched an ALBINO Emberlynx! (1 in 10,000)"), the hatch reveal gives it a banner and a second flash in its accent color, and the first one earns the "One in Ten Thousand" achievement (3,000 XP, 5 spins).
+   - The odds panel lists them before purchase (paid random items). Rerun the economy sim after changing them; the 2026-10-01 rework moved pacing by about a day at most.
 3. **Finishes**, the flashy layer. Each is a material and particle swap, so no new models are needed:
 
 | Finish | Odds | Earnings | Look |

@@ -8,6 +8,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
 
@@ -71,13 +72,15 @@ local function vaultText(vault: number): string
 		else `Vault {vault} (open)`
 end
 
+-- RichText: a mutation shows first, in its accent color (Shared/MutationLooks)
 local function fullName(creature: Creature): string
 	local parts = {}
+	local mutation = creature.mutation
+	if mutation and Config.MutationsById[mutation] then
+		table.insert(parts, MutationLooks.richName(mutation, Config.MutationsById[mutation].displayName))
+	end
 	if creature.finish ~= "Normal" then
 		table.insert(parts, finishNames[creature.finish] or creature.finish)
-	end
-	if creature.mutation then
-		table.insert(parts, creature.mutation)
 	end
 	table.insert(parts, Config.CreaturesById[creature.species].displayName)
 	return table.concat(parts, " ")
@@ -195,6 +198,7 @@ local function makeRow(uid: string): Row
 	local name = Ui.label(frame, {
 		Position = UDim2.fromOffset(20, 7),
 		Size = UDim2.new(1, -490, 0, 22),
+		RichText = true, -- the mutation's accent color
 		TextScaled = false,
 		TextSize = 18,
 		TextXAlignment = Enum.TextXAlignment.Left,
