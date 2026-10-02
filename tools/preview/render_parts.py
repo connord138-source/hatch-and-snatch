@@ -487,6 +487,9 @@ def bloom(path):
 meshes_cache = None
 outputs = []
 for path in sorted(glob.glob(os.path.join(DIR, "level*.txt"))):
+    # setup_scene() starts from an empty file, which frees the GLBs imported for the last level
+    GLB_CACHE.clear()
+    TINTED.clear()
     scene = setup_scene()
     meshes = base_meshes()
     load(path, meshes, {})
