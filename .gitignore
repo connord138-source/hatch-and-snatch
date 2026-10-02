@@ -16,6 +16,8 @@ assets/eggs/
 assets/props/
 assets/tripo/
 assets/icon_src/
+# tools/mutations/run_all.py: the bakes, skins and packed GLBs for Studio
+assets/skins/
 # tools/fetch_assets.py's record of which link each local file came from
 assets/.sources.json
 
