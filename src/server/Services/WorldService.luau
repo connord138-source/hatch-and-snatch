@@ -1714,13 +1714,16 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	-- The floors above take the theme too: the fortress's stone on their walls,
 	-- arches and pillars, its floor on slabs and ramps, its laser color on the doors
 	local stoneMaterial, stoneColor = Fortress.stone(plot.level, theme)
+	local shine = if theme.wall then theme.wall.reflectance or 0 else 0 -- Diamond's crystal keep
 	for _, entry in plot.floorPieces do
 		if entry.part:GetAttribute("Glass") then
 			entry.part.Material = stoneMaterial
 			entry.part.Color = stoneColor
+			entry.part.Reflectance = shine
 		elseif entry.part:GetAttribute("Keep") then
 			entry.part.Material = stoneMaterial
 			entry.part.Color = stoneColor:Lerp(Color3.new(1, 1, 1), 0.12)
+			entry.part.Reflectance = shine
 		else
 			entry.part.Material = theme.floorMaterial
 			entry.part.Color = theme.floorColor:Lerp(Color3.new(0, 0, 0), 0.12)
@@ -1733,6 +1736,7 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 		for _, p in niche.stone do
 			p.Material = stoneMaterial
 			p.Color = if p.Name == "NicheBack" then stoneColor else stoneColor:Lerp(Color3.new(1, 1, 1), 0.12)
+			p.Reflectance = shine
 		end
 	end
 	dressKeep(plot)

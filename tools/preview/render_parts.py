@@ -38,8 +38,12 @@ def material(cache, color, mat_name, transparency, glow):
     if mat_name == "Neon" or glow:
         bsdf.inputs["Emission Color"].default_value = (*[c ** 2.2 for c in color], 1)
         bsdf.inputs["Emission Strength"].default_value = 3.0 if mat_name == "Neon" else 0.0
-    if transparency > 0 or mat_name == "Glass":
-        alpha = 1 - max(transparency, 0.5 if mat_name == "Glass" else 0)
+    if mat_name == "Glass":
+        # Roblox Glass is glossy; it only lets light through when it's transparent
+        bsdf.inputs["Roughness"].default_value = 0.08
+        bsdf.inputs["Coat Weight"].default_value = 1.0
+    if transparency > 0:
+        alpha = 1 - transparency
         bsdf.inputs["Alpha"].default_value = alpha
         try:
             mat.surface_render_method = "BLENDED"

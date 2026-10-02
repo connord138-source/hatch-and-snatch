@@ -43,6 +43,7 @@ export type Option = {
 	material: Enum.Material?,
 	rainbow: boolean?, -- the client cycles it through the colors
 	sparkle: Color3?, -- stone: twinkles on the towers (the rebirth stones)
+	reflectance: number?, -- stone: a shine on every wall, tower and keep piece (Diamond)
 	decor: { string }?, -- grounds: WorldProps scattered round the walls
 	kit: string?, -- theme: the CastleKits kit built onto the castle
 }
@@ -286,10 +287,12 @@ local slots: { Slot } = {
 				name = "Diamond",
 				cost = 10_000_000_000_000,
 				unlock = { rebirths = 5 },
-				-- White sparkling marble, as in the Diamond Citadel concept (pale blue
+				-- The whole castle made of diamond (owner, 2026-10-02: "fully diamond
+				-- structure, walls and all"): white crystal with a shine (pale blue
 				-- foil read as the Ice Castle)
-				material = Enum.Material.Marble,
-				color = Color3.fromRGB(242, 244, 248),
+				material = Enum.Material.Glass,
+				color = Color3.fromRGB(244, 247, 252),
+				reflectance = 0.14,
 				sparkle = Color3.fromRGB(255, 252, 245),
 			},
 			{
@@ -956,7 +959,7 @@ function CastleDesigns.resolve(picks: { [string]: string }): Progression.BaseThe
 		laserColor = glow.color or Color3.fromRGB(255, 40, 40),
 		decor = grounds.decor or {},
 		wall = if stone.material and stone.color
-			then { material = stone.material, color = stone.color }
+			then { material = stone.material, color = stone.color, reflectance = stone.reflectance }
 			else nil,
 		roofColor = roof.color,
 		roofMaterial = roof.material,

@@ -246,7 +246,7 @@ export type BaseTheme = {
 	-- The fortress's stone walls and towers from the Keep up (wooden tiers stay wood);
 	-- without one they're gray cobblestone. Roofs take trimColor, flags laserColor,
 	-- unless the Castle Designer (Config.CastleDesigns) sets them below.
-	wall: { material: Enum.Material, color: Color3 }?,
+	wall: { material: Enum.Material, color: Color3, reflectance: number? }?,
 	roofColor: Color3?,
 	roofMaterial: Enum.Material?,
 	bannerColor: Color3?,

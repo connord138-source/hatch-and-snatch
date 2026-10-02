@@ -861,9 +861,14 @@ function Fortress.build(
 	-- The designer's finishing touches: gold roofs or banners, banner-colored bands,
 	-- the glow color on the spire crystals, and rainbow parts for the client to cycle (RainbowController)
 	local rainbow = theme.rainbow
+	local shine = wall and wall.reflectance
 	for _, descendant in folder:GetDescendants() do
 		if descendant:IsA("BasePart") and descendant.Name == "Tower" and theme.sparkle then
 			twinkle(descendant, theme.sparkle)
+		end
+		if shine and wall and descendant:IsA("BasePart") and descendant.Material == wall.material then
+			-- A shining stone (Diamond): every wall, tower and gatehouse piece of it
+			descendant.Reflectance = math.max(descendant.Reflectance, shine)
 		end
 		if kit and descendant:IsA("BasePart") and descendant.Name == "WindowSlit" then
 			-- A themed castle's windows glow in its light

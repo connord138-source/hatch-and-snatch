@@ -54,8 +54,8 @@ ColorSequence = {
 Enum = setmetatable({}, { __index = function(t, k) local group = enumGroup(k); rawset(t, k, group); return group end })
 
 local DEFAULTS = {
-	Part = { Shape = { Name = "Block" }, Size = Vector3.new(4, 1, 2), Color = Color3.fromRGB(163, 162, 165), Material = { Name = "Plastic" }, Transparency = 0 },
-	WedgePart = { Shape = { Name = "Wedge" }, Size = Vector3.new(4, 1, 2), Color = Color3.fromRGB(163, 162, 165), Material = { Name = "Plastic" }, Transparency = 0 },
+	Part = { Shape = { Name = "Block" }, Size = Vector3.new(4, 1, 2), Color = Color3.fromRGB(163, 162, 165), Material = { Name = "Plastic" }, Transparency = 0, Reflectance = 0 },
+	WedgePart = { Shape = { Name = "Wedge" }, Size = Vector3.new(4, 1, 2), Color = Color3.fromRGB(163, 162, 165), Material = { Name = "Plastic" }, Transparency = 0, Reflectance = 0 },
 }
 local Inst = {}
 Inst.__index = function(self, k)
