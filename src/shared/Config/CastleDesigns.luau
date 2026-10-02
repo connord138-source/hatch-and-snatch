@@ -286,9 +286,11 @@ local slots: { Slot } = {
 				name = "Diamond",
 				cost = 10_000_000_000_000,
 				unlock = { rebirths = 5 },
-				material = Enum.Material.Foil,
-				color = Color3.fromRGB(200, 238, 252),
-				sparkle = Color3.fromRGB(235, 250, 255),
+				-- White sparkling marble, as in the Diamond Citadel concept (pale blue
+				-- foil read as the Ice Castle)
+				material = Enum.Material.Marble,
+				color = Color3.fromRGB(242, 244, 248),
+				sparkle = Color3.fromRGB(255, 252, 245),
 			},
 			{
 				id = "VoidSteel",

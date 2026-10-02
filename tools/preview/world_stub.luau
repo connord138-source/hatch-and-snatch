@@ -194,12 +194,14 @@ function dumpParts(root)
 		local tint = r.model and r.model:GetAttribute("KitTint")
 		local neon = r.model and r.model:GetAttribute("KitNeon")
 		local solid = r.model and r.model:GetAttribute("KitSolid")
-		print(string.format("R|%s|%s|%.3f,%.3f,%.3f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.3f,%.3f,%.3f|%s|%s|%s",
+		local clear = r.model and r.model:GetAttribute("KitClear")
+		print(string.format("R|%s|%s|%.3f,%.3f,%.3f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.3f,%.3f,%.3f|%s|%s|%s|%s",
 			r.name, r.mode, cf.p.X, cf.p.Y, cf.p.Z, cf.r.x.X, cf.r.x.Y, cf.r.x.Z, cf.r.y.X, cf.r.y.Y, cf.r.y.Z,
 			cf.r.z.X, cf.r.z.Y, cf.r.z.Z, size.X, size.Y, size.Z,
 			if tint then string.format("%.3f,%.3f,%.3f", tint.R, tint.G, tint.B) else "",
 			if neon then string.format("%.3f,%.3f,%.3f", neon.R, neon.G, neon.B) else "",
-			if solid then string.format("%.3f,%.3f,%.3f", solid.R, solid.G, solid.B) else ""))
+			if solid then string.format("%.3f,%.3f,%.3f", solid.R, solid.G, solid.B) else "",
+			if clear then string.format("%.3f,%.3f,%.3f", clear.R, clear.G, clear.B) else ""))
 	end
 end
 return true

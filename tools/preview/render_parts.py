@@ -181,7 +181,26 @@ def place_prop(f):
     obj = bpy.data.objects.new(name, data)
     bpy.context.scene.collection.objects.link(obj)
     obj.matrix_world = world @ mathutils.Matrix.Scale(scale, 4)
-    if len(f) > 10 and f[10]:
+    if len(f) > 11 and f[11]:
+        # KitClear: colorless crystal (Glass, a little see-through, bright reflection)
+        color = [float(v) for v in f[11].split(",")]
+        key = ("clear", tuple(round(c, 3) for c in color))
+        mat = bpy.data.materials.get(str(key))
+        if mat is None:
+            mat = bpy.data.materials.new(str(key))
+            mat.use_nodes = True
+            bsdf = mat.node_tree.nodes["Principled BSDF"]
+            bsdf.inputs["Base Color"].default_value = (*[c ** 2.2 for c in color], 1)
+            bsdf.inputs["Roughness"].default_value = 0.04
+            bsdf.inputs["IOR"].default_value = 2.4
+            bsdf.inputs["Transmission Weight"].default_value = 0.55
+            bsdf.inputs["Coat Weight"].default_value = 1.0
+            bsdf.inputs["Emission Color"].default_value = (1, 1, 1, 1)
+            bsdf.inputs["Emission Strength"].default_value = 0.25
+        for slot in obj.material_slots:
+            slot.link = "OBJECT"
+            slot.material = mat
+    elif len(f) > 10 and f[10]:
         # KitSolid: the texture gives way to a plain pearly surface
         color = [float(v) for v in f[10].split(",")]
         key = ("solid", tuple(round(c, 3) for c in color))

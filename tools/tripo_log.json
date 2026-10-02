@@ -2636,7 +2636,12 @@
   "type": "image_to_model"
  },
  "props/MossShelfLog": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "MossShelfLog.glb",
+   "MossShelfLog_preview.webp"
+  ],
+  "status": "success",
   "task_id": "19035d49-c02d-4a93-9a49-238ca00fbffc",
   "type": "image_to_model"
  },
@@ -2961,7 +2966,12 @@
   "type": "image_to_model"
  },
  "props/VoidThornTree": {
-  "status": "queued",
+  "credits": 30,
+  "files": [
+   "VoidThornTree.glb",
+   "VoidThornTree_preview.webp"
+  ],
+  "status": "success",
   "task_id": "3fcd1f69-2d7a-4335-a049-63376dfc6e86",
   "type": "image_to_model"
  },

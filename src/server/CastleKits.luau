@@ -92,6 +92,9 @@ export type Kit = {
 	roofDress: { name: string, count: number, scale: number }?,
 	carpetLength: number?,
 	crystalCap: boolean?, -- the caps are crystals: a glowing core and glints inside
+	-- The crystals split light into rainbow glints (Diamond: clear stones, so it
+	-- never reads as the Ice Castle's blue ice; owner, 2026-10-02)
+	prism: boolean?,
 	-- How the growths sit on the walls (owner, 2026-10-02: the coral looked "lazily
 	-- sat upon the castle"): "clusters" grow in leaning groups at irregular spots,
 	-- sunk into the stone, with pieces out of the face too; "corners" the same,
@@ -543,6 +546,7 @@ local KITS: { [string]: Kit } = {
 		emblem = "diamond",
 		emblemColor = Color3.fromRGB(235, 248, 255),
 		crystalCap = true,
+		prism = true,
 		wallLight = "DiamondLantern",
 		bands = {
 			color = Color3.fromRGB(240, 195, 70),
@@ -550,12 +554,12 @@ local KITS: { [string]: Kit } = {
 			at = { 0.12, 0.5, 0.88 },
 			width = 0.6,
 		},
-		flame = Color3.fromRGB(235, 248, 255),
-		flame2 = Color3.fromRGB(170, 220, 255),
-		light = Color3.fromRGB(235, 245, 255),
+		flame = Color3.fromRGB(255, 252, 244),
+		flame2 = Color3.fromRGB(255, 230, 180),
+		light = Color3.fromRGB(255, 250, 240), -- white, a touch warm (ice is the blue one)
 		cap = "DiamondCrown",
 		capScale = 3.2,
-		capColor = Color3.fromRGB(225, 245, 255),
+		capColor = Color3.fromRGB(246, 248, 252),
 		growth = "DiamondCluster",
 		growthAlts = { "DiamondGems" },
 		growthMode = "corners",
@@ -707,6 +711,24 @@ local NEON: { [string]: Color3 } = {
 	StormCrystals = Color3.fromRGB(255, 232, 140),
 }
 
+-- Pieces that are clear crystal: their texture gives way to colorless glass
+-- with a bright reflection (the Diamond Citadel's diamonds; Tripo baked them pale blue)
+local CLEAR: { [string]: Color3 } = {
+	DiamondCrown = Color3.fromRGB(250, 252, 255),
+	DiamondCluster = Color3.fromRGB(250, 252, 255),
+	DiamondGems = Color3.fromRGB(250, 252, 255),
+}
+
+-- A diamond's light split into colors (Diamond's prism glints)
+local RAINBOW = {
+	Color3.fromRGB(255, 120, 170),
+	Color3.fromRGB(255, 200, 110),
+	Color3.fromRGB(250, 245, 140),
+	Color3.fromRGB(140, 245, 170),
+	Color3.fromRGB(130, 210, 255),
+	Color3.fromRGB(190, 150, 255),
+}
+
 -- Pieces that read better as a plain pearly surface than their dark texture at
 -- night (the concept's shell spires are pearl white-teal).
 local SOLID: { [string]: Color3 } = {
@@ -734,6 +756,23 @@ local function piece(parent: Instance, name: string?, base: CFrame, height: numb
 				d.Material = Enum.Material.SmoothPlastic
 				d.Color = solid
 				d.Reflectance = 0.12
+				if d:IsA("MeshPart") then
+					d.TextureID = ""
+				end
+			end
+		end
+	end
+	local clear = CLEAR[name]
+	if model and clear then
+		model:SetAttribute("KitClear", clear)
+		for _, d in model:GetDescendants() do
+			if d:IsA("SurfaceAppearance") then
+				d:Destroy()
+			elseif d:IsA("BasePart") then
+				d.Material = Enum.Material.Glass
+				d.Color = clear
+				d.Transparency = 0.18
+				d.Reflectance = 0.3
 				if d:IsA("MeshPart") then
 					d.TextureID = ""
 				end
@@ -932,6 +971,23 @@ function CastleKits.cap(
 				Color = kit.light,
 			})
 			light(core, kit.light, radius * 4, 2)
+			if kit.prism then
+				-- Light split into rainbow glints round the core, as in the concept
+				for k, color in RAINBOW do
+					local angle = k / #RAINBOW * math.pi * 2
+					part(folder, {
+						Name = "PrismGlint",
+						Size = Vector3.new(0.35, height * 0.22, 0.35),
+						CFrame = roofBase * CFrame.new(
+							math.cos(angle) * radius * 0.62,
+							height * (0.25 + 0.3 * ((k * 0.37) % 1)),
+							math.sin(angle) * radius * 0.62
+						) * CFrame.Angles(0, angle, math.rad(18)),
+						Material = Enum.Material.Neon,
+						Color = color,
+					})
+				end
+			end
 			if kit.ambient then
 				emitter(core, {
 					texture = SPARKLE,
@@ -1628,7 +1684,7 @@ local function inlay(folder: Instance, face: CFrame, s: number)
 		Size = Vector3.new(s * 0.72, s * 0.72, 0.2),
 		CFrame = face * CFrame.new(0, 0, -0.08) * CFrame.Angles(0, 0, math.rad(45)),
 		Material = Enum.Material.Glass,
-		Color = Color3.fromRGB(205, 236, 255),
+		Color = Color3.fromRGB(246, 249, 255),
 	})
 	gem.Reflectance = 0.35
 	part(folder, {
