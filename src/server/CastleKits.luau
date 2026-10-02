@@ -621,7 +621,7 @@ local TURN: { [string]: number } = {
 -- Pieces that glow in the concepts (bright mushrooms, violet crystals): their
 -- texture gives way to neon in this color, as a SurfaceAppearance can't glow.
 local NEON: { [string]: Color3 } = {
-	MossMushrooms = Color3.fromRGB(150, 255, 140),
+	MossMushrooms = Color3.fromRGB(70, 235, 95),
 	MoonCrystal = Color3.fromRGB(196, 120, 255),
 	StormThunderStone = Color3.fromRGB(214, 228, 255),
 }
