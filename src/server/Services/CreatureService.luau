@@ -460,9 +460,8 @@ end
 
 -- A genetic mutation (Shared/MutationLooks): its body look over the finish and
 -- rarity tint, plus a few soft glints in its colors.
-local function addMutationLook(model: Model, record: CreatureRecord)
-	local creature = Config.CreaturesById[record.species]
-	if not MutationLooks.apply(model, record.mutation, record.finish, creature.biome) then
+local function addMutationLook(model: Model, record: CreatureRecord, templateName: string?)
+	if not MutationLooks.apply(model, record.mutation, record.finish, templateName) then
 		return
 	end
 	local look = MutationLooks.get(record.mutation)
@@ -641,7 +640,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 		record.finish,
 		record.mutation
 	)
-	addMutationLook(model, record)
+	addMutationLook(model, record, if fromTemplate and template then template.Name else nil)
 
 	-- Stand the model's bounding box on the pedestal, whatever its pivot is
 	local boxCFrame, boxSize = model:GetBoundingBox()

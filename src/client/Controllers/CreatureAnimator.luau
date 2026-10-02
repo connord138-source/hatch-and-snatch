@@ -452,11 +452,15 @@ function CreatureAnimator.start()
 			elseif CollectionService:HasTag(model, MutationLooks.IRIDESCENT_TAG) then
 				-- Iridescent mutation: its pearl sheen drifts slowly through soft hues,
 				-- and its ring with it
-				if info.parts == nil then
+				local skinned = model:GetAttribute("SkinSheen") == true
+				if info.parts == nil or (skinned and info.appearances == nil) then
 					local parts: { BasePart } = {}
+					local appearances: { SurfaceAppearance } = {}
 					for _, descendant in model:GetDescendants() do
 						if descendant:IsA("BasePart") then
 							table.insert(parts, descendant)
+						elseif descendant:IsA("SurfaceAppearance") then
+							table.insert(appearances, descendant)
 						elseif
 							descendant:IsA("UIStroke")
 							and descendant.Parent
@@ -466,8 +470,13 @@ function CreatureAnimator.start()
 						end
 					end
 					info.parts = parts
+					info.appearances = appearances
 				end
-				MutationLooks.shimmer(info.parts :: { BasePart }, MutationLooks.sheen(t, info.seed))
+				MutationLooks.shimmer(
+					info.parts :: { BasePart },
+					MutationLooks.sheen(t, info.seed),
+					if skinned then info.appearances else nil
+				)
 				if info.ring then
 					info.ring.Color = Color3.fromHSV((t * 0.05 + info.seed) % 1, 0.55, 1)
 				end

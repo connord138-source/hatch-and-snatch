@@ -204,8 +204,8 @@ color = np.array(color_image.pixels[:], dtype=np.float32).reshape(h, w, 4)[::-1,
 np.savez_compressed(
     OUT,
     color=(np.clip(color, 0, 1) * 255).astype(np.uint8),
-    position=position[:, :, :3] * extent + mn,  # body frame, in model units
-    normal=normal[:, :, :3],
+    position=(position[:, :, :3] * extent + mn).astype(np.float16),  # body frame, model units
+    normal=normal[:, :, :3].astype(np.float16),
     covered=position[:, :, :3].sum(-1) > 1e-5,  # unbaked texels stay black
     bounds=np.stack([mn, mx]),
     length=length,

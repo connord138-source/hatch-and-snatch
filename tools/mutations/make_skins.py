@@ -98,8 +98,8 @@ class Model:
         k = self.size // d["position"].shape[0]
         # Smooth (bilinear) upsampling, so patch and split edges don't stair-step
         smooth = lambda a: ndimage.zoom(a, (k, k, 1), order=1)  # noqa: E731
-        self.pos = smooth(d["position"])
-        self.nrm = smooth(d["normal"])
+        self.pos = smooth(d["position"].astype(np.float32))
+        self.nrm = smooth(d["normal"].astype(np.float32))
         self.cov = np.repeat(np.repeat(d["covered"], k, 0), k, 1)
         self.mn, self.mx = d["bounds"]
         self.length = float(d["length"])

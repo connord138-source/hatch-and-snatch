@@ -222,17 +222,22 @@ local function viewport(
 			end
 		end
 	end
-	-- Then its mutation over that (Shared/MutationLooks)
-	local creature = Config.CreaturesById[speciesId]
-	local mutated = creature ~= nil and MutationLooks.apply(model, mutation, finish, creature.biome)
+	-- Then its mutation over that (Shared/MutationLooks): its skin, if Studio has it
+	local mutated = MutationLooks.apply(model, mutation, finish, template.Name)
 	local look = MutationLooks.get(mutation)
 	local iridescent = mutated and look ~= nil and look.iridescent == true
 	local parts: { BasePart } = {}
+	local appearances: { SurfaceAppearance }? = nil
+	if model:GetAttribute("SkinSheen") then
+		appearances = {}
+	end
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			-- A viewport has nothing to reflect, so reflectance only washes colors out
 			descendant.Reflectance = 0
 			table.insert(parts, descendant)
+		elseif appearances and descendant:IsA("SurfaceAppearance") then
+			table.insert(appearances, descendant)
 		end
 	end
 	-- A viewport has one light and no sky. Its default light came from behind the
@@ -267,7 +272,7 @@ local function viewport(
 			model:PivotTo(CFrame.Angles(0, angle, 0) * toCenter)
 			if iridescent then
 				-- Faster than in the world, so the sheen shows during the reveal
-				MutationLooks.shimmer(parts, MutationLooks.sheen((os.clock() - started) * 4, 0))
+				MutationLooks.shimmer(parts, MutationLooks.sheen((os.clock() - started) * 4, 0), appearances)
 			end
 			task.wait()
 		end

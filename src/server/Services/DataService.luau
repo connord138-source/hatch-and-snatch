@@ -362,6 +362,20 @@ local function onPlayerAdded(player: Player)
 				math.max(data.floors, math.min(data.baseLevel - 2, #Config.Economy.tunables.floors + 1))
 		end
 	end
+	-- Chimera replaced the Leucistic mutation (2026-10-02)
+	for _, record in data.creatures do
+		if record.mutation == "Leucistic" then
+			record.mutation = "Chimera"
+		end
+	end
+	for _, egg in data.incubators do
+		if egg.mutation == "Leucistic" then
+			egg.mutation = "Chimera"
+		end
+	end
+	if data.heldEgg and data.heldEgg.mutation == "Leucistic" then
+		data.heldEgg.mutation = "Chimera"
+	end
 	-- Saves from before the Castle Designer (2026-10-01): every old base theme they
 	-- owned becomes its stone, floor, glow and grounds options, and the active one
 	-- becomes their design

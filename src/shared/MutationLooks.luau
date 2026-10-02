@@ -1,21 +1,27 @@
 --!strict
--- How each genetic mutation looks (owner, 2026-10-01): mutations are the rarest,
--- most-wanted layer in the game, "like Galaxy: other people will want them", and
--- they have to look professional and clean. So each one is a single body
--- treatment in the style of the approved finish sheet, a thin ring in its accent
--- color round the rarity halo (readable across a base), its name in that color on
--- the nameplate, and at most a few soft glints. Shared by the server (pedestal
--- and walked models) and the client (the hatch reveal).
+-- How each genetic mutation looks (owner, 2026-10-01/02): mutations are the
+-- rarest, most-wanted layer in the game, "like Galaxy: other people will want
+-- them", and they must not look like decolored skins. Finishes change what a
+-- creature is made of; mutations change how it was born, so each one is a SKIN
+-- made from the creature's own texture (tools/mutations): every painted detail
+-- stays and only the pigment, patterns and eyes change.
 --
---   Albino      pearl white, ruby accents
---   Melanistic  its own texture darkened to near-black (details survive), amber accents
---   Leucistic   a pale pastel of its biome's color
---   Piebald     crisp white patches over its own colors (a tiling texture)
---   Iridescent  pearl, its sheen drifting slowly through soft hues (the client cycles it)
+--   Albino      snow-white coat, pink skin, pale element, ruby-red eyes
+--   Melanistic  jet-black coat with its pattern ghosting through, element and eyes blazing
+--   Piebald     natural white patches (face, chest and paws first)
+--   Chimera     split down the middle: its normal self and the opposite, one odd eye
+--   Iridescent  an oil-slick film following the body's curves, drifting in game
+--
+-- The skins live in ReplicatedStorage.MutationSkins.<model>.<Mutation> (built in
+-- Studio by tools/studio/organize_skins.luau): a SurfaceAppearance, or a
+-- StringValue holding an image id. Until a model has its skin, the older solid
+-- looks below stand in. Every mutation also gets a thin ring in its accent color
+-- round the rarity halo, its name in that color and a few soft glints.
 --
 -- On a finish the texture is already gone, so the mutation shifts the finish's
 -- color instead: a black-gold Melanistic, a white-gold Albino. Piebald patches and
 -- a lighter Iridescent sheen go over any finish.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
 
 export type Glint = {
@@ -27,9 +33,8 @@ export type Glint = {
 }
 export type Look = {
 	accent: Color3, -- ring, nameplate and reveal color
-	solid: { color: Color3, reflectance: number }?, -- replaces the texture (Albino)
-	pastel: boolean?, -- Leucistic: solid, in its biome's pastel
-	tint: Color3?, -- multiplies the texture (Melanistic)
+	solid: { color: Color3, reflectance: number }?, -- no skin yet: replaces the texture (Albino)
+	tint: Color3?, -- no skin yet: multiplies the texture (Melanistic)
 	shift: { color: Color3, amount: number }?, -- on a finish: lerp its color toward this
 	spots: boolean?, -- Piebald: the patch texture on every side
 	iridescent: boolean?, -- the client drifts it through the hues
@@ -46,17 +51,6 @@ local SPOT_FACES = {
 	Enum.NormalId.Left,
 	Enum.NormalId.Right,
 	Enum.NormalId.Top,
-}
-
--- Leucistic: each biome's own color washed almost to white
-local PASTELS: { [string]: Color3 } = {
-	Mossvale = Color3.fromRGB(206, 238, 196), -- mint
-	CoralCoast = Color3.fromRGB(255, 208, 214), -- blush
-	MagmaRift = Color3.fromRGB(255, 214, 182), -- peach
-	FrostShelf = Color3.fromRGB(206, 226, 255), -- ice blue
-	StormPeaks = Color3.fromRGB(255, 240, 180), -- butter
-	Moonfall = Color3.fromRGB(226, 208, 255), -- lavender
-	Junk = Color3.fromRGB(225, 225, 232),
 }
 
 local LOOKS: { [string]: Look } = {
@@ -84,16 +78,14 @@ local LOOKS: { [string]: Look } = {
 			rise = 0.25,
 		},
 	},
-	Leucistic = {
-		accent = Color3.fromRGB(150, 225, 255),
-		pastel = true,
-		shift = { color = Color3.fromRGB(240, 246, 255), amount = 0.45 },
+	Chimera = {
+		accent = Color3.fromRGB(110, 200, 255), -- its odd eye
 		glint = {
-			colors = { Color3.fromRGB(220, 245, 255), Color3.new(1, 1, 1) },
+			colors = { Color3.fromRGB(190, 230, 255), Color3.new(1, 1, 1) },
 			rate = 3,
 			size = 0.22,
-			lifetime = 2.6,
-			rise = 0.5,
+			lifetime = 2.2,
+			rise = 0.4,
 		},
 	},
 	Piebald = {
@@ -140,6 +132,14 @@ function MutationLooks.sheen(t: number, seed: number): Color3
 	return Color3.fromHSV((t * 0.05 + seed) % 1, 0.3, 1)
 end
 
+-- The skin for one model (its template name: "Emberlynx", "Emberlynx_Baby", ...)
+-- and mutation, if Studio has it: a SurfaceAppearance or an image id StringValue.
+function MutationLooks.skin(modelName: string?, mutation: string?): Instance?
+	local skins = ReplicatedStorage:FindFirstChild("MutationSkins")
+	local folder = if skins and modelName then skins:FindFirstChild(modelName) else nil
+	return if folder and mutation then folder:FindFirstChild(mutation) else nil
+end
+
 local function bodyParts(model: Model): { BasePart }
 	local parts: { BasePart } = {}
 	for _, descendant in model:GetDescendants() do
@@ -150,18 +150,44 @@ local function bodyParts(model: Model): { BasePart }
 	return parts
 end
 
+-- Puts a skin on every textured part of `model` (in place of its own texture).
+local function wear(model: Model, skin: Instance)
+	for _, part in bodyParts(model) do
+		local own = part:FindFirstChildWhichIsA("SurfaceAppearance")
+		local textured = own ~= nil or (part:IsA("MeshPart") and part.TextureID ~= "")
+		if textured then
+			if own then
+				own:Destroy()
+			end
+			if skin:IsA("SurfaceAppearance") then
+				skin:Clone().Parent = part
+			elseif skin:IsA("StringValue") and part:IsA("MeshPart") then
+				part.TextureID = skin.Value
+			end
+		end
+	end
+end
+
 -- Restyles `model` for its mutation, after its finish and rarity tint are on.
--- Returns false when there is no mutation (or an unknown one).
-function MutationLooks.apply(model: Model, mutation: string?, finish: string, biome: string): boolean
+-- `modelName` is the template it was cloned from, for its skin. Returns false
+-- when there is no mutation (or an unknown one).
+function MutationLooks.apply(model: Model, mutation: string?, finish: string, modelName: string?): boolean
 	local look = MutationLooks.get(mutation)
 	if look == nil then
 		return false
 	end
 	local textured = finish == "Normal"
-	local solid = if look.pastel
-		then { color = PASTELS[biome] or PASTELS.Junk, reflectance = 0.02 }
-		else look.solid
-	if textured and solid then
+	local skin = if textured then MutationLooks.skin(modelName, mutation) else nil
+	local solid = look.solid
+	if skin then
+		wear(model, skin)
+		if look.iridescent and skin:IsA("SurfaceAppearance") then
+			-- The client drifts the film's tint slowly (CreatureAnimator)
+			model:SetAttribute("SkinSheen", true)
+			CollectionService:AddTag(model, MutationLooks.IRIDESCENT_TAG)
+		end
+		return true
+	elseif textured and solid then
 		-- The texture goes, like a finish: one clean color with the mesh's own shading
 		for _, descendant in model:GetDescendants() do
 			if descendant:IsA("SurfaceAppearance") then
@@ -219,8 +245,18 @@ function MutationLooks.apply(model: Model, mutation: string?, finish: string, bi
 	return true
 end
 
--- One frame of the Iridescent sheen (parts marked by apply).
-function MutationLooks.shimmer(parts: { BasePart }, color: Color3)
+-- One frame of the Iridescent sheen (parts marked by apply). On a skin the film is
+-- already painted in, so it only drifts the tint a little.
+function MutationLooks.shimmer(parts: { BasePart }, color: Color3, appearances: { SurfaceAppearance }?)
+	if appearances then
+		local soft = Color3.new(1, 1, 1):Lerp(color, 0.5)
+		pcall(function()
+			for _, appearance in appearances do
+				appearance.Color = soft
+			end
+		end)
+		return
+	end
 	for _, part in parts do
 		local base = part:GetAttribute("BaseColor")
 		local amount = part:GetAttribute("Sheen")
