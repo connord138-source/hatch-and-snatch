@@ -1,7 +1,7 @@
 --!strict
 -- The Castle Designer (owner, 2026-10-01: "the castle needs to be designable, and
 -- designs are bought once zones are unlocked: ice, fire, light, dark, red, blue,
--- green, rainbow, tons of combos"). A base's look is six picks that mix and match:
+-- green, rainbow, tons of combos"). A base's look is seven picks that mix and match:
 --
 --   stone   the fortress walls, towers and keep
 --   roof    tower roofs and the watchtowers' tops
@@ -9,14 +9,20 @@
 --   glow    the laser gate, vault doors, spire crystals and royal crystals
 --   floor   the ground floor and the keep's slabs
 --   grounds the plants and rocks around the walls
+--   kit     the theme: real pieces built onto the castle (shell spires and coral,
+--           obsidian spikes and lava falls, ...) and its own light color, exactly
+--           like the approved theme concepts (owner, 2026-10-02; server CastleKits)
 --
 -- Each option unlocks with a biome zone (its colors and materials), the base's
 -- progress or a rebirth, is bought once at the Command Terminal and can be
--- picked freely after that. The flashiest looks climb a rebirth ladder (owner:
--- "the more desirable, harder to get ones should require multiple rebirths",
--- so players come back): Molten 1, Rainbow 2, Solid Gold 3, Diamond trim and a
--- rainbow glow 4, Diamond stone 5, Void 6. Each costs about what its rebirth
--- did, and the Rebirth menu shows what the next one unlocks. Presets set every slot at once (buying what's
+-- picked freely after that. Prices are a few hours of income at the stage an
+-- option opens (economy sim), and the kits a long goal: a couple of hours early
+-- on, tens of hours late, never hundreds (owner, 2026-10-02). The flashiest looks
+-- climb a rebirth ladder (owner: "the more desirable, harder to get ones should
+-- require multiple rebirths", so players come back): Molten 1, Rainbow 2, Solid
+-- Gold 3, Diamond trim and a rainbow glow 4, Diamond stone 5, Void 6, with the
+-- Golden, Diamond and Void kits at 3, 5 and 6. The Rebirth menu shows what the
+-- next one unlocks. Presets set every slot at once (buying what's
 -- missing). This replaced the nine fixed base themes; old saves keep what they
 -- owned (DataService migration, `fromTheme`).
 local Progression = require(script.Parent.Progression)
@@ -38,6 +44,7 @@ export type Option = {
 	rainbow: boolean?, -- the client cycles it through the colors
 	sparkle: Color3?, -- stone: twinkles on the towers (the rebirth stones)
 	decor: { string }?, -- grounds: WorldProps scattered round the walls
+	kit: string?, -- theme: the CastleKits kit built onto the castle
 }
 
 export type Slot = {
@@ -116,21 +123,21 @@ local function colors(): { Option }
 		{
 			id = "Storm",
 			name = "Thunder Yellow",
-			cost = 600_000_000_000,
+			cost = 10_000_000_000,
 			unlock = { biome = STORM },
 			color = Color3.fromRGB(250, 225, 70),
 		},
 		{
 			id = "Purple",
 			name = "Void Purple",
-			cost = 60_000_000_000_000,
+			cost = 70_000_000_000,
 			unlock = { biome = MOON },
 			color = Color3.fromRGB(110, 60, 190),
 		},
 		{
 			id = "Gold",
 			name = "Gold",
-			cost = 400_000_000_000,
+			cost = 50_000_000_000,
 			unlock = { baseLevel = 5 },
 			color = Color3.fromRGB(240, 195, 70),
 			material = Enum.Material.Foil,
@@ -139,7 +146,7 @@ local function colors(): { Option }
 		{
 			id = "Molten",
 			name = "Molten",
-			cost = 1_000_000_000_000,
+			cost = 500_000_000_000,
 			unlock = { rebirths = 1 },
 			color = Color3.fromRGB(255, 95, 25),
 			material = Enum.Material.Neon,
@@ -147,7 +154,7 @@ local function colors(): { Option }
 		{
 			id = "Rainbow",
 			name = "Rainbow",
-			cost = 2_500_000_000_000,
+			cost = 1_500_000_000_000,
 			unlock = { rebirths = 2 },
 			color = Color3.fromRGB(255, 120, 200),
 			rainbow = true,
@@ -155,7 +162,7 @@ local function colors(): { Option }
 		{
 			id = "Diamond",
 			name = "Diamond",
-			cost = 10_000_000_000_000,
+			cost = 5_000_000_000_000,
 			unlock = { rebirths = 4 },
 			color = Color3.fromRGB(215, 245, 255),
 			material = Enum.Material.Foil,
@@ -163,7 +170,7 @@ local function colors(): { Option }
 		{
 			id = "Void",
 			name = "Void Glow",
-			cost = 100_000_000_000_000,
+			cost = 12_000_000_000_000,
 			unlock = { rebirths = 6 },
 			color = Color3.fromRGB(120, 50, 255),
 			material = Enum.Material.Neon,
@@ -221,7 +228,7 @@ local slots: { Slot } = {
 			{
 				id = "StormSlate",
 				name = "Storm Slate",
-				cost = 600_000_000_000,
+				cost = 12_000_000_000,
 				unlock = { biome = STORM },
 				material = Enum.Material.Slate,
 				color = Color3.fromRGB(92, 97, 118),
@@ -229,7 +236,7 @@ local slots: { Slot } = {
 			{
 				id = "Moonstone",
 				name = "Moonstone",
-				cost = 60_000_000_000_000,
+				cost = 90_000_000_000,
 				unlock = { biome = MOON },
 				material = Enum.Material.Limestone,
 				color = Color3.fromRGB(152, 138, 188),
@@ -245,7 +252,7 @@ local slots: { Slot } = {
 			{
 				id = "Marble",
 				name = "Marble",
-				cost = 150_000_000_000,
+				cost = 10_000_000_000,
 				unlock = { floors = 3 },
 				material = Enum.Material.Marble,
 				color = Color3.fromRGB(240, 240, 246),
@@ -253,7 +260,7 @@ local slots: { Slot } = {
 			{
 				id = "Granite",
 				name = "Royal Granite",
-				cost = 1_000_000_000_000,
+				cost = 30_000_000_000,
 				unlock = { vaults = 4 },
 				material = Enum.Material.Granite,
 				color = Color3.fromRGB(150, 116, 120),
@@ -261,7 +268,7 @@ local slots: { Slot } = {
 			{
 				id = "Golden",
 				name = "Solid Gold",
-				cost = 6_000_000_000_000,
+				cost = 3_000_000_000_000,
 				unlock = { rebirths = 3 },
 				material = Enum.Material.Foil,
 				color = Color3.fromRGB(235, 190, 70),
@@ -270,7 +277,7 @@ local slots: { Slot } = {
 			{
 				id = "Diamond",
 				name = "Diamond",
-				cost = 40_000_000_000_000,
+				cost = 10_000_000_000_000,
 				unlock = { rebirths = 5 },
 				material = Enum.Material.Foil,
 				color = Color3.fromRGB(200, 238, 252),
@@ -279,7 +286,7 @@ local slots: { Slot } = {
 			{
 				id = "VoidSteel",
 				name = "Void Steel",
-				cost = 100_000_000_000_000,
+				cost = 15_000_000_000_000,
 				unlock = { rebirths = 6 },
 				material = Enum.Material.Foil,
 				color = Color3.fromRGB(52, 36, 92),
@@ -333,28 +340,28 @@ local slots: { Slot } = {
 			{
 				id = "Storm",
 				name = "Lightning",
-				cost = 600_000_000_000,
+				cost = 12_000_000_000,
 				unlock = { biome = STORM },
 				color = Color3.fromRGB(255, 240, 90),
 			},
 			{
 				id = "Dark",
 				name = "Dark",
-				cost = 60_000_000_000_000,
+				cost = 80_000_000_000,
 				unlock = { biome = MOON },
 				color = Color3.fromRGB(140, 60, 255),
 			},
 			{
 				id = "Gold",
 				name = "Royal Gold",
-				cost = 1_000_000_000_000,
+				cost = 30_000_000_000,
 				unlock = { vaults = 4 },
 				color = Color3.fromRGB(255, 210, 80),
 			},
 			{
 				id = "Rainbow",
 				name = "Rainbow",
-				cost = 15_000_000_000_000,
+				cost = 6_000_000_000_000,
 				unlock = { rebirths = 4 },
 				color = Color3.fromRGB(255, 120, 200),
 				rainbow = true,
@@ -400,7 +407,7 @@ local slots: { Slot } = {
 			{
 				id = "Slate",
 				name = "Slate",
-				cost = 500_000_000_000,
+				cost = 10_000_000_000,
 				unlock = { biome = STORM },
 				material = Enum.Material.Slate,
 				color = Color3.fromRGB(95, 100, 120),
@@ -408,7 +415,7 @@ local slots: { Slot } = {
 			{
 				id = "Pebble",
 				name = "Moon Pebble",
-				cost = 50_000_000_000_000,
+				cost = 60_000_000_000,
 				unlock = { biome = MOON },
 				material = Enum.Material.Pebble,
 				color = Color3.fromRGB(120, 110, 150),
@@ -424,7 +431,7 @@ local slots: { Slot } = {
 			{
 				id = "Marble",
 				name = "Marble",
-				cost = 100_000_000_000,
+				cost = 8_000_000_000,
 				unlock = { floors = 3 },
 				material = Enum.Material.Marble,
 				color = Color3.fromRGB(236, 236, 242),
@@ -432,7 +439,7 @@ local slots: { Slot } = {
 			{
 				id = "Granite",
 				name = "Dark Granite",
-				cost = 800_000_000_000,
+				cost = 25_000_000_000,
 				unlock = { vaults = 4 },
 				material = Enum.Material.Granite,
 				color = Color3.fromRGB(38, 34, 44),
@@ -440,7 +447,7 @@ local slots: { Slot } = {
 			{
 				id = "GoldTiles",
 				name = "Gold Tiles",
-				cost = 4_000_000_000_000,
+				cost = 2_000_000_000_000,
 				unlock = { rebirths = 3 },
 				material = Enum.Material.Foil,
 				color = Color3.fromRGB(230, 185, 70),
@@ -448,7 +455,7 @@ local slots: { Slot } = {
 			{
 				id = "Diamond",
 				name = "Diamond",
-				cost = 25_000_000_000_000,
+				cost = 6_000_000_000_000,
 				unlock = { rebirths = 5 },
 				material = Enum.Material.Foil,
 				color = Color3.fromRGB(210, 242, 255),
@@ -502,7 +509,7 @@ local slots: { Slot } = {
 			{
 				id = "Stormy",
 				name = "Stormy Crags",
-				cost = 500_000_000_000,
+				cost = 10_000_000_000,
 				unlock = { biome = STORM },
 				color = Color3.fromRGB(110, 115, 140),
 				decor = { "RockCluster", "PineTree" },
@@ -510,7 +517,7 @@ local slots: { Slot } = {
 			{
 				id = "Lunar",
 				name = "Lunar",
-				cost = 50_000_000_000_000,
+				cost = 60_000_000_000,
 				unlock = { biome = MOON },
 				color = Color3.fromRGB(170, 120, 240),
 				decor = { "CrystalCluster", "RockCluster" },
@@ -526,10 +533,95 @@ local slots: { Slot } = {
 			{
 				id = "Crystal",
 				name = "Crystal Garden",
-				cost = 150_000_000_000,
+				cost = 10_000_000_000,
 				unlock = { floors = 3 },
 				color = Color3.fromRGB(130, 210, 255),
 				decor = { "CrystalCluster", "FlowerPatch" },
+			},
+		},
+	},
+	{
+		-- The theme kits (owner, 2026-10-02: "they need physical assets that add a
+		-- feeling of I earned this"): real pieces built onto the castle and its own
+		-- light color, exactly like the approved theme concepts (server CastleKits).
+		-- Priced as a long goal at the income they open with (sim): a couple of hours
+		-- early on, tens of hours late, never hundreds.
+		id = "kit",
+		name = "Theme",
+		default = "None",
+		options = {
+			{ id = "None", name = "No theme", cost = 0, color = Color3.fromRGB(150, 150, 160) },
+			{
+				id = "Moss",
+				name = "Green Hold",
+				cost = 25_000_000,
+				unlock = { biome = MOSS },
+				color = Color3.fromRGB(120, 255, 120),
+				kit = "Moss",
+			},
+			{
+				id = "Coral",
+				name = "Coral Fort",
+				cost = 150_000_000,
+				unlock = { biome = CORAL },
+				color = Color3.fromRGB(80, 255, 230),
+				kit = "Coral",
+			},
+			{
+				id = "Fire",
+				name = "Fire Keep",
+				cost = 2_000_000_000,
+				unlock = { biome = MAGMA },
+				color = Color3.fromRGB(255, 130, 40),
+				kit = "Fire",
+			},
+			{
+				id = "Ice",
+				name = "Ice Castle",
+				cost = 15_000_000_000,
+				unlock = { biome = FROST },
+				color = Color3.fromRGB(150, 215, 255),
+				kit = "Ice",
+			},
+			{
+				id = "Storm",
+				name = "Storm Spire",
+				cost = 75_000_000_000,
+				unlock = { biome = STORM },
+				color = Color3.fromRGB(255, 230, 90),
+				kit = "Storm",
+			},
+			{
+				id = "Moon",
+				name = "Moon Palace",
+				cost = 750_000_000_000,
+				unlock = { biome = MOON },
+				color = Color3.fromRGB(190, 120, 255),
+				kit = "Moon",
+			},
+			{
+				id = "Golden",
+				name = "Golden Palace",
+				cost = 5_000_000_000_000,
+				unlock = { rebirths = 3 },
+				color = Color3.fromRGB(255, 205, 90),
+				kit = "Golden",
+			},
+			{
+				id = "Diamond",
+				name = "Diamond Citadel",
+				cost = 16_000_000_000_000,
+				unlock = { rebirths = 5 },
+				color = Color3.fromRGB(230, 245, 255),
+				kit = "Diamond",
+			},
+			{
+				id = "Void",
+				name = "Void Throne",
+				cost = 30_000_000_000_000,
+				unlock = { rebirths = 6 },
+				color = Color3.fromRGB(170, 90, 255),
+				kit = "Void",
 			},
 		},
 	},
@@ -548,6 +640,7 @@ local presets: { Preset } = {
 			glow = "Laser",
 			floor = "Wood",
 			grounds = "Forest",
+			kit = "None",
 		},
 	},
 	{
@@ -560,6 +653,7 @@ local presets: { Preset } = {
 			glow = "Laser",
 			floor = "Wood",
 			grounds = "Forest",
+			kit = "None",
 		},
 	},
 	{
@@ -572,6 +666,7 @@ local presets: { Preset } = {
 			glow = "Toxic",
 			floor = "Wood",
 			grounds = "Meadow",
+			kit = "Moss",
 		},
 	},
 	{
@@ -580,22 +675,24 @@ local presets: { Preset } = {
 		picks = {
 			stone = "Sandstone",
 			roof = "Teal",
-			banner = "Pink",
+			banner = "Green",
 			glow = "Ocean",
 			floor = "Sand",
 			grounds = "Coral",
+			kit = "Coral",
 		},
 	},
 	{
 		id = "Fire",
 		name = "Fire Keep",
 		picks = {
-			stone = "Basalt",
-			roof = "Orange",
-			banner = "Red",
+			stone = "Obsidian",
+			roof = "Black",
+			banner = "Orange",
 			glow = "Fire",
 			floor = "Basalt",
 			grounds = "Volcanic",
+			kit = "Fire",
 		},
 	},
 	{
@@ -604,10 +701,11 @@ local presets: { Preset } = {
 		picks = {
 			stone = "Ice",
 			roof = "IceBlue",
-			banner = "White",
+			banner = "IceBlue",
 			glow = "Ice",
 			floor = "Glacier",
 			grounds = "Frozen",
+			kit = "Ice",
 		},
 	},
 	{
@@ -620,6 +718,7 @@ local presets: { Preset } = {
 			glow = "Light",
 			floor = "Marble",
 			grounds = "Crystal",
+			kit = "None",
 		},
 	},
 	{
@@ -632,6 +731,7 @@ local presets: { Preset } = {
 			glow = "Storm",
 			floor = "Slate",
 			grounds = "Stormy",
+			kit = "Storm",
 		},
 	},
 	{
@@ -644,6 +744,7 @@ local presets: { Preset } = {
 			glow = "Dark",
 			floor = "Granite",
 			grounds = "Lunar",
+			kit = "None",
 		},
 	},
 	{
@@ -652,10 +753,11 @@ local presets: { Preset } = {
 		picks = {
 			stone = "Moonstone",
 			roof = "White",
-			banner = "Purple",
+			banner = "Blue",
 			glow = "Dark",
 			floor = "Pebble",
 			grounds = "Lunar",
+			kit = "Moon",
 		},
 	},
 	{
@@ -668,6 +770,7 @@ local presets: { Preset } = {
 			glow = "Gold",
 			floor = "Granite",
 			grounds = "Rocky",
+			kit = "None",
 		},
 	},
 	-- The rebirth ladder
@@ -681,6 +784,7 @@ local presets: { Preset } = {
 			glow = "Fire",
 			floor = "Basalt",
 			grounds = "Volcanic",
+			kit = "Fire",
 		},
 	},
 	{
@@ -688,11 +792,12 @@ local presets: { Preset } = {
 		name = "Golden Palace",
 		picks = {
 			stone = "Golden",
-			roof = "White",
+			roof = "Gold",
 			banner = "Red",
 			glow = "Gold",
 			floor = "GoldTiles",
 			grounds = "Crystal",
+			kit = "Golden",
 		},
 	},
 	{
@@ -705,6 +810,7 @@ local presets: { Preset } = {
 			glow = "Rainbow",
 			floor = "Marble",
 			grounds = "Crystal",
+			kit = "None",
 		},
 	},
 	{
@@ -716,7 +822,8 @@ local presets: { Preset } = {
 			banner = "Gold",
 			glow = "Light",
 			floor = "Diamond",
-			grounds = "Frozen",
+			grounds = "Crystal",
+			kit = "Diamond",
 		},
 	},
 	{
@@ -729,6 +836,7 @@ local presets: { Preset } = {
 			glow = "Dark",
 			floor = "Granite",
 			grounds = "Lunar",
+			kit = "Void",
 		},
 	},
 }
@@ -824,6 +932,7 @@ end
 function CastleDesigns.resolve(picks: { [string]: string }): Progression.BaseTheme
 	local stone, roof, banner = option(picks, "stone"), option(picks, "roof"), option(picks, "banner")
 	local glow, floor, grounds = option(picks, "glow"), option(picks, "floor"), option(picks, "grounds")
+	local kit = option(picks, "kit").kit
 	local ids: { string } = {}
 	for _, slot in slots do
 		table.insert(ids, option(picks, slot.id).id)
@@ -849,8 +958,9 @@ function CastleDesigns.resolve(picks: { [string]: string }): Progression.BaseThe
 			banner = banner.rainbow == true,
 			glow = glow.rainbow == true,
 		},
-		customTowers = not (stone.id == "Tier" and roof.id == "Blue" and banner.id == "Blue"),
+		customTowers = kit ~= nil or not (stone.id == "Tier" and roof.id == "Blue" and banner.id == "Blue"),
 		sparkle = stone.sparkle,
+		kit = kit,
 	}
 end
 

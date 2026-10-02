@@ -27,6 +27,20 @@ local function enumGroup(name)
 	-- Cached so items compare equal, as Roblox enum items do
 	return setmetatable({}, { __index = function(t, k) local item = { Name = k, EnumType = name }; rawset(t, k, item); return item end })
 end
+-- Random (deterministic LCG, enough for layout jitter)
+Random = {
+	new = function(seed)
+		local state = math.floor(seed or 1) % 2147483647
+		if state <= 0 then state = state + 2147483646 end
+		local function step() state = (state * 48271) % 2147483647; return state / 2147483647 end
+		return {
+			NextNumber = function(_, a, b) a = a or 0; b = b or 1; return a + (b - a) * step() end,
+			NextInteger = function(_, a, b) return a + math.floor(step() * (b - a + 1)) end,
+		}
+	end,
+}
+ColorSequenceKeypoint = { new = function(t, c) return { Time = t, Value = c } end }
+Vector2 = { new = function(x, y) return { X = x, Y = y } end }
 -- Particle types (the preview ignores particles)
 NumberRange = { new = function(a, b) return { Min = a, Max = b or a } end }
 NumberSequenceKeypoint = { new = function(t, v) return { Time = t, Value = v } end }
@@ -123,6 +137,31 @@ function dumpParts(root)
 				cf.r.x.X, cf.r.x.Y, cf.r.x.Z, cf.r.y.X, cf.r.y.Y, cf.r.y.Z, cf.r.z.X, cf.r.z.Y, cf.r.z.Z,
 				c.R, c.G, c.B, d.Material and d.Material.Name or "Plastic", d.Transparency or 0, light))
 		end
+		-- Beams between two parts' attachments (the Storm kit's lightning): B|from|to
+		if d.ClassName == "Beam" and d.Attachment0 and d.Attachment1 then
+			local p0, p1 = d.Attachment0.Parent.CFrame.p, d.Attachment1.Parent.CFrame.p
+			print(string.format("B|%.3f,%.3f,%.3f|%.3f,%.3f,%.3f", p0.X, p0.Y, p0.Z, p1.X, p1.Y, p1.Z))
+		end
+		-- Lights anywhere, even on invisible anchors (theme kit lights): L|position|color|range
+		if d.IsPart then
+			for _, child in rawget(d, "_children") do
+				if child.ClassName == "PointLight" then
+					local p, c = d.CFrame.p, child.Color or Color3.new(1, 1, 1)
+					print(string.format("L|%.3f,%.3f,%.3f|%.3f,%.3f,%.3f|%.2f", p.X, p.Y, p.Z, c.R, c.G, c.B, child.Range or 12))
+				end
+			end
+		end
+	end
+	-- Imported models (props_stub.luau): R|name|mode|position|right|up|back|size|tint
+	for _, r in PROP_PLACEMENTS or {} do
+		-- A spawned piece may have been turned or moved since (it stands on its base)
+		local cf = if r.model and r.mode == "height" then r.model:GetPivot() * CFrame.new(0, -r.height / 2, 0) else r.cframe
+		local size = if r.mode == "box" then r.size else Vector3.new(r.height, r.height, r.height)
+		local tint = r.model and r.model:GetAttribute("KitTint")
+		print(string.format("R|%s|%s|%.3f,%.3f,%.3f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.3f,%.3f,%.3f|%s",
+			r.name, r.mode, cf.p.X, cf.p.Y, cf.p.Z, cf.r.x.X, cf.r.x.Y, cf.r.x.Z, cf.r.y.X, cf.r.y.Y, cf.r.y.Z,
+			cf.r.z.X, cf.r.z.Y, cf.r.z.Z, size.X, size.Y, size.Z,
+			if tint then string.format("%.3f,%.3f,%.3f", tint.R, tint.G, tint.B) else ""))
 	end
 end
 return true

@@ -11,6 +11,7 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local CastleKits = require(script.Parent.CastleKits)
 local Fortress = require(script.Parent.Fortress)
 local Props = require(script.Parent.Props)
 
@@ -47,16 +48,18 @@ local function column(
 	return part(parent, props)
 end
 
-local function flame(parent: BasePart, size: number, lit: boolean)
+-- A torch flame, in the theme kit's colors when the castle has one (teal for the
+-- Coral Fort, violet for the Moon Palace, ...)
+local function flame(parent: BasePart, size: number, lit: boolean, kit: CastleKits.Kit?)
 	local fire = Instance.new("Fire")
 	fire.Size = size
 	fire.Heat = 6
-	fire.Color = FIRE
-	fire.SecondaryColor = Color3.fromRGB(255, 70, 20)
+	fire.Color = if kit then kit.flame else FIRE
+	fire.SecondaryColor = if kit then kit.flame2 else Color3.fromRGB(255, 70, 20)
 	fire.Parent = parent
 	if lit then
 		local light = Instance.new("PointLight")
-		light.Color = FIRE
+		light.Color = if kit then kit.light else FIRE
 		light.Range = 14
 		light.Brightness = 1.2
 		light.Parent = parent
@@ -115,6 +118,7 @@ function BaseDecor.build(
 	local folder = Instance.new("Folder")
 	folder.Name = "Builds"
 	local x, f, b, g = layout.halfW, layout.front, layout.back, layout.gateHalf
+	local kit = CastleKits.get(theme.kit)
 	local face = layout.thickness / 2 -- from the wall's middle to its outer face
 	local low = layout.height < 6 -- the Camp's fence: hang things on poles instead
 	local function at(px: number, pz: number, facing: number?): CFrame
@@ -131,6 +135,21 @@ function BaseDecor.build(
 			Vector3.new(x + face + 0.7, 0, (f + b) / 2),
 		}
 		for i, spot in spots do
+			local torch = Props.spawn("WallTorch", at(spot.X, spot.Z), 5.5, folder)
+			if torch and kit then
+				-- The imported torch's flame is painted on; a kit lights it in its color
+				local box, size = torch:GetBoundingBox()
+				local head = part(folder, {
+					Name = "TorchFlame",
+					Size = Vector3.new(0.5, 0.5, 0.5),
+					CFrame = box * CFrame.new(0, size.Y * 0.4, 0),
+					Transparency = 1,
+				})
+				flame(head, 2.5, i <= 4, kit)
+			end
+			if torch then
+				continue
+			end
 			prop(folder, "WallTorch", at(spot.X, spot.Z), 5.5, function(base)
 				column(
 					folder,
@@ -146,7 +165,7 @@ function BaseDecor.build(
 					Material = Enum.Material.Neon,
 					Color = FIRE,
 				})
-				flame(head, 2.5, i <= 4)
+				flame(head, 2.5, i <= 4, kit)
 			end)
 		end
 	end
@@ -193,7 +212,7 @@ function BaseDecor.build(
 				Material = Enum.Material.Wood,
 				Color = Color3.fromRGB(90, 60, 40),
 			})
-			flame(logs, 5, true)
+			flame(logs, 5, true, kit)
 		end)
 	end
 
@@ -402,11 +421,12 @@ function BaseDecor.build(
 		-- Water round the outside of the walls, with a drawbridge at the gate
 		local inner = face + 1.5
 		local width = 3.2
+		-- A theme kit turns it to its own: a lava moat, a frozen one, a tide pool...
 		local water = {
-			Material = Enum.Material.Glass,
-			Color = Color3.fromRGB(70, 150, 210),
-			Transparency = 0.15,
-			Reflectance = 0.15,
+			Material = if kit and kit.moat then kit.moat.material else Enum.Material.Glass,
+			Color = if kit and kit.moat then kit.moat.color else Color3.fromRGB(70, 150, 210),
+			Transparency = if kit and kit.moat then kit.moat.transparency else 0.15,
+			Reflectance = if kit and kit.moat and kit.moat.material ~= Enum.Material.Glass then 0 else 0.15,
 		}
 		local function strip(cx: number, cz: number, sx: number, sz: number)
 			part(folder, {

@@ -5,7 +5,8 @@
 --   <BiomeId> / Egg                -> ReplicatedStorage.EggModels
 --   prop names                     -> ReplicatedStorage.WorldProps
 -- and sets each model's PrimaryPart to its largest part (creatures also get their
--- pivot squared up with the body). Safe to run again.
+-- pivot squared up with the body; castle kit pieces lose their metalness map).
+-- Safe to run again.
 -- Then File → Save (Ctrl+S): these folders live in the place file, not in Rojo.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -32,6 +33,27 @@ local PROPS = {
 	CampTents = true, Shipwreck = true, PalmTree = true, Signpost = true, WoodBridge = true,
 	OakTree = true, FishingHut = true, Dock = true, MarketStall = true, FlowerMeadow = true, Boulders = true,
 }
+-- Castle theme kits (src/server/CastleKits.luau). Their Tripo textures come with a
+-- metalness map that turns them dark under the sky (the pearly shell spires came
+-- out navy), so it is dropped; the gold pieces keep theirs.
+local KIT = {
+	"CoralShellSpire", "CoralBranches", "CoralFan", "CoralTubes", "CoralClamBrazier", "CoralAnemoneRock",
+	"CoralStarfishPlaque", "CoralPearlLantern",
+	"FireSpire", "FireObsidianSpikes", "FireSkullBrazier", "FireLavaRock", "FireDragonGate",
+	"IceCrystalSpire", "IceCrystalCluster", "IceLantern", "IceGateArch", "SnowDrift",
+	"StormTeslaSpire", "StormThunderStone", "StormPlasmaBrazier", "StormLightningRod", "StormCloud",
+	"MossMushrooms", "MossMushroomLantern", "MossRoots", "MossGiantTree",
+	"MoonFinial", "MoonCrystal", "MoonLantern", "MoonGateArch", "MoonBigCrescent",
+	"GoldSpire", "GoldLion", "GoldBrazier", "GoldCrownCrest",
+	"DiamondCrown", "DiamondCluster", "DiamondLantern", "DiamondGateCrest",
+	"VoidShards", "VoidCrystals", "VoidBrazier", "VoidPortal", "VoidRunePillar",
+}
+local KEEP_METAL = { GoldSpire = true, GoldLion = true, GoldBrazier = true, GoldCrownCrest = true }
+local kitPiece = {}
+for _, name in KIT do
+	PROPS[name] = true
+	kitPiece[name] = true
+end
 local species = {}
 for _, creature in require(ReplicatedStorage.Shared.Config).Creatures do
 	species[creature.id] = true
@@ -72,6 +94,13 @@ for _, model in workspace:GetChildren() do
 		continue
 	end
 	model.PrimaryPart = largest
+	if kitPiece[model.Name] and not KEEP_METAL[model.Name] then
+		for _, appearance in model:GetDescendants() do
+			if appearance:IsA("SurfaceAppearance") then
+				appearance.MetalnessMap = ""
+			end
+		end
+	end
 	if target == "CreatureModels" then
 		-- An FBX exported without "Apply Transform" keeps its Z-up -> Y-up turn in the
 		-- pivot, and the game stands creatures up by their pivot (they'd stand on their

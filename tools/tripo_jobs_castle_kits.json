@@ -1,0 +1,76 @@
+{
+  "jobs": [
+    {
+      "name": "KitSheetCoral",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeCoral.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a tall spiral seashell spire roof in pearly teal with a gold rim at its base, made to sit on top of a round castle tower. Top right: a branching coral cluster in pink, orange and teal growing from a flat rock base. Bottom left: a giant open clam-shell brazier on a short stone pedestal, holding a glowing teal flame. Bottom right: a rock covered in glowing teal sea anemones, small coral and a starfish."
+    },
+    {
+      "name": "KitSheetFire",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeFire.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a dark iron cone tower roof built from riveted plates with glowing orange seams and jagged black obsidian spikes around its rim. Top right: a cluster of jagged black obsidian spikes with glowing orange lava veins, on a flat base. Bottom left: an iron dragon-skull brazier on a short stand with tall orange flames rising from the skull. Bottom right: a cluster of black volcanic rocks split by bright glowing lava cracks."
+    },
+    {
+      "name": "KitSheetIce",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeIce.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a tall faceted spire roof of translucent pale blue ice, made to sit on top of a round castle tower. Top right: a huge cluster of faceted pale blue ice crystals bursting from a flat icy base. Bottom left: a frozen iron lantern on a short ice-crusted post, burning with a pale blue flame. Leave the bottom right quarter empty."
+    },
+    {
+      "name": "KitSheetStorm",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeStorm.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a copper tesla-coil spire with stacked coil rings and a glowing electric-blue orb on top, made to sit on top of a round castle tower. Top right: a floating dark thunder-stone carved with glowing yellow lightning runes, wrapped in short broken iron chains. Bottom left: an iron brazier on a short stand burning with crackling blue-and-yellow electric plasma. Leave the bottom right quarter empty."
+    },
+    {
+      "name": "KitSheetMoss",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeMoss.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a cluster of three giant mushrooms with broad caps that glow soft green underneath, on a mossy base. Top right: a small lantern shaped like a glowing green mushroom cap on a twisted wooden stem. Bottom left: a tangle of thick gnarled tree roots overgrown with moss and ivy, made to wrap around the base of a round tower. Leave the bottom right quarter empty."
+    },
+    {
+      "name": "KitSheetMoon",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeMoon.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a slender silver tower finial topped with a glowing pale crescent moon, made to sit on the tip of a tower roof. Top right: a single floating violet crystal shard, faceted and glowing. Bottom left: a moonstone lantern on a short silver post burning with a violet flame. Bottom right: a large glowing silver crescent-moon arch frame that goes around a castle gate."
+    },
+    {
+      "name": "KitSheetGolden",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeGolden.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a gold-plated cone tower roof with a red jewel finial on top, made to sit on top of a round castle tower. Top right: a golden lion statue sitting on a white marble plinth. Bottom left: a gilded brazier on a short gold stand with warm golden flames. Leave the bottom right quarter empty."
+    },
+    {
+      "name": "KitSheetDiamond",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeDiamond.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a crown of huge clear faceted diamond crystals pointing up, made to sit on top of a round castle tower. Top right: a cluster of clear faceted diamond crystals on a white marble base, with small rainbow glints. Bottom left: a crystal lantern on a short white-and-gold post with a brilliant white flame. Leave the bottom right quarter empty."
+    },
+    {
+      "name": "KitSheetVoid",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeVoid.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a cluster of jagged floating dark rock fragments with glowing violet cracks, hovering apart from each other. Top right: a cluster of spiked black crystals with violet glowing edges, on a flat base. Bottom left: a dark void-steel brazier on a short stand burning with violet flames, etched with glowing runes. Leave the bottom right quarter empty."
+    }
+  ]
+}

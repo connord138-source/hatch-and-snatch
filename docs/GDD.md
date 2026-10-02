@@ -102,14 +102,15 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
    | Mutation | Odds | Earnings | Look |
    |---|---|---|---|
-   | Albino | 1 in 10,000 | ×10 | Pearl white body, ruby accents |
-   | Melanistic | 1 in 10,000 | ×10 | Its own texture darkened to near-black (details survive), amber accents |
-   | Leucistic | 1 in 15,000 | ×12 | A soft pastel of its biome (mint, blush, peach, ice blue, butter, lavender) |
-   | Piebald | 1 in 15,000 | ×12 | Crisp white patches over its own colors (`assets/textures/piebald_spots.png`, uploaded like the Galaxy sky) |
-   | Iridescent | 1 in 100,000 | ×40 | Pearl body whose sheen drifts slowly through soft hues (the rarest roll in the game) |
+   | Albino | 1 in 10,000 | ×10 | Snow-white coat that keeps its fur detail, pink skin in the creases, pale element, ruby-red eyes |
+   | Melanistic | 1 in 10,000 | ×10 | Jet-black coat with its pattern ghosting through; the element and eyes blaze against it |
+   | Piebald | 1 in 15,000 | ×12 | White patches laid out like a real animal's: face, chest and paws first, the spine keeps its color |
+   | Chimera | 1 in 15,000 | ×12 | Split down the middle: its normal self on one side, the opposite on the other, one odd-colored eye |
+   | Iridescent | 1 in 100,000 | ×40 | An oil-slick film whose colors follow the body's curves; in game it also drifts slowly (the rarest roll in the game) |
 
-   - **One clean treatment each**, in the style of the finish sheet, plus a thin ring in the mutation's accent color round the rarity halo (readable across a base), its name in that color on the nameplate and in the Creatures menu, and a few soft glints. No outlines or particle clouds.
-   - **On a finish** the texture is already gone, so the mutation shifts the finish's color instead: a black-gold Melanistic, a white-gold Albino, a pale Leucistic. Piebald patches and a lighter Iridescent sheen go over any finish.
+   - **Skins, not paint** (owner, 2026-10-01: "immensely more detail... Albino needs red eyes"; v2 approved the same day, Chimera replacing Leucistic, which read as a paler Albino). Finishes change what a creature is made of; mutations change how it was born. Each mutation is a texture made offline from the model's own texture (`tools/mutations/`): the patterns are laid out on the 3D body (no seams), and the eyes are picked on face renders and recolored on purpose. In game they live in `ReplicatedStorage.MutationSkins.<Model>.<Mutation>` (a SurfaceAppearance, or an image id for a plain MeshPart). A model without its skins falls back to the v1 solid looks (Leucistic saves became Chimera).
+   - Plus a thin ring in the mutation's accent color round the rarity halo (readable across a base), its name in that color on the nameplate and in the Creatures menu, and a few soft glints. No outlines or particle clouds.
+   - **On a finish** the texture is already gone, so the mutation shifts the finish's color instead: a black-gold Melanistic, a white-gold Albino. Piebald patches and a lighter Iridescent sheen go over any finish.
    - **Hype:** every mutated hatch is announced to the whole server with its odds ("🧬 Connor hatched an ALBINO Emberlynx! (1 in 10,000)"), the hatch reveal gives it a banner and a second flash in its accent color, and the first one earns the "One in Ten Thousand" achievement (3,000 XP, 5 spins).
    - The odds panel lists them before purchase (paid random items). Rerun the economy sim after changing them; the 2026-10-01 rework moved pacing by about a day at most.
 3. **Finishes**, the flashy layer. Each is a material and particle swap, so no new models are needed:
@@ -191,28 +192,37 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
   - Hidden **Mythic and rarer** creatures give themselves away with a burst of sparkles in their rarity color every ~12 s, so an ultra-rare is never hidden for good.
   - Hiding spots aren't auto-filled and Rarest up top leaves them alone; moving a creature in or out isn't allowed while an intruder is in the base.
 - **Decor** (pads; switch each on or off at the terminal; `BaseDecor.luau`): Camp Supplies 15K, Wall Torches 40K, Campfire 150K, Flower Planters 600K, Banners 2.5M (theme colors), Training Yard 8M, Stone Well 40M, Lantern Path 150M, Fountain 900M, Guardian Statues 4B (stone statues of your two rarest creatures by the gate), Moat & Drawbridge 30B, Royal Gold Trim 350B (base 5).
-- **Castle Designer** (owner, 2026-10-01: "ice, fire, light, dark, red, blue, green, rainbow, tons of combos"; `Config/CastleDesigns.luau`, Base menu at the terminal). It replaced the nine fixed base themes. A base's look is six picks that mix and match:
-  - **Stone** (walls, towers, keep): Classic (gray, pale and gold at the Citadel), Mossy 25K, Sandstone 120K, Basalt 30M, Obsidian 120M, Ice 6B, Storm Slate 600B, Moonstone 60T; Fortress Stone 2B (Second Floor), Marble 150B (Top Floor), Royal Granite 1T (all 4 vaults).
-  - **Roofs** and **Banners** (the same 14 colors each): Blue, Red and Green free; Sunflower 40K, Lagoon Teal 150K, Coral Pink 250K, Ember Orange 30M, Charcoal 60M, Snow White 6B, Ice Blue 8B, Thunder Yellow 600B, Void Purple 60T; Gold foil 400B (base 5).
-  - **Glow** (laser gate, vault doors, spire and royal crystals): Laser Red free, Toxic 50K, Ocean 150K, Fire 30M, Ice 6B, Light 8B (base 4), Lightning 600B, Dark 60T, Royal Gold 1T (all 4 vaults).
-  - **Floor:** Wood free, Sand 100K, Basalt 25M, Glacier 5B, Slate 500B, Moon Pebble 50T; Cobblestone 1B, Marble 100B, Dark Granite 800B (floors and vaults as above).
-  - **Grounds** (the plants and rocks round the walls): Forest free, Meadow 60K, Coral Shore 100K, Volcanic 25M, Frozen 5B, Stormy Crags 500B, Lunar 50T; Rocky 1B, Crystal Garden 150B.
-  - **Rebirth ladder** (owner, 2026-10-01: "the more desirable and harder to get ones should require multiple rebirths to generate return players"). The flashiest looks unlock one rebirth at a time, each priced near that rebirth's own cost so it is a second sink:
+- **Castle Designer** (owner, 2026-10-01: "ice, fire, light, dark, red, blue, green, rainbow, tons of combos"; `Config/CastleDesigns.luau`, Base menu at the terminal). It replaced the nine fixed base themes. A base's look is seven picks that mix and match (prices repriced 2026-10-02 from the economy sim: late options cost tens of hours of income, never a thousand):
+  - **Stone** (walls, towers, keep): Classic free, Mossy 25K, Sandstone 120K, Basalt 30M, Obsidian 120M, Ice 6B, Storm Slate 12B, Moonstone 90B; Fortress Stone 2B, Marble 10B, Royal Granite 30B (base progress).
+  - **Roofs** and **Banners** (the same colors each): Royal Blue, Crimson and Forest Green free; Sunflower 40K, Lagoon Teal 150K, Coral Pink 250K, Ember Orange 30M, Charcoal 60M, Snow White 6B, Ice Blue 8B, Thunder Yellow 10B, Gold foil 50B, Void Purple 70B.
+  - **Glow** (laser gate, vault doors, spire and royal crystals): Laser Red free, Toxic Green 50K, Ocean 150K, Fire 30M, Ice 6B, Light 8B, Lightning 12B, Royal Gold 30B (base), Dark 80B.
+  - **Floor:** Wood free, Sand 100K, Basalt 25M, Glacier 5B, Slate 10B, Moon Pebble 60B; Cobblestone 1B, Marble 8B, Dark Granite 25B (base).
+  - **Grounds** (the plants and rocks round the walls): Forest free, Meadow 60K, Coral Shore 100K, Volcanic 25M, Frozen 5B, Stormy Crags 10B, Lunar 60B; Rocky 1B, Crystal Garden 10B (base).
+  - **Theme** (owner, 2026-10-01/02: themes "need physical assets that add a feeling of I earned this", and must look "exactly like" the approved concepts `assets/tripo/concepts/Theme*.png`; late ones "should take quite a while to earn... 1000 hours is too long though"). A kit of real 3D pieces built onto the castle (`src/server/CastleKits.luau`): Green Hold 25M, Coral Fort 150M, Fire Keep 2B, Ice Castle 15B, Storm Spire 75B, Moon Palace 750B, then Golden Palace 5T (rebirth 3), Diamond Citadel 16T (rebirth 5) and Void Throne 30T (rebirth 6). Each kit brings:
+    - a **cap** on every tower in place of the roof (shell spire, obsidian spire, ice spire, tesla coil, gold spire, diamond crown, void crystals) or a finial (Moon crescents), ringed by six **growths** on the crown;
+    - **growths** along every battlement and the keep's (coral in six tints from one pale model plus fan and tube shapes, obsidian spikes, ice crystals, mushrooms, lightning rods, diamond and void crystals), with plaques on the walls (Coral starfish);
+    - **hanging banners** on the towers with an emblem glowing in the theme's light, and a **band of another stone** round the walls' and towers' feet (Coral's blue-gray, Fire's glowing cracked lava, Golden's marble, Moss's mossy stone);
+    - its **light** everywhere: sconces every 8 studs, glowing window slits, a light in each tower crown, themed flames in the braziers and torches, and a **glowing raised portcullis**;
+    - the **gatehouse** dressing: twin braziers on its towers (Coral's clam shells), growths, a crest or arch over the gate (dragon head, ice arch, crescent arch, crown shield, diamond crest), statues (Golden's lions), a red carpet (Golden);
+    - the **ground** round the castle in the theme (sand, basalt, snow, slate, moss, pebble, marble) and **basins** hugging the front towers (tide pools, a lava lake, ice, a swamp), with clusters at the tower feet (anemone rocks, lava rocks, ice crystals, roots, rune pillars);
+    - **set pieces:** Moss's giant trees and vines, Fire's lava falls, Ice's icicles and snow drifts, Storm's lightning arcing between the coils, thunder-stones and a storm cloud, Moon's floating crystals, giant crescent and violet mist, Void's portal, runes and floating shards, plus each theme's drifting particles. `CastleFxController` animates the floating pieces, the arcs, the portal and the storm flashes near the camera.
+    - Every piece has a part-built stand-in or is skipped, so a castle still reads as its theme before the models are imported. The non-gold pieces lose their metalness map on import (`organize_imports.luau`): metal reflected the sky and turned the pearly shell spires navy.
+  - **Rebirth ladder** (owner, 2026-10-01: "the more desirable and harder to get ones should require multiple rebirths to generate return players"). The flashiest looks unlock one rebirth at a time:
     | Rebirth | Unlocks | Price |
     |---|---|---|
-    | 1 | Molten roofs and banners (glowing neon) | 1T each |
-    | 2 | Rainbow roofs and banners (the color cycles) | 2.5T each |
-    | 3 | Solid Gold stone; Gold Tiles floor | 6T; 4T |
-    | 4 | Diamond roofs and banners (foil); Rainbow glow | 10T each; 15T |
-    | 5 | Diamond stone; Diamond floor | 40T; 25T |
-    | 6 | Void Steel stone; Void Glow roofs and banners (neon) | 100T each |
+    | 1 | Molten roofs and banners (glowing neon) | 500B each |
+    | 2 | Rainbow roofs and banners (the color cycles) | 1.5T each |
+    | 3 | Solid Gold stone; Gold Tiles floor; Golden Palace theme | 3T; 2T; 5T |
+    | 4 | Diamond roofs and banners (foil); Rainbow glow | 5T each; 6T |
+    | 5 | Diamond stone; Diamond floor; Diamond Citadel theme | 10T; 6T; 16T |
+    | 6 | Void Steel stone; Void Glow roofs and banners (neon); Void Throne theme | 15T; 12T each; 30T |
     - The rebirth stones (Solid Gold, Diamond, Void Steel) also twinkle on the towers.
     - The Rebirth menu shows what the next rebirth unlocks, and rebirthing announces it.
     - Simulated pace (150 days, free to play): a 3 h/day player reaches rebirth 1 around day 41, rebirth 3 around day 60 and rebirth 5 around day 117; an 8 h/day player reaches them around days 22, 33 and 60, and rebirth 6 around day 92. Rebirth 6 is the long-term goal, and more steps can be added above it later.
   - Biome options open with that biome's eggs (Mossvale, Coral, Magma, Frost, Storm, Moonfall), the rest with base progress or a rebirth. Each is bought once and can be picked freely after; free options count as owned.
-  - **16 presets** set every slot at once and buy whatever is missing in one payment (all of it must be unlocked): Classic, Red Bastion, Green Hold, Coral Fort, Fire Keep, Ice Castle, Light Citadel, Storm Spire, Dark Fortress, Moon Palace, Royal Vault, then the rebirth ones: Molten Keep (1), Golden Palace (3), Rainbow Castle (4), Diamond Citadel (5) and Void Throne (6).
+  - **16 presets** set every slot at once and buy whatever is missing in one payment (all of it must be unlocked): Classic, Red Bastion, Green Hold, Coral Fort, Fire Keep, Ice Castle, Light Citadel, Storm Spire, Dark Fortress, Moon Palace, Royal Vault, then the rebirth ones: Molten Keep (1), Golden Palace (3), Rainbow Castle (4), Diamond Citadel (5) and Void Throne (6). The nine theme presets match their concepts: stone, roofs, banners, glow, floor, grounds and kit together.
   - Old saves migrate: every theme a player owned becomes its stone, floor, glow and grounds options, and their active theme becomes their design (`DataService`, `fromTheme`).
-  - Preview: `bash tools/preview/run_designs.sh <dir> [Preset ...]` renders the Citadel in each preset; `bash tools/tests/run_designs.sh` checks the presets, options and unlocks.
+  - Preview: `bash tools/preview/run_designs.sh <dir> [Preset ...]` renders the Citadel in each preset with the kits' real models where their GLBs are on disk (`NIGHT=1 VIEW=front` matches the concepts' camera and light); `bash tools/tests/run_designs.sh` checks the presets, options and unlocks.
 - **Servers:** 6 players per server (6 plots); set Max Players = 6 in Game Settings.
 
 ## 7. Economy (retuned 2026-09-30 for multi-week pacing; tune in playtests)

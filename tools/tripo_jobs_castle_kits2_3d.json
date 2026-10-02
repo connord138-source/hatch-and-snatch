@@ -1,0 +1,88 @@
+{
+  "jobs": [
+    {
+      "name": "CoralStarfishPlaque",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralStarfishPlaque.png"
+    },
+    {
+      "name": "CoralPearlLantern",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralPearlLantern.png"
+    },
+    {
+      "name": "FireDragonGate",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/FireDragonGate.png"
+    },
+    {
+      "name": "IceGateArch",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/IceGateArch.png"
+    },
+    {
+      "name": "SnowDrift",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/SnowDrift.png"
+    },
+    {
+      "name": "StormLightningRod",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/StormLightningRod.png"
+    },
+    {
+      "name": "StormCloud",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/StormCloud.png"
+    },
+    {
+      "name": "MossGiantTree",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MossGiantTree.png"
+    },
+    {
+      "name": "MoonBigCrescent",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MoonBigCrescent.png"
+    },
+    {
+      "name": "GoldCrownCrest",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/GoldCrownCrest.png"
+    },
+    {
+      "name": "DiamondLantern",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/DiamondLantern.png"
+    },
+    {
+      "name": "DiamondGateCrest",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/DiamondGateCrest.png"
+    },
+    {
+      "name": "VoidPortal",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/VoidPortal.png"
+    },
+    {
+      "name": "VoidRunePillar",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/VoidRunePillar.png"
+    }
+  ]
+}

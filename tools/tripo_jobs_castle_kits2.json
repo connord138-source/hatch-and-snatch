@@ -1,0 +1,76 @@
+{
+  "jobs": [
+    {
+      "name": "KitSheet2Coral",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeCoral.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a large orange starfish and a small cluster of pink shells mounted on a round sandstone wall plaque with a flat back. Top right: a lantern made of a glowing white pearl orb held up by curling pink coral branches on a small sandstone base. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Fire",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeFire.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a huge black iron dragon skull crest with long curling horns and glowing orange eyes, flat back, made to mount above a castle gate. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Ice",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeIce.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a tall gate arch built from faceted pale blue ice crystals framing a completely empty opening, flat front and back. Top right: a soft rounded snow drift mound with a few small ice shards poking out. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Storm",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeStorm.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a tall copper lightning rod with a sharp pointed tip and a coil near the top, on a small square stone mount. Top right: a puffy dark storm cloud with a glowing yellow lightning bolt coming out of its underside. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Moss",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeMoss.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a huge ancient tree with a thick twisted trunk, wide mossy roots, hanging vines and a broad green leafy canopy. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Moon",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeMoon.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a large glowing pale silver crescent moon sculpture standing upright, smooth, with a few small star sparkles. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Golden",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeGolden.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a golden royal crest: a jeweled gold crown above a red shield with gold trim, flat back, made to mount above a castle gate. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Diamond",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeDiamond.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a white-and-gold lantern post holding one large clear faceted diamond, a solid object with no glow halo. Top right: a crest of clear faceted diamonds set in a white marble and gold frame, flat back, made to mount above a castle gate. Leave the other quarters empty."
+    },
+    {
+      "name": "KitSheet2Void",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeVoid.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a standing circular portal ring of dark void steel etched with glowing violet runes, a swirling violet vortex inside. Top right: a tall dark obelisk pillar etched with glowing violet runes, with a jagged broken top. Leave the other quarters empty."
+    }
+  ]
+}

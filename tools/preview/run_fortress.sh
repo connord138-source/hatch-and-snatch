@@ -12,10 +12,15 @@ for level in 1 2 3 4 5; do
 		grep -v '^return true$' ../tests/stub.luau
 		grep -v '^return true$' world_stub.luau
 		grep -v '^return true$' plot_context.luau
+		grep -v '^return true$' props_stub.luau
+		echo 'local CastleKits = (function()'
+		grep -v '^--!strict' ../../src/server/CastleKits.luau | sed 's#require(script.Parent.Props)#PreviewProps#'
+		echo 'end)()'
 		echo 'local Fortress = (function()'
 		grep -v '^--!strict' ../../src/server/Fortress.luau \
 			| sed 's#require(ReplicatedStorage.Shared.Config)#{}#' \
-			| sed 's#require(script.Parent.Props)#{ template = function() return nil end, spawn = function() return nil end }#'
+			| sed 's#require(script.Parent.CastleKits)#CastleKits#' \
+			| sed 's#require(script.Parent.Props)#PreviewProps#'
 		echo 'end)()'
 		cat <<LUA
 local root = Instance.new("Folder")

@@ -257,6 +257,7 @@ export type BaseTheme = {
 	-- models (whose textures carry the Classic look)
 	customTowers: boolean?,
 	sparkle: Color3?, -- the Castle Designer's rebirth stones twinkle on the towers
+	kit: string?, -- the Castle Designer's theme kit (server CastleKits)
 }
 local themes: { BaseTheme } = {
 	{

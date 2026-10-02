@@ -15,6 +15,7 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local CastleKits = require(script.Parent.CastleKits)
 local Props = require(script.Parent.Props)
 
 export type Layout = {
@@ -327,7 +328,7 @@ local function coneRoof(
 	color: Color3,
 	pale: boolean
 )
-	local steps = 5
+	local steps = 10 -- fine steps read as a smooth cone from a distance
 	for i = 0, steps - 1 do
 		local d = diameter * (1 - i / steps) + 0.4
 		column(folder, base * CFrame.new(0, i * height / steps, 0), d, height / steps + 0.05, {
@@ -367,8 +368,18 @@ local function flag(folder: Instance, top: CFrame, color: Color3)
 end
 
 -- A tower standing at `base` (plot-local frame on the ground, -Z facing outward).
-local function tower(folder: Instance, base: CFrame, style: Style, look: Look, models: boolean)
+-- Returns where its tip is, for a theme kit's lightning and floating pieces.
+local function tower(
+	folder: Instance,
+	base: CFrame,
+	style: Style,
+	look: Look,
+	models: boolean,
+	kit: CastleKits.Kit?
+): CastleKits.TowerSpot
 	local r, h = style.towerRadius, style.towerHeight
+	local spot: CastleKits.TowerSpot =
+		{ base = base, radius = r, height = h, tip = base * CFrame.new(0, h + 3, 0) }
 	if models and style.towerProp and Props.template("WorldProps", style.towerProp) then
 		local roof = if style.tower == "roofed" or style.tower == "spire" then r * 2.4 else 0
 		local model = Props.spawn(style.towerProp, base, h + roof, folder)
@@ -379,7 +390,8 @@ local function tower(folder: Instance, base: CFrame, style: Style, look: Look, m
 				Transparency = 1,
 				CanQuery = false,
 			})
-			return
+			spot.tip = base * CFrame.new(0, h + roof, 0)
+			return spot
 		end
 	end
 	if style.tower == "wood" then
@@ -450,7 +462,8 @@ local function tower(folder: Instance, base: CFrame, style: Style, look: Look, m
 			Material = Enum.Material.Fabric,
 			Color = look.flag,
 		})
-		return
+		spot.tip = base * CFrame.new(0, h + 6, 0)
+		return spot
 	end
 	-- Stone towers: a round body, a wider crown with battlements, window slits
 	local pale = style.pale
@@ -485,6 +498,43 @@ local function tower(folder: Instance, base: CFrame, style: Style, look: Look, m
 			Color = Color3.fromRGB(25, 22, 30),
 		})
 	end
+	if pale or kit then
+		-- Banners hanging on the tower's outer faces (every theme concept has them):
+		-- the banner color, a pointed foot, a gold rod, an emblem in the theme's light
+		local width, long = r * 0.78, h * 0.3
+		for _, angle in { -50, 50 } do
+			local face = base * CFrame.Angles(0, math.rad(angle), 0) * CFrame.new(0, h * 0.56, -(r + 0.1))
+			trim(folder, {
+				Name = "TowerBanner",
+				Size = Vector3.new(width, long, 0.12),
+				CFrame = face,
+				Material = Enum.Material.Fabric,
+				Color = look.flag,
+			})
+			local tip = width / math.sqrt(2)
+			trim(folder, {
+				Name = "TowerBanner",
+				Size = Vector3.new(tip, tip, 0.11),
+				CFrame = face * CFrame.new(0, -long / 2, 0) * CFrame.Angles(0, 0, math.rad(45)),
+				Material = Enum.Material.Fabric,
+				Color = look.flag,
+			})
+			trim(folder, {
+				Name = "BannerRod",
+				Size = Vector3.new(width + 0.6, 0.28, 0.28),
+				CFrame = face * CFrame.new(0, long / 2 + 0.1, -0.06),
+				Material = Enum.Material.Foil,
+				Color = GOLD,
+			})
+			trim(folder, {
+				Name = "BannerEmblem",
+				Size = Vector3.new(width * 0.38, width * 0.38, 0.06),
+				CFrame = face * CFrame.new(0, long * 0.12, -0.08) * CFrame.Angles(0, 0, math.rad(45)),
+				Material = if kit then Enum.Material.Neon else Enum.Material.Foil,
+				Color = if kit then kit.light else GOLD,
+			})
+		end
+	end
 	if pale then
 		for _, y in { h * 0.33, h * 0.66, h - 0.6 } do
 			column(folder, base * CFrame.new(0, y, 0), r * 2 + 0.3, 0.5, {
@@ -496,14 +546,25 @@ local function tower(folder: Instance, base: CFrame, style: Style, look: Look, m
 			})
 		end
 	end
+	local roofBase = base * CFrame.new(0, h + 1.6, 0)
+	-- A theme kit's cap replaces the roof (from the Keep up, so the plain stone
+	-- towers get one too)
+	local capTip = if kit then CastleKits.cap(folder, kit, roofBase, r) else nil
+	if capTip then
+		spot.tip = capTip
+		return spot
+	end
 	if style.tower == "stone" then
-		return
+		spot.tip = base * CFrame.new(0, h + 2.4, 0)
+		return spot
 	end
 	local roofHeight = r * (if pale then 3 else 2.2)
-	local roofBase = base * CFrame.new(0, h + 1.6, 0)
 	coneRoof(folder, roofBase, r * 2 + 1.6, roofHeight, look.roof, pale)
 	local top = roofBase * CFrame.new(0, roofHeight, 0)
-	if pale then
+	spot.tip = top
+	if kit and kit.finial then
+		CastleKits.finial(folder, kit, top, r)
+	elseif pale then
 		-- A glowing crystal on the very tip
 		local crystal = trim(folder, {
 			Name = "SpireCrystal",
@@ -520,6 +581,7 @@ local function tower(folder: Instance, base: CFrame, style: Style, look: Look, m
 	else
 		flag(folder, top, look.flag)
 	end
+	return spot
 end
 
 -- The way in at the front: a timber arch (Camp, Stockade; WorldService's PlotArch),
@@ -530,8 +592,9 @@ local function gatehouse(
 	layout: Layout,
 	style: Style,
 	look: Look,
-	models: boolean
-)
+	models: boolean,
+	kit: CastleKits.Kit?
+): number?
 	local z = layout.front
 	local h = GATE_CLEAR + 3.5
 	local width = GATE_HALF * 2 + 9
@@ -573,51 +636,120 @@ local function gatehouse(
 				CanQuery = false,
 			})
 		end
-		return
+		return nil
 	end
+	-- Two towers flank the way in and rise well above the walls, with an
+	-- overhanging crown, merlons and arrow slits; arch corners soften the
+	-- opening (the theme concepts' gatehouse). Same footprint as the walls'
+	-- torches and colliders expect: 4.5 wide, the wall's depth plus 2.
+	local depth = layout.thickness + 2
+	local top = layout.height + 6
+	local dark = look.color:Lerp(Color3.new(0, 0, 0), 0.08)
+	local light = look.color:Lerp(Color3.new(1, 1, 1), 0.12)
 	for _, side in { -1, 1 } do
+		local x = side * (GATE_HALF + 2.25)
 		part(folder, {
 			Name = "GatePillar",
-			Size = Vector3.new(4.5, h, layout.thickness + 2),
-			CFrame = base * CFrame.new(side * (GATE_HALF + 2.25), h / 2, 0),
+			Size = Vector3.new(4.5, top - 2.4, depth),
+			CFrame = base * CFrame.new(x, (top - 2.4) / 2, 0),
 			Material = look.material,
-			Color = look.color:Lerp(Color3.new(0, 0, 0), 0.08),
+			Color = dark,
 		})
-		for _, dz in { -1, 1 } do
+		part(folder, {
+			Name = "GateCrown",
+			Size = Vector3.new(5.6, 2.4, depth + 1),
+			CFrame = base * CFrame.new(x, top - 1.2, 0),
+			Material = look.material,
+			Color = look.color,
+		})
+		trim(folder, {
+			Name = "GateTrim",
+			Size = Vector3.new(5.9, 0.5, depth + 1.3),
+			CFrame = base * CFrame.new(x, top - 2.4, 0),
+			Material = if style.pale then Enum.Material.Foil else look.material,
+			Color = if style.pale then GOLD else light,
+		})
+		for _, mx in { -1, 0, 1 } do
+			for _, mz in { -1, 1 } do
+				trim(folder, {
+					Name = "Merlon",
+					Size = Vector3.new(1.4, 1.8, 1.4),
+					CFrame = base * CFrame.new(x + mx * 2.1, top + 0.9, mz * (depth / 2 - 0.2)),
+					Material = look.material,
+					Color = look.color,
+				})
+			end
+		end
+		for _, y in { (top - 2.4) * 0.42, (top - 2.4) * 0.72 } do
 			trim(folder, {
-				Name = "Merlon",
-				Size = Vector3.new(1.6, 1.8, 1.6),
-				CFrame = base
-					* CFrame.new(side * (GATE_HALF + 2.25) + dz * 1.4, h + 0.9, -(layout.thickness / 2 + 0.6)),
-				Material = look.material,
-				Color = look.color,
+				Name = "WindowSlit",
+				Size = Vector3.new(0.7, 2.2, 0.4),
+				CFrame = base * CFrame.new(x, y, -(depth / 2) + 0.15),
+				Material = Enum.Material.SmoothPlastic,
+				Color = Color3.fromRGB(25, 22, 30),
 			})
 		end
+		-- An arch corner where the opening meets the lintel
+		trim(folder, {
+			Name = "GateArch",
+			Size = Vector3.new(2.6, 2.6, depth - 0.4),
+			CFrame = base * CFrame.new(side * GATE_HALF, GATE_CLEAR, 0) * CFrame.Angles(0, 0, math.rad(45)),
+			Material = look.material,
+			Color = look.color,
+		})
 	end
 	trim(folder, {
 		Name = "GateLintel",
-		Size = Vector3.new(width - 9, h - GATE_CLEAR, layout.thickness + 1.6),
+		Size = Vector3.new(width - 9, h - GATE_CLEAR, depth - 0.4),
 		CFrame = base * CFrame.new(0, (GATE_CLEAR + h) / 2, 0),
 		Material = look.material,
 		Color = look.color,
 	})
 	trim(folder, {
 		Name = "GateTrim",
-		Size = Vector3.new(width + 0.2, 0.6, layout.thickness + 2.2),
+		Size = Vector3.new(width - 8.8, 0.6, depth - 0.2),
 		CFrame = base * CFrame.new(0, h + 0.3, 0),
 		Material = if style.pale then Enum.Material.Foil else look.material,
-		Color = if style.pale then GOLD else look.color:Lerp(Color3.new(1, 1, 1), 0.12),
+		Color = if style.pale then GOLD else light,
 	})
-	-- The raised portcullis: iron teeth showing under the lintel
+	for i = -1, 1 do
+		trim(folder, {
+			Name = "Merlon",
+			Size = Vector3.new(1.6, 1.8, 1.4),
+			CFrame = base * CFrame.new(i * 4.2, h + 1.5, -(depth / 2 - 0.5)),
+			Material = look.material,
+			Color = look.color,
+		})
+	end
+	-- The raised portcullis on the gate's outer face: iron teeth under the
+	-- lintel. A theme kit's glows in its light (the concepts' shining gates),
+	-- still raised so the way in reads as open
+	local teeth = if kit then 4 else 2.2
+	local faceZ = -(depth / 2) + 0.4
 	for i = -3, 3 do
 		trim(folder, {
 			Name = "Portcullis",
-			Size = Vector3.new(0.35, 2.2, 0.35),
-			CFrame = base * CFrame.new(i * 1.9, GATE_CLEAR - 0.6, 0),
-			Material = Enum.Material.Metal,
-			Color = IRON,
+			Size = Vector3.new(0.35, teeth, 0.35),
+			CFrame = base * CFrame.new(i * 1.9, GATE_CLEAR + 0.5 - teeth / 2, faceZ),
+			Material = if kit then Enum.Material.Neon else Enum.Material.Metal,
+			Color = if kit then kit.light else IRON,
 		})
 	end
+	if kit then
+		local bar = trim(folder, {
+			Name = "Portcullis",
+			Size = Vector3.new(GATE_HALF * 2 - 0.4, 0.35, 0.35),
+			CFrame = base * CFrame.new(0, GATE_CLEAR + 0.5 - teeth * 0.7, faceZ),
+			Material = Enum.Material.Neon,
+			Color = kit.light,
+		})
+		local glow = Instance.new("PointLight")
+		glow.Color = kit.light
+		glow.Range = 16
+		glow.Brightness = 1.6
+		glow.Parent = bar
+	end
+	return top
 end
 
 local function brazier(folder: Instance, base: CFrame)
@@ -689,6 +821,7 @@ function Fortress.build(
 	-- stone, blue roofs and banners) in their textures, so a custom design builds
 	-- them from parts in its own colors instead
 	local models = not theme.customTowers
+	local kit = CastleKits.get(theme.kit)
 
 	local x, f, b, g = layout.halfW, layout.front, layout.back, layout.gateHalf
 	local runs = {
@@ -702,6 +835,7 @@ function Fortress.build(
 		wallRun(folder, origin, run[1], run[2], style, look)
 	end
 
+	local towers: { CastleKits.TowerSpot } = {}
 	if style.towers ~= "none" then
 		-- Corner towers, nudged outward so they clear the ramps inside
 		local corners = { Vector3.new(-x - 1, 0, b + 1), Vector3.new(x + 1, 0, b + 1) }
@@ -713,13 +847,14 @@ function Fortress.build(
 			-- Face outward, away from the plot's middle
 			local outward = Vector3.new(corner.X, 0, corner.Z - (f + b) / 2)
 			local base = origin * CFrame.lookAt(corner, corner + outward)
-			tower(folder, base, style, look, models)
+			table.insert(towers, tower(folder, base, style, look, models, kit))
 		end
 	end
+	local gateTop: number? = nil
 	if style.gatehouse then
-		gatehouse(folder, origin, layout, style, look, models)
+		gateTop = gatehouse(folder, origin, layout, style, look, models, kit)
 	end
-	if style.braziers then
+	if style.braziers and kit == nil then -- a kit brings its own (CastleKits.dress)
 		for _, side in { -1, 1 } do
 			brazier(folder, origin * CFrame.new(side * (g + 8), 0, f - 8.5)) -- clear of a moat (BaseDecor)
 		end
@@ -730,6 +865,11 @@ function Fortress.build(
 	for _, descendant in folder:GetDescendants() do
 		if descendant:IsA("BasePart") and descendant.Name == "Tower" and theme.sparkle then
 			twinkle(descendant, theme.sparkle)
+		end
+		if kit and descendant:IsA("BasePart") and descendant.Name == "WindowSlit" then
+			-- A themed castle's windows glow in its light
+			descendant.Material = Enum.Material.Neon
+			descendant.Color = kit.light
 		end
 		if descendant:IsA("BasePart") then
 			local kind = if descendant.Name == "Roof"
@@ -761,6 +901,27 @@ function Fortress.build(
 				CollectionService:AddTag(descendant, "Rainbow")
 			end
 		end
+	end
+	if kit then
+		local plotRuns: { { a: Vector3, b: Vector3 } } = {}
+		for _, run in runs do
+			table.insert(plotRuns, { a = run[1], b = run[2] })
+		end
+		CastleKits.dress(folder, kit, {
+			origin = origin,
+			halfW = x,
+			front = f,
+			back = b,
+			gateHalf = g,
+			height = layout.height,
+			thickness = layout.thickness,
+			stone = style.wall == "stone",
+			level = level,
+			gateTop = gateTop,
+			gateDepth = layout.thickness + 2,
+			towers = towers,
+			runs = plotRuns,
+		})
 	end
 	folder.Parent = parent
 	return layout

@@ -46,6 +46,8 @@ C.__index = function(c, k)
 		end
 	end
 	if k == "PointToObjectSpace" then return function(self, v) return self:Inverse() * v end end
+	if k == "VectorToWorldSpace" then return function(self, v) return rotv(self.r, v) end end
+	if k == "PointToWorldSpace" then return function(self, v) return self * v end end
 	if k == "ToObjectSpace" then return function(self, o) return self:Inverse() * o end end
 	return nil
 end
@@ -65,5 +67,5 @@ local function rx(t) local c, s = math.cos(t), math.sin(t); return cf(vec(0,0,0)
 local function ry(t) local c, s = math.cos(t), math.sin(t); return cf(vec(0,0,0), { x = vec(c,0,-s), y = vec(0,1,0), z = vec(s,0,c) }) end
 local function rz(t) local c, s = math.cos(t), math.sin(t); return cf(vec(0,0,0), { x = vec(c,s,0), y = vec(-s,c,0), z = vec(0,0,1) }) end
 CFrame.Angles = function(x, y, z) return rx(x) * ry(y) * rz(z) end
-CFrame.fromMatrix = function(p, right, up, back) return cf(p, { x = right, y = up, z = back }) end
+CFrame.fromMatrix = function(p, right, up, back) return cf(p, { x = right, y = up, z = back or right:Cross(up) }) end
 return true

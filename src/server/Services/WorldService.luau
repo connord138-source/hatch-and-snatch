@@ -16,6 +16,7 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Props = require(script.Parent.Parent.Props)
 local SetPieces = require(script.Parent.Parent.SetPieces)
+local CastleKits = require(script.Parent.Parent.CastleKits)
 local Fortress = require(script.Parent.Parent.Fortress)
 local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
 local Landmarks = require(script.Parent.Parent.Landmarks)
@@ -1283,6 +1284,31 @@ end
 
 -- Shows the floors, vault rooms and pedestals a base has: `floors` counts the
 -- ground, `vaults` the vault rooms bought (Config.Economy.slots).
+-- A theme kit's growths on the keep's battlements (the ones that show), rebuilt
+-- whenever the theme or the floors change.
+local function dressKeep(plot: PlotLayout)
+	local existing = plot.model:FindFirstChild("KeepKit")
+	if existing then
+		existing:Destroy()
+	end
+	local kitId = plot.model:GetAttribute("Kit")
+	local kit = CastleKits.get(if typeof(kitId) == "string" then kitId else nil)
+	if kit == nil then
+		return
+	end
+	local tops: { CFrame } = {}
+	for _, entry in plot.floorPieces do
+		local p = entry.part
+		if p.Name == "Merlon" and p.Transparency < 1 then
+			table.insert(tops, p.CFrame * CFrame.new(0, p.Size.Y / 2, 0))
+		end
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "KeepKit"
+	CastleKits.dressKeep(folder, kit, tops)
+	folder.Parent = plot.model
+end
+
 function WorldService.setFloors(plot: PlotLayout, floors: number, vaults: number)
 	plot.floors = floors
 	for _, entry in plot.floorPieces do
@@ -1302,6 +1328,7 @@ function WorldService.setFloors(plot: PlotLayout, floors: number, vaults: number
 		end
 		showDoor(room)
 	end
+	dressKeep(plot)
 	local shownSlots: { [number]: boolean } = {}
 	for _, slot in Config.Economy.slots(plot.level, floors, vaults) do
 		shownSlots[slot] = true
@@ -1462,6 +1489,7 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	end
 	plot.model:SetAttribute("Theme", theme.id)
 	plot.model:SetAttribute("ThemeLevel", plot.level)
+	plot.model:SetAttribute("Kit", theme.kit)
 	plot.floor.Material = theme.floorMaterial
 	plot.floor.Color = theme.floorColor
 	for _, trim in plot.trim do
@@ -1498,6 +1526,7 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	for _, room in plot.vaults do
 		glow(room.door)
 	end
+	dressKeep(plot)
 
 	-- The fortress around the plot follows the level and takes the theme's colors
 	local layout =

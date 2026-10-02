@@ -17,6 +17,8 @@ import mathutils
 argv = sys.argv[sys.argv.index("--") + 1 :]
 DIR = os.path.abspath(argv[0])
 VIEW = argv[1] if len(argv) > 1 else "aerial"
+NIGHT = os.environ.get("NIGHT") == "1"
+PROPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../assets/tripo/props"))
 
 M = mathutils.Matrix(((1, 0, 0), (0, 0, -1), (0, 1, 0)))  # Roblox (x, y, z) -> Blender (x, -z, y)
 
@@ -65,10 +67,189 @@ def base_meshes():
     return meshes
 
 
+GLB_CACHE = {}
+TINTED = {}
+# Theme kit pieces whose Tripo metalness map is stripped on import
+# (tools/studio/organize_imports.luau): metal reflects a dark sky and turned the
+# pearly shell spires navy. The gold pieces stay metal.
+KIT_PREFIXES = ("Coral", "Fire", "Ice", "Storm", "Moss", "Moon", "Diamond", "Void", "Snow")
+ZONE_PROPS = {"CoralCluster", "IceSpire", "IceArch", "MoonMonolith"}
+
+
+def strip_metal(mesh):
+    for mat in mesh.materials:
+        if mat is None or not mat.use_nodes:
+            continue
+        for node in mat.node_tree.nodes:
+            if node.type == "BSDF_PRINCIPLED":
+                for link in list(node.inputs["Metallic"].links):
+                    mat.node_tree.links.remove(link)
+                node.inputs["Metallic"].default_value = 0.0
+
+
+def tinted(name, mesh, tint):
+    """Copies of a model's materials with the base color multiplied by `tint`
+    (SurfaceAppearance.Color in game)."""
+    key = (name, tint)
+    if key in TINTED:
+        return TINTED[key]
+    out = []
+    for mat in mesh.materials:
+        if mat is None:
+            out.append(None)
+            continue
+        copy = mat.copy()
+        tree = copy.node_tree
+        for node in list(tree.nodes):
+            if node.type != "BSDF_PRINCIPLED":
+                continue
+            base = node.inputs["Base Color"]
+            if not base.links:
+                base.default_value = (*[c ** 2.2 for c in tint], 1)
+                continue
+            source = base.links[0].from_socket
+            mult = tree.nodes.new("ShaderNodeVectorMath")
+            mult.operation = "MULTIPLY"
+            mult.inputs[1].default_value = tuple(c ** 2.2 for c in tint)
+            tree.links.new(source, mult.inputs[0])
+            tree.links.new(mult.outputs[0], base)
+        out.append(copy)
+    TINTED[key] = out
+    return out
+
+
+def glb(name):
+    """Imports assets/tripo/props/<name>.glb once: (mesh data centered on its box, Roblox extents)."""
+    if name in GLB_CACHE:
+        return GLB_CACHE[name]
+    path = os.path.join(PROPS_DIR, name + ".glb")
+    if not os.path.exists(path):
+        GLB_CACHE[name] = None
+        return None
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    new = [o for o in bpy.data.objects if o not in before]
+    meshes = [o for o in new if o.type == "MESH"]
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in meshes:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
+    if len(meshes) > 1:
+        bpy.ops.object.join()
+    obj = bpy.context.view_layer.objects.active
+    obj.data.transform(obj.matrix_world)
+    obj.matrix_world = mathutils.Matrix.Identity(4)
+    vs = [v.co for v in obj.data.vertices]
+    mn = mathutils.Vector((min(v.x for v in vs), min(v.y for v in vs), min(v.z for v in vs)))
+    mx = mathutils.Vector((max(v.x for v in vs), max(v.y for v in vs), max(v.z for v in vs)))
+    obj.data.transform(mathutils.Matrix.Translation(-(mn + mx) / 2))
+    # Studio's importer turns a GLB half round (glTF -Z faces Roblox +Z: the
+    # waterfall cliff poured away from the hub until it was turned), so do the same
+    obj.data.transform(mathutils.Matrix.Rotation(math.pi, 4, "Z"))
+    ext = mx - mn
+    data = obj.data
+    if name.startswith(KIT_PREFIXES) and name not in ZONE_PROPS:
+        strip_metal(data)
+    for o in new:
+        bpy.data.objects.remove(o, do_unlink=True)
+    GLB_CACHE[name] = (data, (ext.x, ext.z, ext.y))  # Roblox X, Y (up), Z
+    return GLB_CACHE[name]
+
+
+def place_prop(f):
+    name, mode = f[1], f[2]
+    got = glb(name)
+    if got is None:
+        return
+    data, ext = got
+    pos = mathutils.Vector([float(v) for v in f[3].split(",")])
+    right, up, back = (mathutils.Vector([float(v) for v in f[i].split(",")]) for i in (4, 5, 6))
+    size = [float(v) for v in f[7].split(",")]
+    rot = mathutils.Matrix((right, up, back)).transposed()
+    if mode == "height":
+        scale = size[1] / max(ext[1], 1e-4)
+        centre = pos + rot @ mathutils.Vector((0, size[1] / 2, 0))
+    else:
+        scale = min(size[0] / max(ext[0], 1e-4), size[1] / max(ext[1], 1e-4), size[2] / max(ext[2], 1e-4))
+        centre = pos
+    world = (M @ rot @ M.inverted()).to_4x4()
+    world.translation = M @ centre
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.scene.collection.objects.link(obj)
+    obj.matrix_world = world @ mathutils.Matrix.Scale(scale, 4)
+    if len(f) > 8 and f[8]:
+        tint = tuple(round(float(v), 3) for v in f[8].split(","))
+        for slot, mat in zip(obj.material_slots, tinted(name, data, tint)):
+            slot.link = "OBJECT"
+            slot.material = mat
+
+
+def add_light(f, count):
+    pos = mathutils.Vector([float(v) for v in f[1].split(",")])
+    color = [float(v) for v in f[2].split(",")]
+    rng = float(f[3])
+    ld = bpy.data.lights.new(f"KitLight{count}", "POINT")
+    ld.energy = rng * rng * (5 if NIGHT else 2.5)
+    ld.color = color
+    ld.shadow_soft_size = 0.5
+    ld.use_shadow = False  # dozens of shadowed lights take many minutes on a CPU render
+    lo = bpy.data.objects.new(f"KitLight{count}", ld)
+    bpy.context.scene.collection.objects.link(lo)
+    lo.location = M @ pos
+
+
+def add_bolt(f, meshes):
+    """A lightning bolt for a Beam (the client flickers the real one): a jagged
+    line of glowing segments between its two ends."""
+    import random
+
+    a = M @ mathutils.Vector([float(v) for v in f[1].split(",")])
+    b = M @ mathutils.Vector([float(v) for v in f[2].split(",")])
+    rnd = random.Random(hash(f[1]) & 0xFFFF)
+    mat = bpy.data.materials.get("Bolt")
+    if mat is None:
+        mat = bpy.data.materials.new("Bolt")
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes["Principled BSDF"]
+        bsdf.inputs["Base Color"].default_value = (0.9, 0.95, 1.0, 1)
+        bsdf.inputs["Emission Color"].default_value = (0.85, 0.92, 1.0, 1)
+        bsdf.inputs["Emission Strength"].default_value = 12.0
+    points = [a]
+    for i in range(1, 9):
+        t = i / 9
+        jitter = mathutils.Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1))) * 1.3
+        points.append(a.lerp(b, t) + jitter)
+    points.append(b)
+    for p, q in zip(points, points[1:]):
+        seg = q - p
+        obj = bpy.data.objects.new("Bolt", meshes["Cylinder"])
+        bpy.context.scene.collection.objects.link(obj)
+        rot = seg.to_track_quat("X", "Z").to_matrix().to_4x4()
+        rot.translation = (p + q) / 2
+        obj.matrix_world = rot @ mathutils.Matrix.Diagonal((seg.length / 2, 0.12, 0.12, 1))
+        obj.material_slots[0].link = "OBJECT"
+        obj.material_slots[0].material = mat
+
+
 def load(path, meshes, cache):
-    lights = 0
+    # A dump with its own lights (L lines: the theme kits) doesn't need the
+    # stand-in lamp over every glowing part
+    lights = 12 if any(line.startswith("L|") for line in open(path)) else 0
+    kit_lights = 0
     center = mathutils.Vector((0, 0, 0))
     for line in open(path):
+        if line.startswith("R|"):
+            place_prop(line.strip().split("|"))
+            continue
+        if line.startswith("B|"):
+            add_bolt(line.strip().split("|"), meshes)
+            continue
+        if line.startswith("L|"):
+            if kit_lights < 64:
+                add_light(line.strip().split("|"), kit_lights)
+                kit_lights += 1
+            continue
         if not line.startswith("P|"):
             continue
         f = line.strip().split("|")
@@ -95,6 +276,7 @@ def load(path, meshes, cache):
             ld = bpy.data.lights.new(name + "L", "POINT")
             ld.energy = 600
             ld.color = (1.0, 0.6, 0.3)
+            ld.use_shadow = False
             lo = bpy.data.objects.new(name + "L", ld)
             bpy.context.scene.collection.objects.link(lo)
             lo.location = M @ pos + mathutils.Vector((0, 0, 1.5))
@@ -108,10 +290,18 @@ def setup_scene():
     world = bpy.data.worlds.new("W")
     scene.world = world
     world.use_nodes = True
-    world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.55, 0.72, 0.95, 1)
-    world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.9
+    world.node_tree.nodes["Background"].inputs["Color"].default_value = (
+        (0.06, 0.08, 0.17, 1) if NIGHT else (0.55, 0.72, 0.95, 1)
+    )
+    world.node_tree.nodes["Background"].inputs["Strength"].default_value = 1.3 if NIGHT else 0.9
+    try:
+        scene.eevee.taa_render_samples = 24
+    except AttributeError:
+        pass
     sun = bpy.data.lights.new("Sun", "SUN")
-    sun.energy = 3.5
+    sun.energy = 1.0 if NIGHT else 3.5
+    if NIGHT:  # a soft moon, like the concepts: the stone still reads and the lights carry it
+        sun.color = (0.86, 0.88, 1.0)
     so = bpy.data.objects.new("Sun", sun)
     scene.collection.objects.link(so)
     so.rotation_euler = (math.radians(50), math.radians(10), math.radians(-35))
@@ -131,9 +321,32 @@ def setup_scene():
     scene.camera = cam
     cam.data.lens = 35
     target = mathutils.Vector((0, -14, 12))
-    cam.location = (-78, 118, 92) if VIEW == "aerial" else (0, 110, 25)
+    if VIEW == "front":  # the theme concepts' camera: high, square on to the gate
+        target = mathutils.Vector((0, -16, 10))
+        cam.location = (0, 108, 128)
+    else:
+        cam.location = (-78, 118, 92) if VIEW == "aerial" else (0, 110, 25)
     cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
     return scene
+
+
+def bloom(path):
+    """Soft glow round the bright parts (neon, flames, lit pools), like Roblox's Bloom."""
+    try:
+        import numpy as np
+        from PIL import Image, ImageFilter
+    except ImportError:
+        return
+    im = Image.open(path).convert("RGB")
+    a = np.asarray(im).astype(np.float32) / 255
+    lum = a.max(axis=2, keepdims=True)
+    bright = np.clip((lum - 0.62) / 0.38, 0, 1) * a
+    src = Image.fromarray((bright * 255).astype(np.uint8))
+    glow = np.zeros_like(a)
+    for radius, weight in ((4, 0.55), (14, 0.5), (36, 0.4)):
+        glow += np.asarray(src.filter(ImageFilter.GaussianBlur(radius))).astype(np.float32) / 255 * weight
+    out = 1 - (1 - a) * (1 - np.clip(glow, 0, 1))  # screen blend
+    Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8)).save(path)
 
 
 meshes_cache = None
@@ -145,6 +358,8 @@ for path in sorted(glob.glob(os.path.join(DIR, "level*.txt"))):
     out = path[:-4] + ".png"
     scene.render.filepath = out
     bpy.ops.render.render(write_still=True)
+    if NIGHT:
+        bloom(out)
     outputs.append(out)
     print("wrote", out)
 

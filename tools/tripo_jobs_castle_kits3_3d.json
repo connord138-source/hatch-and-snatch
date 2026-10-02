@@ -1,0 +1,16 @@
+{
+  "jobs": [
+    {
+      "name": "CoralFan",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralFan.png"
+    },
+    {
+      "name": "CoralTubes",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralTubes.png"
+    }
+  ]
+}
