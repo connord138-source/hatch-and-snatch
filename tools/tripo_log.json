@@ -872,6 +872,87 @@
   "task_id": "1dac1e48-c38d-40d3-a988-8632e03e3916",
   "type": "generate_image"
  },
+ "concepts/ThemeCoral": {
+  "credits": 10,
+  "files": [
+   "ThemeCoral.png"
+  ],
+  "status": "success",
+  "task_id": "39ece6bf-a07d-47f6-90f8-6fd13772cfec",
+  "type": "generate_image"
+ },
+ "concepts/ThemeDiamond": {
+  "credits": 10,
+  "files": [
+   "ThemeDiamond.png"
+  ],
+  "status": "success",
+  "task_id": "d8918113-5887-4fdc-8b59-39c4381e8cc3",
+  "type": "generate_image"
+ },
+ "concepts/ThemeFire": {
+  "credits": 10,
+  "files": [
+   "ThemeFire.png"
+  ],
+  "status": "success",
+  "task_id": "3f2032da-311b-4aed-9281-05bb7a01bd9b",
+  "type": "generate_image"
+ },
+ "concepts/ThemeGolden": {
+  "credits": 10,
+  "files": [
+   "ThemeGolden.png"
+  ],
+  "status": "success",
+  "task_id": "63561676-3e19-40e5-8b68-9b9596dc9e3d",
+  "type": "generate_image"
+ },
+ "concepts/ThemeIce": {
+  "credits": 10,
+  "files": [
+   "ThemeIce.png"
+  ],
+  "status": "success",
+  "task_id": "0465489e-1c67-4c3f-94cb-4333788fa375",
+  "type": "generate_image"
+ },
+ "concepts/ThemeMoon": {
+  "credits": 10,
+  "files": [
+   "ThemeMoon.png"
+  ],
+  "status": "success",
+  "task_id": "156fa547-e5e2-4400-a448-a71d84b8f0c6",
+  "type": "generate_image"
+ },
+ "concepts/ThemeMoss": {
+  "credits": 10,
+  "files": [
+   "ThemeMoss.png"
+  ],
+  "status": "success",
+  "task_id": "3b1f52d5-ed26-4c31-8009-2c247d4dcdff",
+  "type": "generate_image"
+ },
+ "concepts/ThemeStorm": {
+  "credits": 10,
+  "files": [
+   "ThemeStorm.png"
+  ],
+  "status": "success",
+  "task_id": "10fbcb90-bb3b-47c8-a6b3-3ab99dec5783",
+  "type": "generate_image"
+ },
+ "concepts/ThemeVoid": {
+  "credits": 10,
+  "files": [
+   "ThemeVoid.png"
+  ],
+  "status": "success",
+  "task_id": "362d072f-41d0-42c3-906f-7673440e3926",
+  "type": "generate_image"
+ },
  "concepts/Thunderhoof": {
   "credits": 5,
   "files": [

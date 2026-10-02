@@ -1,0 +1,7 @@
+{
+  "_doc": "Eye picks per model (file stem): [view, x, y, radius] in the 512 px face renders bake_maps.py makes (view 0 front, 1 and 2 turned 35 degrees, 3 and 4 turned 75). make_skins.py finds the texels under each pick and grows them to a sphere on the body.",
+  "Emberlynx": {"picks": [[0, 135, 232, 22], [0, 290, 237, 22]]},
+  "Tidalotl": {"picks": [[0, 385, 275, 28], [3, 412, 345, 28]]},
+  "Hivebadger": {"picks": [[0, 115, 210, 16], [0, 298, 213, 16]]},
+  "Quasarfox": {"picks": [[0, 108, 205, 42], [0, 320, 210, 45]]}
+}

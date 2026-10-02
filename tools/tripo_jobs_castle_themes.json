@@ -1,0 +1,76 @@
+{
+  "jobs": [
+    {
+      "name": "ThemeCoral",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a CORAL FORT from the tropical Coral Coast biome. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Sun-bleached sandstone walls crusted with barnacles and starfish. Big branching coral formations in pink, orange and teal jut out of the battlements and grow up the towers. The tower roofs are tall spiral seashell cones in pearly teal. Giant clam-shell braziers and wall sconces burn with teal flames. Strings of glowing pearls hang along the walkways, kelp-green banners with a shell emblem, a shallow tide-pool moat with glowing anemones. The themed light sources glow and cast teal-cyan light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeFire",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a FIRE KEEP from the volcanic Magma Rift biome. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Black basalt and obsidian walls veined with glowing lava cracks. Jagged black obsidian spikes jut from the battlements and tower tops. Molten lava runs in channels down the walls into a bubbling lava moat. Iron dragon-skull braziers roar with tall orange flames. Tower roofs of dark iron plates with glowing seams, ember-orange banners, floating embers and smoke. The themed light sources glow and cast fiery orange light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeIce",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as an ICE CASTLE from the frozen Frost Shelf biome. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Walls of packed snow and translucent blue ice blocks. Huge faceted ice-crystal clusters erupt from the corners and tower bases. Long icicles hang from every battlement. Tower roofs are faceted ice spires. Frozen lanterns burn with pale blue flames. Snow drifts on the walkways, frost-covered pale blue banners, a frozen moat with ice floes. The themed light sources glow and cast cold pale blue light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeStorm",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a STORM SPIRE from the Storm Peaks biome. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Dark rain-slick slate stone. Copper lightning rods and tesla-coil spires crown every tower with crackling yellow-white electric arcs leaping between them. Storm braziers burn with electric blue-and-yellow plasma. Chained floating thunder-stones hover over the walls, banners with lightning-bolt emblems, a dark storm cloud swirls above the keep. The themed light sources glow and cast electric yellow and blue light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeMoss",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a GREEN HOLD from the Mossvale Forest biome. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Old mossy stone overgrown with thick ivy and hanging vines. Giant glowing mushrooms sprout at the tower bases and along the battlements. Huge tree roots wrap around the towers. Mushroom-cap lanterns glow soft green, leafy green banners, flower boxes, fireflies drifting over a lily pond moat. The themed light sources glow and cast soft green light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeMoon",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a MOON PALACE from the Moonfall biome. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Pale lavender moonstone walls with silver trim. A glowing crescent-moon finial tops every tower. Violet void crystals float and orbit around the towers. Moonstone lanterns burn with violet flames, deep blue banners embroidered with silver star charts, a glowing crescent-moon arch over the gate, drifting star dust. The themed light sources glow and cast violet and silver light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeGolden",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a GOLDEN PALACE, a prestige look earned by rebirthing. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Walls of polished gold and white marble. Golden lion statues flank the gate. Gold-plated tower roofs with jewel finials. Gilded braziers burn with warm golden flames, rich red velvet banners with gold crowns, a red carpet up to the gate, sparkles glinting off the gold. The themed light sources glow and cast warm golden light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeDiamond",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a DIAMOND CITADEL, a prestige look earned by rebirthing. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Walls of white marble inlaid with diamond facets. Huge clear diamond crystals rise from the corners and crown every tower, splitting the light into small rainbow refractions on the stone. Crystal lanterns with brilliant white flames, pale ice-blue and gold banners, a diamond-studded gate arch. The themed light sources glow and cast brilliant white with rainbow glints light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    },
+    {
+      "name": "ThemeVoid",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_3_pro_image_preview",
+      "ref": "assets/tripo/concepts/FortressCitadel.png",
+      "prompt": "Redraw this approved Roblox castle concept from the EXACT same aerial camera with the same castle layout: the outer walls with battlements and a walkway, the four round corner towers, the stone keep in the middle with its arched floors and the creatures on pedestals, the two vault doors, the gatehouse with its glowing portcullis, the spike strip and braziers in front. Keep the Roblox-engine look (stylized semi-realistic low-poly game props, smooth shading, solid color regions, night lighting). Re-theme the whole castle as a VOID THRONE, the ultimate prestige look earned by rebirthing six times. The theme must come from PHYSICAL PROPS built onto and around the castle, not just a recolor: Dark void-steel walls etched with glowing violet runes. Shattered rock fragments float around the towers. A swirling violet void portal hovers above the keep. Spiked black crystal growths jut from the battlements. Braziers burn with violet flames, black banners with a glowing violet sigil, chains of light linking the towers. The themed light sources glow and cast deep violet light across the stonework. It should feel like an expensive, hard-earned upgrade. No text, no labels, no UI, no people."
+    }
+  ]
+}
