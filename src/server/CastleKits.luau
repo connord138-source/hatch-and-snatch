@@ -43,6 +43,7 @@ export type Kit = {
 	-- multiplies a pale texture: one pale coral model becomes pink, orange, purple...)
 	growthTints: { Color3 }?,
 	growthAlts: { string }?, -- other growth shapes mixed in (when imported)
+	bigGrowths: { string }?, -- the shapes used for the big pieces (default: all)
 	growthGlow: boolean?, -- every few growths (and the gate statues) give off the theme's light
 	plaque: string?, -- on the walls' outer faces
 	base: string?, -- at each tower's foot
@@ -91,6 +92,24 @@ export type Kit = {
 	roofDress: { name: string, count: number, scale: number }?,
 	carpetLength: number?,
 	crystalCap: boolean?, -- the caps are crystals: a glowing core and glints inside
+	-- How the growths sit on the walls (owner, 2026-10-02: the coral looked "lazily
+	-- sat upon the castle"): "clusters" grow in leaning groups at irregular spots,
+	-- sunk into the stone, with pieces out of the face too; "corners" the same,
+	-- only near the towers and the gate; "merlons" one on every other merlon
+	-- (Fire's spikes); "row" evenly along the wall (Storm's lightning rods)
+	growthMode: string?,
+	clusterSize: number?, -- pieces per cluster (default 3)
+	growthLean: number?, -- how far they lean out, degrees (default 25)
+	crownCount: number?, -- growths in the bouquet round each tower's cap (default 6)
+	gateTint: Color3?, -- the gate crest's color (the pale pieces take it)
+	-- Small pieces set into the walls' and towers' faces (Coral's starfish and
+	-- shells), one per `every` square studs, about `size` across, tinted
+	decor: { names: { string }, tints: { Color3 }, every: number, size: number }?,
+	-- Little gardens along the outside of the walls' feet (Coral's corals and
+	-- anemones), one every `every` studs
+	garden: { names: { string }, every: number }?,
+	-- A band along the walls' tops, under the battlements (Coral's sea glass)
+	wallTrim: { material: Enum.Material, color: Color3 }?,
 	effects: { [string]: boolean },
 }
 
@@ -113,7 +132,10 @@ local KITS: { [string]: Kit } = {
 		capColor = Color3.fromRGB(55, 120, 60),
 		growth = "MossMushrooms",
 		growthSize = 4.6,
-		growthEvery = 11,
+		growthEvery = 13,
+		growthMode = "clusters",
+		clusterSize = 2,
+		growthLean = 12,
 		growthGlow = true,
 		statue = "MossMushrooms", -- giant glowing mushrooms flank the gate
 		frontBrazierSize = 4.5,
@@ -160,9 +182,36 @@ local KITS: { [string]: Kit } = {
 		capScale = 3.2,
 		capColor = Color3.fromRGB(120, 200, 180),
 		growth = "CoralBranches",
-		growthAlts = { "CoralFan", "CoralTubes" },
-		growthSize = 6,
-		growthEvery = 5,
+		growthAlts = { "CoralStaghorn", "CoralStaghorn", "CoralFan", "CoralTubes" },
+		bigGrowths = { "CoralStaghorn", "CoralStaghorn", "CoralBranches" },
+		growthSize = 5.5,
+		growthEvery = 9,
+		growthMode = "clusters",
+		clusterSize = 4,
+		growthLean = 32,
+		crownCount = 11,
+		gateTint = Color3.fromRGB(255, 160, 195),
+		decor = {
+			names = { "CoralStarfish", "CoralStarfish", "CoralScallop", "CoralConch" },
+			tints = {
+				Color3.fromRGB(255, 130, 40),
+				Color3.fromRGB(255, 90, 150),
+				Color3.fromRGB(170, 110, 255),
+				Color3.fromRGB(255, 200, 70),
+				Color3.fromRGB(255, 80, 80),
+				Color3.fromRGB(70, 210, 200),
+			},
+			every = 15,
+			size = 2.5,
+		},
+		garden = { names = { "CoralBranches", "CoralStaghorn", "CoralFan", "CoralTubes" }, every = 8 },
+		wallTrim = { material = Enum.Material.Glass, color = Color3.fromRGB(60, 196, 186) },
+		bands = {
+			color = Color3.fromRGB(70, 200, 190),
+			material = Enum.Material.Glass,
+			at = { 0.62, 0.93 },
+			width = 0.9,
+		},
 		growthTints = {
 			Color3.fromRGB(255, 95, 150),
 			Color3.fromRGB(255, 140, 60),
@@ -175,8 +224,10 @@ local KITS: { [string]: Kit } = {
 		base = "CoralAnemoneRock",
 		baseSize = 4,
 		brazier = "CoralClamBrazier",
+		frontBrazier = "CoralPearlLantern", -- the concept's teal lanterns flank the gate
 		lantern = "CoralPearlLantern",
 		lanternSize = 5,
+		gate = "CoralScallop", -- a pink scallop over the gate
 		gateMode = "crest",
 		overheadSize = 0,
 		floaterSize = 0,
@@ -192,9 +243,10 @@ local KITS: { [string]: Kit } = {
 			brightness = 1.6,
 		},
 		ground = { material = Enum.Material.Sand, color = Color3.fromRGB(226, 205, 160) },
-		plinth = { material = Enum.Material.Slate, color = Color3.fromRGB(96, 122, 140), height = 0.4 },
+		-- The concept's sea-blue mosaic band along the walls' feet
+		plinth = { material = Enum.Material.Pebble, color = Color3.fromRGB(62, 128, 150), height = 0.38 },
 		pool = { material = Enum.Material.Glass, color = Color3.fromRGB(40, 210, 205), glow = true, size = 7 },
-		effects = { pearls = true, keepPearls = true },
+		effects = { pearls = true, keepPearls = true, gateGarden = true },
 	},
 	Fire = {
 		id = "Fire",
@@ -214,6 +266,7 @@ local KITS: { [string]: Kit } = {
 		capScale = 2.8,
 		capColor = Color3.fromRGB(40, 36, 40),
 		growth = "FireObsidianSpikes",
+		growthMode = "merlons",
 		growthSize = 3.6,
 		growthEvery = 6,
 		base = "FireLavaRock",
@@ -260,6 +313,7 @@ local KITS: { [string]: Kit } = {
 		capScale = 3.6,
 		capColor = Color3.fromRGB(190, 230, 255),
 		growth = "IceCrystalCluster",
+		growthMode = "corners",
 		growthSize = 3.8,
 		growthEvery = 7,
 		growthGlow = true,
@@ -309,6 +363,7 @@ local KITS: { [string]: Kit } = {
 		capScale = 3.4,
 		capColor = Color3.fromRGB(170, 110, 60),
 		growth = "StormLightningRod",
+		growthMode = "row",
 		growthSize = 4,
 		growthEvery = 18,
 		brazier = "StormPlasmaBrazier",
@@ -433,6 +488,7 @@ local KITS: { [string]: Kit } = {
 		capScale = 3.2,
 		capColor = Color3.fromRGB(225, 245, 255),
 		growth = "DiamondCluster",
+		growthMode = "corners",
 		growthSize = 3.4,
 		growthEvery = 7,
 		growthGlow = true,
@@ -476,6 +532,8 @@ local KITS: { [string]: Kit } = {
 		capScale = 0,
 		capColor = Color3.fromRGB(35, 25, 50),
 		growth = "VoidCrystals",
+		growthMode = "corners",
+		clusterSize = 2,
 		growthSize = 3.8,
 		growthEvery = 7,
 		growthGlow = true,
@@ -568,6 +626,12 @@ local NEON: { [string]: Color3 } = {
 	StormThunderStone = Color3.fromRGB(214, 228, 255),
 }
 
+-- Pieces that read better as a plain pearly surface than their dark texture at
+-- night (the concept's shell spires are pearl white-teal).
+local SOLID: { [string]: Color3 } = {
+	CoralShellSpire = Color3.fromRGB(206, 236, 228),
+}
+
 -- An imported piece standing on `base` at `height`, or nil (no model imported).
 local function piece(parent: Instance, name: string?, base: CFrame, height: number): Model?
 	if name == nil or height <= 0 then
@@ -578,6 +642,22 @@ local function piece(parent: Instance, name: string?, base: CFrame, height: numb
 	if model and turn then
 		local box = model:GetBoundingBox()
 		model:PivotTo(box * CFrame.Angles(0, math.rad(turn), 0) * box:ToObjectSpace(model:GetPivot()))
+	end
+	local solid = SOLID[name]
+	if model and solid then
+		model:SetAttribute("KitSolid", solid)
+		for _, d in model:GetDescendants() do
+			if d:IsA("SurfaceAppearance") then
+				d:Destroy()
+			elseif d:IsA("BasePart") then
+				d.Material = Enum.Material.SmoothPlastic
+				d.Color = solid
+				d.Reflectance = 0.12
+				if d:IsA("MeshPart") then
+					d.TextureID = ""
+				end
+			end
+		end
 	end
 	local neon = NEON[name]
 	if model and neon then
@@ -637,10 +717,27 @@ local function tint(model: Model?, kit: Kit, rng: Random)
 	end
 end
 
+-- Tints a pale piece one color (a gate crest, a shell).
+local function tintWith(model: Model?, color: Color3)
+	if model == nil then
+		return
+	end
+	model:SetAttribute("KitTint", color)
+	for _, d in model:GetDescendants() do
+		if d:IsA("SurfaceAppearance") then
+			(d :: any).Color = color
+		elseif d:IsA("MeshPart") and d.TextureID == "" then
+			d.Color = color
+		end
+	end
+end
+
 -- A growth from the kit (one of its shapes), tinted.
 local function growth(folder: Instance, kit: Kit, at: CFrame, height: number, rng: Random): Model?
 	local name = kit.growth
-	local alts = kit.growthAlts
+	-- Tall pieces come from the upright shapes only (a sea fan blown up to ten
+	-- studs read as a giant disc); the rest fill in small
+	local alts = if kit.bigGrowths and height > kit.growthSize * 1.05 then kit.bigGrowths else kit.growthAlts
 	if alts and #alts > 0 then
 		local pick = rng:NextInteger(0, #alts)
 		if pick > 0 and Props.template("WorldProps", alts[pick]) then
@@ -1102,6 +1199,127 @@ export type Site = {
 
 local GATE_CLEAR = 12
 
+-- A cluster of growths on `base` (a surface, its -Z out): one big piece and
+-- smaller ones round it, each sunk a little into the stone and leaning out, so
+-- they grow out of the castle rather than sit on it.
+local function cluster(
+	folder: Instance,
+	kit: Kit,
+	base: CFrame,
+	scale: number,
+	rng: Random,
+	count: number?
+): { Model }
+	local made: { Model } = {}
+	local lean = math.rad(kit.growthLean or 25)
+	for k = 1, count or kit.clusterSize or 3 do
+		local main = k == 1
+		local size = kit.growthSize
+			* scale
+			* (if main then rng:NextNumber(1.1, 1.45) else rng:NextNumber(0.5, 0.85))
+		local offset = if main
+			then Vector3.new(rng:NextNumber(-0.3, 0.3), 0, 0)
+			else Vector3.new(rng:NextNumber(-2.4, 2.4), 0, rng:NextNumber(-0.7, 0.4))
+		local at = base
+			* CFrame.new(offset + Vector3.new(0, -size * 0.08, 0))
+			* CFrame.Angles(-rng:NextNumber(lean * 0.3, lean), 0, rng:NextNumber(-lean * 0.5, lean * 0.5))
+			* CFrame.Angles(0, rng:NextNumber(0, 6.28), 0)
+		local model = growth(folder, kit, at, size, rng)
+		if model then
+			table.insert(made, model)
+		end
+	end
+	return made
+end
+
+-- One small piece set flat into a face (its -Z out), `s` across: a starfish or
+-- shell lies with its back on the stone whichever way its model was made.
+local function inset(folder: Instance, kit: Kit, name: string, face: CFrame, s: number, rng: Random)
+	local template = Props.template("WorldProps", name)
+	local decor = kit.decor
+	if template == nil or decor == nil then
+		return
+	end
+	local model = template:Clone()
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+		end
+	end
+	local ext = model:GetExtentsSize()
+	local spin = CFrame.Angles(0, 0, rng:NextNumber(0, 6.28))
+	if ext.Y <= math.min(ext.X, ext.Z) then
+		-- Made lying down: its top turns to face out of the wall
+		Props.place(
+			model,
+			face * CFrame.new(0, 0, -s * 0.2) * spin * CFrame.Angles(-math.pi / 2, 0, 0),
+			Vector3.new(s, s * 0.4, s)
+		)
+	else
+		-- Made standing: its thin side goes against the wall
+		local turn = if ext.X < ext.Z then CFrame.Angles(0, math.pi / 2, 0) else CFrame.identity
+		Props.place(
+			model,
+			face * CFrame.new(0, -s / 2, -s * 0.2) * CFrame.Angles(0, 0, rng:NextNumber(-0.4, 0.4)) * turn,
+			Vector3.new(s, s, s * 0.4)
+		)
+	end
+	tintWith(model, decor.tints[rng:NextInteger(1, #decor.tints)])
+	model.Parent = folder
+end
+
+-- Starfish and shells scattered over an area of a face (its -Z out, centred).
+local function scatter(folder: Instance, kit: Kit, face: CFrame, width: number, height: number, rng: Random)
+	local decor = kit.decor
+	if decor == nil then
+		return
+	end
+	for _ = 1, math.floor(width * height / decor.every) do
+		inset(
+			folder,
+			kit,
+			decor.names[rng:NextInteger(1, #decor.names)],
+			face
+				* CFrame.new(
+					rng:NextNumber(-width / 2, width / 2),
+					rng:NextNumber(-height / 2, height / 2),
+					0
+				),
+			decor.size * rng:NextNumber(0.7, 1.35),
+			rng
+		)
+	end
+end
+
+-- A little garden on the ground at `at` (its -Z out): two or three small growths
+-- from the garden's set and a starfish lying in the sand.
+local function garden(folder: Instance, kit: Kit, at: CFrame, rng: Random)
+	local set = kit.garden
+	if set == nil then
+		return
+	end
+	for _ = 1, rng:NextInteger(2, 3) do
+		local name = set.names[rng:NextInteger(1, #set.names)]
+		local model = piece(
+			folder,
+			name,
+			at
+				* CFrame.new(rng:NextNumber(-1.6, 1.6), -0.1, rng:NextNumber(-1, 1))
+				* CFrame.Angles(-rng:NextNumber(0, 0.3), rng:NextNumber(0, 6.28), 0),
+			kit.growthSize * rng:NextNumber(0.45, 0.8)
+		)
+		tint(model, kit, rng)
+	end
+	local decor = kit.decor
+	if decor and rng:NextNumber() < 0.6 then
+		local ground = at * CFrame.new(rng:NextNumber(-2, 2), 0.05, rng:NextNumber(-1.5, -0.5))
+		inset(folder, kit, decor.names[1], ground * CFrame.Angles(math.pi / 2, 0, 0), decor.size * 1.2, rng)
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Details: banners and emblems, glyphs, chains, inlays, towers and roofs
 --------------------------------------------------------------------------------
@@ -1545,7 +1763,20 @@ local function dressTower(folder: Instance, kit: Kit, tower: TowerSpot, front: b
 	if kit.effects.snow then
 		patch(folder, tower.base * CFrame.new(0, h + 0.62, 0), r * 2 + 1.5, Enum.Material.Snow, SNOW, "Snow")
 	end
-	if kit.plaque then
+	if kit.decor then
+		-- Starfish and shells all over the tower's outer side
+		local count = math.floor(h * r * 2.4 / kit.decor.every)
+		for _ = 1, count do
+			inset(
+				folder,
+				kit,
+				kit.decor.names[rng:NextInteger(1, #kit.decor.names)],
+				onTower(tower, math.rad(rng:NextNumber(-100, 100)), rng:NextNumber(h * 0.12, h * 0.9), 0.02),
+				kit.decor.size * rng:NextNumber(0.7, 1.3),
+				rng
+			)
+		end
+	elseif kit.plaque then
 		for _, deg in { -78, -22, 22, 78 } do
 			piece(folder, kit.plaque, onTower(tower, math.rad(deg), h * 0.3, 0.15), 2.6)
 		end
@@ -1693,25 +1924,107 @@ function CastleKits.dress(folder: Instance, kit: Kit, site: Site)
 		local edgeB: Vector3 = origin * (b + outward * (t / 2 + 0.05) + Vector3.new(0, h, 0))
 		local worldOut = origin:VectorToWorldSpace(outward)
 		if site.stone and kit.growth and kit.growthEvery > 0 then
-			local count = math.max(1, math.floor(length / kit.growthEvery))
-			for i = 1, count do
-				local along = (i - 0.5) / count
-				local spot = a + (b - a) * along
-				-- Keep the gate and the tower corners clear
-				if math.abs(spot.X) < site.gateHalf + 6 and math.abs(spot.Z - site.front) < 1 then
-					continue
+			local mode = kit.growthMode or "clusters"
+			local function nearGate(spot: Vector3): boolean
+				return math.abs(spot.X) < site.gateHalf + 6 and math.abs(spot.Z - site.front) < 1
+			end
+			if mode == "merlons" then
+				-- One on every other merlon, sunk into its top
+				local merlons = math.max(1, math.floor(length / 4))
+				for i = 0, merlons, 2 do
+					local spot = a + (b - a) * (i / merlons)
+					if not nearGate(spot) then
+						local at = origin
+							* CFrame.lookAt(spot, spot + outward)
+							* CFrame.new(0, h + 2.1, 0)
+							* CFrame.Angles(0, rng:NextNumber(0, 6.28), 0)
+						growth(folder, kit, at, kit.growthSize * rng:NextNumber(0.8, 1.05), rng)
+					end
 				end
-				local at = origin
-					* CFrame.lookAt(spot + outward * (t * 0.25), spot + outward * 2)
-					* CFrame.new(0, h + 0.6, 0)
-					* CFrame.Angles(0, rng:NextNumber(-0.6, 0.6), 0)
-				local model = growth(folder, kit, at, kit.growthSize * rng:NextNumber(0.85, 1.2), rng)
-				if kit.growthGlow and i % 4 == 1 then
-					glow(folder, model, kit, 10)
+			elseif mode == "row" then
+				local count = math.max(1, math.floor(length / kit.growthEvery))
+				for i = 1, count do
+					local spot = a + (b - a) * ((i - 0.5) / count)
+					if not nearGate(spot) then
+						local at = origin
+							* CFrame.lookAt(spot + outward * (t * 0.25), spot + outward * 2)
+							* CFrame.new(0, h + 0.6, 0)
+						growth(folder, kit, at, kit.growthSize * rng:NextNumber(0.85, 1.2), rng)
+					end
+				end
+			else
+				-- Clusters at irregular spots along the outer edge, heavier near
+				-- the towers and the gate ("corners": only there), with pieces
+				-- growing out of the face below
+				local x = rng:NextNumber(1, kit.growthEvery * 0.6)
+				local index = 0
+				while x < length - 1 do
+					local spot = a + (b - a).Unit * x
+					local nearCorner = math.min(x, length - x) < 9
+						or (
+							math.abs(spot.Z - site.front) < 1
+							and math.abs(math.abs(spot.X) - site.gateHalf - 4.5) < 8
+						)
+					if not nearGate(spot) and (mode ~= "corners" or nearCorner) then
+						index += 1
+						local top = origin
+							* CFrame.lookAt(spot + outward * (t * 0.3), spot + outward * 4)
+							* CFrame.new(0, h + 0.6, 0)
+						local made = cluster(folder, kit, top, if nearCorner then 1.15 else 0.95, rng)
+						if mode == "clusters" and rng:NextNumber() < 0.65 then
+							local face = origin
+								* CFrame.lookAt(spot + outward * (t / 2), spot + outward * 4)
+								* CFrame.new(rng:NextNumber(-1.5, 1.5), h - rng:NextNumber(1.5, 4), 0)
+							growth(
+								folder,
+								kit,
+								face
+									* CFrame.Angles(-math.rad(rng:NextNumber(50, 70)), 0, 0)
+									* CFrame.Angles(0, rng:NextNumber(0, 6.28), 0),
+								kit.growthSize * rng:NextNumber(0.45, 0.7),
+								rng
+							)
+						end
+						if kit.growthGlow and index % 3 == 1 and made[1] then
+							glow(folder, made[1], kit, 10)
+						end
+					end
+					x += kit.growthEvery * rng:NextNumber(0.6, 1.5)
 				end
 			end
 		end
-		if site.stone and kit.plaque then
+		if site.stone and kit.wallTrim then
+			local mid = (a + b) / 2
+			local face = origin * CFrame.lookAt(mid + outward * (t / 2 + 0.1), mid + outward * 4)
+			part(folder, {
+				Name = "KitWallTrim",
+				Size = Vector3.new(length, 1.1, 0.3),
+				CFrame = face * CFrame.new(0, h - 0.9, 0),
+				Material = kit.wallTrim.material,
+				Color = kit.wallTrim.color,
+			})
+		end
+		-- Starfish and shells set into the face, and little gardens at its foot
+		if site.stone and kit.decor then
+			local mid = (a + b) / 2
+			local face = origin
+				* CFrame.lookAt(mid + outward * (t / 2 + 0.02), mid + outward * 4)
+				* CFrame.new(0, h * 0.5, 0)
+			local width = length - (if math.abs(mid.Z - site.front) < 1 then 2 else 6)
+			scatter(folder, kit, face, width, h * 0.75, rng)
+		end
+		if kit.garden then
+			local x = rng:NextNumber(2, kit.garden.every)
+			while x < length - 2 do
+				local spot = a + (b - a).Unit * x
+				if not (math.abs(spot.X) < site.gateHalf + 3 and math.abs(spot.Z - site.front) < 1) then
+					local at = origin * CFrame.lookAt(spot + outward * (t / 2 + 2.2), spot + outward * 8)
+					garden(folder, kit, at, rng)
+				end
+				x += kit.garden.every * rng:NextNumber(0.7, 1.3)
+			end
+		end
+		if site.stone and kit.plaque and kit.decor == nil then
 			local count = math.max(1, math.floor(length / 7))
 			for i = 1, count do
 				local spot = a + (b - a) * ((i - 0.5) / count)
@@ -1986,20 +2299,27 @@ function CastleKits.dress(folder: Instance, kit: Kit, site: Site)
 			)
 		end
 		if site.stone and kit.growth and kit.growthSize > 0 then
-			-- A ring of growths round the crown, sprouting about the cap
-			for k = 1, 6 do
-				local angle = (k / 6) * math.pi * 2 + rng:NextNumber(-0.25, 0.25)
+			-- A bouquet round the crown: big pieces leaning out from round the
+			-- cap and smaller ones between, sunk into the battlements
+			local n = kit.crownCount or 6
+			for k = 1, n do
+				local angle = (k / n) * math.pi * 2 + rng:NextNumber(-0.2, 0.2)
+				local dir = Vector3.new(math.sin(angle), 0, -math.cos(angle))
+				local pos = dir * (tower.radius + 0.1) + Vector3.new(0, tower.height + 1, 0)
+				local big = k % 3 == 1
 				local at = tower.base
-					* CFrame.new(
-						math.sin(angle) * (tower.radius + 0.3),
-						tower.height + 1.4,
-						-math.cos(angle) * (tower.radius + 0.3)
+					* CFrame.lookAt(pos, pos + dir)
+					* CFrame.Angles(
+						-math.rad(if big then rng:NextNumber(10, 28) else rng:NextNumber(20, 45)),
+						0,
+						0
 					)
+					* CFrame.Angles(0, rng:NextNumber(0, 6.28), 0)
 				growth(
 					folder,
 					kit,
-					at * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0),
-					kit.growthSize * rng:NextNumber(0.75, 1.05),
+					at,
+					kit.growthSize * (if big then rng:NextNumber(1.3, 1.75) else rng:NextNumber(0.65, 1)),
 					rng
 				)
 			end
@@ -2169,8 +2489,61 @@ function CastleKits.dress(folder: Instance, kit: Kit, site: Site)
 	-- Growths on the gatehouse towers' outer corners, beside the braziers
 	if site.stone and kit.growth and kit.growthSize > 0 then
 		for _, side in { -1, 1 } do
-			local at = origin * CFrame.new(side * (site.gateHalf + 4.35), gateTop, site.front)
-			growth(folder, kit, at * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0), kit.growthSize * 0.9, rng)
+			local spot =
+				Vector3.new(side * (site.gateHalf + 4.35), gateTop, site.front - site.gateDepth / 2 + 0.6)
+			local at = origin * CFrame.lookAt(spot, spot + Vector3.new(side * 0.6, 0, -1))
+			if (kit.growthMode or "clusters") == "clusters" then
+				cluster(folder, kit, at, 1, rng, 3)
+			else
+				growth(
+					folder,
+					kit,
+					at * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0),
+					kit.growthSize * 0.9,
+					rng
+				)
+			end
+		end
+	end
+	-- Coral beds either side of the way in (Coral), with the gatehouse's foot
+	-- grown over
+	if kit.effects.gateGarden then
+		for _, side in { -1, 1 } do
+			local x = side * (site.gateHalf + 3)
+			local bed = origin * CFrame.new(x, 0.6, gateFront - 2.6)
+			part(folder, {
+				Name = "CoralBed",
+				Size = Vector3.new(4.6, 1.2, 2.4),
+				CFrame = bed,
+				Material = Enum.Material.Sandstone,
+				Color = Color3.fromRGB(222, 200, 160),
+			})
+			for k = 1, 5 do
+				local name = if kit.garden then kit.garden.names[(k % #kit.garden.names) + 1] else kit.growth
+				local model = piece(
+					folder,
+					name,
+					bed
+						* CFrame.new(-1.8 + (k - 1) * 0.9, 0.5, rng:NextNumber(-0.5, 0.5))
+						* CFrame.Angles(-rng:NextNumber(0, 0.25), rng:NextNumber(0, 6.28), 0),
+					kit.growthSize * rng:NextNumber(0.45, 0.7)
+				)
+				tint(model, kit, rng)
+			end
+		end
+		if site.gateTop then
+			for _, side in { -1, 1 } do
+				local face = origin
+					* CFrame.lookAt(
+						Vector3.new(
+							side * (site.gateHalf + 2.25),
+							site.gateTop * 0.3,
+							site.front - site.gateDepth / 2
+						),
+						Vector3.new(side * (site.gateHalf + 2.25), site.gateTop * 0.3, site.front - 20)
+					)
+				scatter(folder, kit, face, 3.6, site.gateTop * 0.5, rng)
+			end
 		end
 	end
 	-- Braziers or lanterns on top of the gatehouse towers (two, or four)
@@ -2218,7 +2591,11 @@ function CastleKits.dress(folder: Instance, kit: Kit, site: Site)
 				light(anchor(folder, face * CFrame.new(0, tall * 0.6, -2), "ArchGlow"), kit.light, 18, 1.6)
 			end
 		else
-			faceOut(piece(folder, kit.gate, face * CFrame.new(0, GATE_CLEAR + 0.5, -0.6), 6))
+			local crest = piece(folder, kit.gate, face * CFrame.new(0, GATE_CLEAR + 0.5, -0.6), 6)
+			faceOut(crest)
+			if kit.gateTint then
+				tintWith(crest, kit.gateTint)
+			end
 		end
 	end
 	-- Banners on the gatehouse towers' fronts, as on every concept
@@ -2482,7 +2859,13 @@ function CastleKits.dressKeep(folder: Instance, kit: Kit, pieces: { BasePart })
 		local cf, size = p.CFrame, p.Size
 		if p.Name == "Merlon" then
 			merlon += 1
-			if kit.growth and kit.growthSize > 0 and merlon % 2 == 1 then
+			local mode = kit.growthMode or "clusters"
+			if kit.growth and kit.growthSize > 0 and mode == "clusters" and merlon % 3 == 1 then
+				-- Clusters leaning out over the keep's edge
+				local out = (cf.Position - centre) * Vector3.new(1, 0, 1)
+				local top = cf.Position + Vector3.new(0, size.Y / 2, 0)
+				cluster(folder, kit, CFrame.lookAt(top, top + out.Unit), 0.9, rng, 3)
+			elseif kit.growth and kit.growthSize > 0 and mode ~= "clusters" and merlon % 2 == 1 then
 				growth(
 					folder,
 					kit,
@@ -2520,6 +2903,20 @@ function CastleKits.dressKeep(folder: Instance, kit: Kit, pieces: { BasePart })
 					Color = IVY,
 				})
 			end
+		elseif p.Name == "VaultWall" and kit.growthMode == "clusters" and kit.growth and size.X < size.Z then
+			-- A big cluster crowning each vault room (the concept's coral towers)
+			local top = cf.Position + Vector3.new(0, size.Y / 2, 0)
+			local out = (cf.Position - centre) * Vector3.new(1, 0, 1)
+			cluster(folder, kit, CFrame.lookAt(top, top + out.Unit), 1.4, rng, 6)
+		elseif
+			p.Name == "Balustrade"
+			and kit.growthMode == "clusters"
+			and kit.growth
+			and rng:NextNumber() < 0.45
+		then
+			-- Growing over the balconies' rails
+			local top = (cf * CFrame.new(rng:NextNumber(-size.X / 3, size.X / 3), size.Y / 2, -size.Z / 2)).Position
+			cluster(folder, kit, CFrame.lookAt(top, top + cf.LookVector), 0.6, rng, 2)
 		elseif (p.Name == "ArchPillar" or p.Name == "FloorPost") and kit.effects.veins then
 			local top = (cf * CFrame.new(0, size.Y / 2, -size.Z / 2 - 0.05)).Position
 			veins(folder, top - cf.RightVector * 0.3, top + cf.RightVector * 0.3, cf.LookVector, size.Y, rng)

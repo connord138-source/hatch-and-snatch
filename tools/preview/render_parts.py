@@ -178,7 +178,21 @@ def place_prop(f):
     obj = bpy.data.objects.new(name, data)
     bpy.context.scene.collection.objects.link(obj)
     obj.matrix_world = world @ mathutils.Matrix.Scale(scale, 4)
-    if len(f) > 9 and f[9]:
+    if len(f) > 10 and f[10]:
+        # KitSolid: the texture gives way to a plain pearly surface
+        color = [float(v) for v in f[10].split(",")]
+        key = ("solid", tuple(round(c, 3) for c in color))
+        mat = bpy.data.materials.get(str(key))
+        if mat is None:
+            mat = bpy.data.materials.new(str(key))
+            mat.use_nodes = True
+            bsdf = mat.node_tree.nodes["Principled BSDF"]
+            bsdf.inputs["Base Color"].default_value = (*[c ** 2.2 for c in color], 1)
+            bsdf.inputs["Roughness"].default_value = 0.3
+        for slot in obj.material_slots:
+            slot.link = "OBJECT"
+            slot.material = mat
+    elif len(f) > 9 and f[9]:
         # KitNeon: the game swaps the texture for glowing neon in this color
         color = [float(v) for v in f[9].split(",")]
         key = ("neon", tuple(round(c, 3) for c in color))

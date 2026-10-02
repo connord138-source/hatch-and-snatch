@@ -38,7 +38,7 @@ local PROPS = {
 -- came out navy, the gold spires near-black), so it is dropped.
 local KIT = {
 	"CoralShellSpire", "CoralBranches", "CoralFan", "CoralTubes", "CoralClamBrazier", "CoralAnemoneRock",
-	"CoralStarfishPlaque", "CoralPearlLantern",
+	"CoralStarfishPlaque", "CoralPearlLantern", "CoralStaghorn", "CoralStarfish", "CoralScallop", "CoralConch",
 	"FireSpire", "FireObsidianSpikes", "FireSkullBrazier", "FireLavaRock", "FireDragonGate",
 	"IceCrystalSpire", "IceCrystalCluster", "IceLantern", "IceGateArch", "SnowDrift",
 	"StormTeslaSpire", "StormThunderStone", "StormPlasmaBrazier", "StormLightningRod", "StormCloud",

@@ -38,7 +38,7 @@ PreviewProps = {
 		return m
 	end,
 	place = function(model, cframe, size)
-		table.insert(PROP_PLACEMENTS, { name = model.Name, cframe = cframe, size = size, mode = "box" })
+		table.insert(PROP_PLACEMENTS, { name = model.Name, cframe = cframe, size = size, mode = "box", model = model })
 	end,
 	reskin = function() end,
 	dress = function() return nil end,

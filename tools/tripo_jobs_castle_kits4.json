@@ -1,0 +1,12 @@
+{
+  "jobs": [
+    {
+      "name": "KitSheet4Coral",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeCoral.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props taken from it, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a single tall staghorn coral, elegant antler-like branches reaching up and out, on a tiny rock, the coral pale cream-white with no color. Top right: a single five-armed starfish lying flat, seen from above, pale cream-white with no color, bumpy texture. Bottom left: a single scallop seashell with ribs, flat back, seen from the front, pale cream-white with no color. Bottom right: a single spiral conch seashell lying on its side, pale cream-white with no color."
+    }
+  ]
+}

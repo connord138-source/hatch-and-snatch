@@ -1,0 +1,28 @@
+{
+  "jobs": [
+    {
+      "name": "CoralStaghorn",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralStaghorn.png"
+    },
+    {
+      "name": "CoralStarfish",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralStarfish.png"
+    },
+    {
+      "name": "CoralScallop",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralScallop.png"
+    },
+    {
+      "name": "CoralConch",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralConch.png"
+    }
+  ]
+}

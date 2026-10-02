@@ -485,6 +485,15 @@
   "task_id": "9c8ed35c-8918-4948-8b48-b87585829b46",
   "type": "generate_image"
  },
+ "concepts/KitSheet4Coral": {
+  "credits": 5,
+  "files": [
+   "KitSheet4Coral.png"
+  ],
+  "status": "success",
+  "task_id": "22a355e3-20ce-485a-94c1-da77b8766e74",
+  "type": "generate_image"
+ },
  "concepts/KitSheetCoral": {
   "credits": 5,
   "files": [
@@ -1722,6 +1731,16 @@
   "task_id": "416393b6-1bc5-4f3d-98e0-cf5d6bda54ab",
   "type": "image_to_model"
  },
+ "props/CoralConch": {
+  "credits": 30,
+  "files": [
+   "CoralConch.glb",
+   "CoralConch_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "daa8046d-f9df-46e2-b988-0f3a7f2a7283",
+  "type": "image_to_model"
+ },
  "props/CoralFan": {
   "credits": 30,
   "files": [
@@ -1742,6 +1761,16 @@
   "task_id": "dab1999b-d6b3-4692-aae0-74f2de1169a7",
   "type": "image_to_model"
  },
+ "props/CoralScallop": {
+  "credits": 30,
+  "files": [
+   "CoralScallop.glb",
+   "CoralScallop_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "e2cba1a5-bd24-438b-b00c-6f14907ba435",
+  "type": "image_to_model"
+ },
  "props/CoralShellSpire": {
   "credits": 30,
   "files": [
@@ -1750,6 +1779,26 @@
   ],
   "status": "success",
   "task_id": "047842ee-c4ae-4eac-9c91-6c584459287b",
+  "type": "image_to_model"
+ },
+ "props/CoralStaghorn": {
+  "credits": 30,
+  "files": [
+   "CoralStaghorn.glb",
+   "CoralStaghorn_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "d37e6cb2-0467-4540-b711-3b65be982f48",
+  "type": "image_to_model"
+ },
+ "props/CoralStarfish": {
+  "credits": 30,
+  "files": [
+   "CoralStarfish.glb",
+   "CoralStarfish_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "6b51e656-1e87-4193-8fe2-c1e391537c57",
   "type": "image_to_model"
  },
  "props/CoralStarfishPlaque": {
