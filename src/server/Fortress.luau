@@ -375,7 +375,8 @@ local function tower(
 	style: Style,
 	look: Look,
 	models: boolean,
-	kit: CastleKits.Kit?
+	kit: CastleKits.Kit?,
+	front: boolean
 ): CastleKits.TowerSpot
 	local r, h = style.towerRadius, style.towerHeight
 	local spot: CastleKits.TowerSpot =
@@ -499,40 +500,11 @@ local function tower(
 		})
 	end
 	if pale or kit then
-		-- Banners hanging on the tower's outer faces (every theme concept has them):
-		-- the banner color, a pointed foot, a gold rod, an emblem in the theme's light
-		local width, long = r * 0.78, h * 0.3
+		-- Banners hanging on the tower's outer faces (every theme concept has
+		-- them), with the kit's emblem (a gold diamond on the Citadel)
 		for _, angle in { -50, 50 } do
 			local face = base * CFrame.Angles(0, math.rad(angle), 0) * CFrame.new(0, h * 0.56, -(r + 0.1))
-			trim(folder, {
-				Name = "TowerBanner",
-				Size = Vector3.new(width, long, 0.12),
-				CFrame = face,
-				Material = Enum.Material.Fabric,
-				Color = look.flag,
-			})
-			local tip = width / math.sqrt(2)
-			trim(folder, {
-				Name = "TowerBanner",
-				Size = Vector3.new(tip, tip, 0.11),
-				CFrame = face * CFrame.new(0, -long / 2, 0) * CFrame.Angles(0, 0, math.rad(45)),
-				Material = Enum.Material.Fabric,
-				Color = look.flag,
-			})
-			trim(folder, {
-				Name = "BannerRod",
-				Size = Vector3.new(width + 0.6, 0.28, 0.28),
-				CFrame = face * CFrame.new(0, long / 2 + 0.1, -0.06),
-				Material = Enum.Material.Foil,
-				Color = GOLD,
-			})
-			trim(folder, {
-				Name = "BannerEmblem",
-				Size = Vector3.new(width * 0.38, width * 0.38, 0.06),
-				CFrame = face * CFrame.new(0, long * 0.12, -0.08) * CFrame.Angles(0, 0, math.rad(45)),
-				Material = if kit then Enum.Material.Neon else Enum.Material.Foil,
-				Color = if kit then kit.light else GOLD,
-			})
+			CastleKits.banner(folder, kit, face, r * 0.78, h * 0.3, look.flag)
 		end
 	end
 	if pale then
@@ -549,7 +521,7 @@ local function tower(
 	local roofBase = base * CFrame.new(0, h + 1.6, 0)
 	-- A theme kit's cap replaces the roof (from the Keep up, so the plain stone
 	-- towers get one too)
-	local capTip = if kit then CastleKits.cap(folder, kit, roofBase, r) else nil
+	local capTip = if kit then CastleKits.cap(folder, kit, roofBase, r, front) else nil
 	if capTip then
 		spot.tip = capTip
 		return spot
@@ -560,6 +532,9 @@ local function tower(
 	end
 	local roofHeight = r * (if pale then 3 else 2.2)
 	coneRoof(folder, roofBase, r * 2 + 1.6, roofHeight, look.roof, pale)
+	if kit then
+		CastleKits.roof(folder, kit, roofBase, r + 0.8, roofHeight)
+	end
 	local top = roofBase * CFrame.new(0, roofHeight, 0)
 	spot.tip = top
 	if kit and kit.finial then
@@ -847,7 +822,7 @@ function Fortress.build(
 			-- Face outward, away from the plot's middle
 			local outward = Vector3.new(corner.X, 0, corner.Z - (f + b) / 2)
 			local base = origin * CFrame.lookAt(corner, corner + outward)
-			table.insert(towers, tower(folder, base, style, look, models, kit))
+			table.insert(towers, tower(folder, base, style, look, models, kit, corner.Z < (f + b) / 2))
 		end
 	end
 	local gateTop: number? = nil
@@ -858,6 +833,30 @@ function Fortress.build(
 		for _, side in { -1, 1 } do
 			brazier(folder, origin * CFrame.new(side * (g + 8), 0, f - 8.5)) -- clear of a moat (BaseDecor)
 		end
+	end
+	-- The kit's dressing goes on first, so its banners take the design's banner
+	-- material and rainbow like the towers' own
+	if kit then
+		local plotRuns: { { a: Vector3, b: Vector3 } } = {}
+		for _, run in runs do
+			table.insert(plotRuns, { a = run[1], b = run[2] })
+		end
+		CastleKits.dress(folder, kit, {
+			origin = origin,
+			halfW = x,
+			front = f,
+			back = b,
+			gateHalf = g,
+			height = layout.height,
+			thickness = layout.thickness,
+			stone = style.wall == "stone",
+			level = level,
+			gateTop = gateTop,
+			gateDepth = layout.thickness + 2,
+			banner = look.flag,
+			towers = towers,
+			runs = plotRuns,
+		})
 	end
 	-- The designer's finishing touches: gold roofs or banners, banner-colored bands,
 	-- the glow color on the spire crystals, and rainbow parts for the client to cycle (RainbowController)
@@ -901,27 +900,6 @@ function Fortress.build(
 				CollectionService:AddTag(descendant, "Rainbow")
 			end
 		end
-	end
-	if kit then
-		local plotRuns: { { a: Vector3, b: Vector3 } } = {}
-		for _, run in runs do
-			table.insert(plotRuns, { a = run[1], b = run[2] })
-		end
-		CastleKits.dress(folder, kit, {
-			origin = origin,
-			halfW = x,
-			front = f,
-			back = b,
-			gateHalf = g,
-			height = layout.height,
-			thickness = layout.thickness,
-			stone = style.wall == "stone",
-			level = level,
-			gateTop = gateTop,
-			gateDepth = layout.thickness + 2,
-			towers = towers,
-			runs = plotRuns,
-		})
 	end
 	folder.Parent = parent
 	return layout

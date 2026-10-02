@@ -34,8 +34,8 @@ local PROPS = {
 	OakTree = true, FishingHut = true, Dock = true, MarketStall = true, FlowerMeadow = true, Boulders = true,
 }
 -- Castle theme kits (src/server/CastleKits.luau). Their Tripo textures come with a
--- metalness map that turns them dark under the sky (the pearly shell spires came
--- out navy), so it is dropped; the gold pieces keep theirs.
+-- metalness map that turns them dark under a night sky (the pearly shell spires
+-- came out navy, the gold spires near-black), so it is dropped.
 local KIT = {
 	"CoralShellSpire", "CoralBranches", "CoralFan", "CoralTubes", "CoralClamBrazier", "CoralAnemoneRock",
 	"CoralStarfishPlaque", "CoralPearlLantern",
@@ -48,7 +48,6 @@ local KIT = {
 	"DiamondCrown", "DiamondCluster", "DiamondLantern", "DiamondGateCrest",
 	"VoidShards", "VoidCrystals", "VoidBrazier", "VoidPortal", "VoidRunePillar",
 }
-local KEEP_METAL = { GoldSpire = true, GoldLion = true, GoldBrazier = true, GoldCrownCrest = true }
 local kitPiece = {}
 for _, name in KIT do
 	PROPS[name] = true
@@ -94,7 +93,7 @@ for _, model in workspace:GetChildren() do
 		continue
 	end
 	model.PrimaryPart = largest
-	if kitPiece[model.Name] and not KEEP_METAL[model.Name] then
+	if kitPiece[model.Name] then
 		for _, appearance in model:GetDescendants() do
 			if appearance:IsA("SurfaceAppearance") then
 				appearance.MetalnessMap = ""

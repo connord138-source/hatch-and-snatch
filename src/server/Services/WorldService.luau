@@ -1284,8 +1284,8 @@ end
 
 -- Shows the floors, vault rooms and pedestals a base has: `floors` counts the
 -- ground, `vaults` the vault rooms bought (Config.Economy.slots).
--- A theme kit's growths on the keep's battlements (the ones that show), rebuilt
--- whenever the theme or the floors change.
+-- A theme kit's dressing on the keep (the pieces that show: battlements, arcades,
+-- walls and floors), rebuilt whenever the theme or the floors change.
 local function dressKeep(plot: PlotLayout)
 	local existing = plot.model:FindFirstChild("KeepKit")
 	if existing then
@@ -1296,16 +1296,15 @@ local function dressKeep(plot: PlotLayout)
 	if kit == nil then
 		return
 	end
-	local tops: { CFrame } = {}
+	local shown: { BasePart } = {}
 	for _, entry in plot.floorPieces do
-		local p = entry.part
-		if p.Name == "Merlon" and p.Transparency < 1 then
-			table.insert(tops, p.CFrame * CFrame.new(0, p.Size.Y / 2, 0))
+		if entry.part.Transparency < 1 then
+			table.insert(shown, entry.part)
 		end
 	end
 	local folder = Instance.new("Folder")
 	folder.Name = "KeepKit"
-	CastleKits.dressKeep(folder, kit, tops)
+	CastleKits.dressKeep(folder, kit, shown)
 	folder.Parent = plot.model
 end
 

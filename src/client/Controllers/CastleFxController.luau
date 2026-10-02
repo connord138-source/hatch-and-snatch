@@ -5,12 +5,15 @@
 --   KitSpin     the void portal turns about its face (SpinBase, SpinSpeed)
 --   KitArc      lightning between the Storm Spire's tesla tips flickers and jumps
 --   KitFlicker  the storm cloud's light flashes now and then
+--   KitLight    every kit light: off beyond LIGHT_RANGE from the camera (a
+--               themed base carries about a hundred), checked once a second
 -- Only pieces near the camera are animated, so six themed bases stay cheap.
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local NEAR = 400 -- studs from the camera
+local LIGHT_RANGE = 230 -- a neighbour's base still glows; the far side of the island doesn't
 
 local CastleFxController = {}
 
@@ -59,6 +62,8 @@ function CastleFxController.start()
 	local spins = collect("KitSpin")
 	local arcs = collect("KitArc")
 	local flickers = collect("KitFlicker")
+	local lights = collect("KitLight")
+	local nextLights = 0
 	local nextArc = 0
 	local nextFlash = os.clock() + 3
 	RunService.Heartbeat:Connect(function()
@@ -68,6 +73,17 @@ function CastleFxController.start()
 		end
 		local eye = camera.CFrame.Position
 		local t = os.clock()
+		if t >= nextLights then
+			nextLights = t + 1
+			for instance in lights do
+				if instance:IsA("Light") then
+					local holder = instance.Parent
+					if holder and holder:IsA("BasePart") then
+						instance.Enabled = (holder.Position - eye).Magnitude < LIGHT_RANGE
+					end
+				end
+			end
+		end
 		for instance, seed in floats do
 			local base = instance:GetAttribute("FloatBase")
 			if typeof(base) == "CFrame" and near(instance, eye) then

@@ -128,6 +128,13 @@ local function colors(): { Option }
 			color = Color3.fromRGB(250, 225, 70),
 		},
 		{
+			id = "Lilac",
+			name = "Moon Lilac",
+			cost = 60_000_000_000,
+			unlock = { biome = MOON },
+			color = Color3.fromRGB(196, 170, 236),
+		},
+		{
 			id = "Purple",
 			name = "Void Purple",
 			cost = 70_000_000_000,
@@ -215,7 +222,7 @@ local slots: { Slot } = {
 				cost = 120_000_000,
 				unlock = { biome = MAGMA },
 				material = Enum.Material.Slate,
-				color = Color3.fromRGB(32, 27, 40),
+				color = Color3.fromRGB(56, 48, 54), -- dark charcoal, so the lava cracks read (Fire concept)
 			},
 			{
 				id = "Ice",
@@ -727,7 +734,7 @@ local presets: { Preset } = {
 		picks = {
 			stone = "StormSlate",
 			roof = "Black",
-			banner = "Storm",
+			banner = "Blue",
 			glow = "Storm",
 			floor = "Slate",
 			grounds = "Stormy",
@@ -752,7 +759,7 @@ local presets: { Preset } = {
 		name = "Moon Palace",
 		picks = {
 			stone = "Moonstone",
-			roof = "White",
+			roof = "Lilac",
 			banner = "Blue",
 			glow = "Dark",
 			floor = "Pebble",
@@ -795,7 +802,7 @@ local presets: { Preset } = {
 			roof = "Gold",
 			banner = "Red",
 			glow = "Gold",
-			floor = "GoldTiles",
+			floor = "Marble",
 			grounds = "Crystal",
 			kit = "Golden",
 		},
@@ -819,7 +826,7 @@ local presets: { Preset } = {
 		picks = {
 			stone = "Diamond",
 			roof = "Diamond",
-			banner = "Gold",
+			banner = "IceBlue",
 			glow = "Light",
 			floor = "Diamond",
 			grounds = "Crystal",
@@ -831,8 +838,8 @@ local presets: { Preset } = {
 		name = "Void Throne",
 		picks = {
 			stone = "VoidSteel",
-			roof = "Void",
-			banner = "Void",
+			roof = "Black",
+			banner = "Black",
 			glow = "Dark",
 			floor = "Granite",
 			grounds = "Lunar",

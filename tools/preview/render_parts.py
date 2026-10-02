@@ -71,8 +71,8 @@ GLB_CACHE = {}
 TINTED = {}
 # Theme kit pieces whose Tripo metalness map is stripped on import
 # (tools/studio/organize_imports.luau): metal reflects a dark sky and turned the
-# pearly shell spires navy. The gold pieces stay metal.
-KIT_PREFIXES = ("Coral", "Fire", "Ice", "Storm", "Moss", "Moon", "Diamond", "Void", "Snow")
+# pearly shell spires navy and the gold spires near-black.
+KIT_PREFIXES = ("Coral", "Fire", "Ice", "Storm", "Moss", "Moon", "Gold", "Diamond", "Void", "Snow")
 ZONE_PROPS = {"CoralCluster", "IceSpire", "IceArch", "MoonMonolith"}
 
 
@@ -178,7 +178,23 @@ def place_prop(f):
     obj = bpy.data.objects.new(name, data)
     bpy.context.scene.collection.objects.link(obj)
     obj.matrix_world = world @ mathutils.Matrix.Scale(scale, 4)
-    if len(f) > 8 and f[8]:
+    if len(f) > 9 and f[9]:
+        # KitNeon: the game swaps the texture for glowing neon in this color
+        color = [float(v) for v in f[9].split(",")]
+        key = ("neon", tuple(round(c, 3) for c in color))
+        mat = bpy.data.materials.get(str(key))
+        if mat is None:
+            mat = bpy.data.materials.new(str(key))
+            mat.use_nodes = True
+            bsdf = mat.node_tree.nodes["Principled BSDF"]
+            lin = [c ** 2.2 for c in color]
+            bsdf.inputs["Base Color"].default_value = (*lin, 1)
+            bsdf.inputs["Emission Color"].default_value = (*lin, 1)
+            bsdf.inputs["Emission Strength"].default_value = 1.6
+        for slot in obj.material_slots:
+            slot.link = "OBJECT"
+            slot.material = mat
+    elif len(f) > 8 and f[8]:
         tint = tuple(round(float(v), 3) for v in f[8].split(","))
         for slot, mat in zip(obj.material_slots, tinted(name, data, tint)):
             slot.link = "OBJECT"
@@ -232,6 +248,79 @@ def add_bolt(f, meshes):
         obj.material_slots[0].material = mat
 
 
+def add_particles(f, meshes):
+    """Stand-ins for a ParticleEmitter (smoke plumes, mist, embers, sparkles, fireflies):
+    a scatter of soft blobs where its particles would be at one moment."""
+    import random
+
+    kind = f[1]
+    pos = mathutils.Vector([float(v) for v in f[2].split(",")])
+    box = [float(v) for v in f[3].split(",")]
+    color = [float(v) for v in f[4].split(",")]
+    rate, life, speed, rise, size = (float(v) for v in f[5:10])
+    rnd = random.Random(hash(f[2]) & 0xFFFF)
+    count = int(max(4, min(70, rate * life * 0.7)))
+    key = ("particle", kind, tuple(round(c, 2) for c in color))
+    mat = bpy.data.materials.get(str(key))
+    if mat is None:
+        mat = bpy.data.materials.new(str(key))
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes["Principled BSDF"]
+        lin = [c ** 2.2 for c in color]
+        bsdf.inputs["Base Color"].default_value = (*lin, 1)
+        if kind == "smoke":
+            bsdf.inputs["Alpha"].default_value = 0.22
+        else:
+            bsdf.inputs["Emission Color"].default_value = (*lin, 1)
+            bsdf.inputs["Emission Strength"].default_value = 6.0 if kind == "sparkle" else 4.0
+            bsdf.inputs["Alpha"].default_value = 0.85
+        try:
+            mat.surface_render_method = "BLENDED"
+        except AttributeError:
+            mat.blend_method = "BLEND"
+    for _ in range(count):
+        age = rnd.random()
+        offset = mathutils.Vector(
+            (rnd.uniform(-box[0] / 2, box[0] / 2), rnd.uniform(-box[1] / 2, box[1] / 2), rnd.uniform(-box[2] / 2, box[2] / 2))
+        )
+        if kind == "smoke":
+            offset.y += age * life * speed * 0.6
+            d = size * (0.25 + 0.45 * age)
+        else:
+            offset.y += age * life * (rise * 0.3 + speed * 0.2)
+            d = max(size * 0.5, 0.25)
+        obj = bpy.data.objects.new("Particle", meshes["Ball"])
+        bpy.context.scene.collection.objects.link(obj)
+        obj.matrix_world = mathutils.Matrix.Translation(M @ (pos + offset)) @ mathutils.Matrix.Scale(d / 2, 4)
+        obj.material_slots[0].link = "OBJECT"
+        obj.material_slots[0].material = mat
+
+
+def add_flame(f, meshes):
+    """A Fire: a teardrop of glowing blobs, white-hot at the core."""
+    pos = M @ mathutils.Vector([float(v) for v in f[1].split(",")])
+    color = [float(v) for v in f[2].split(",")]
+    size = float(f[3])
+    for i, (lift, d, heat) in enumerate(((0.0, 0.55, 0.6), (0.35, 0.42, 0.3), (0.7, 0.26, 0.0))):
+        key = ("flame", tuple(round(c, 2) for c in color), i)
+        mat = bpy.data.materials.get(str(key))
+        if mat is None:
+            mat = bpy.data.materials.new(str(key))
+            mat.use_nodes = True
+            bsdf = mat.node_tree.nodes["Principled BSDF"]
+            c = [min(1.0, (v + heat * (1 - v))) ** 2.2 for v in color]
+            bsdf.inputs["Base Color"].default_value = (*c, 1)
+            bsdf.inputs["Emission Color"].default_value = (*c, 1)
+            bsdf.inputs["Emission Strength"].default_value = 8.0
+        obj = bpy.data.objects.new("Flame", meshes["Ball"])
+        bpy.context.scene.collection.objects.link(obj)
+        obj.matrix_world = mathutils.Matrix.Translation(pos + mathutils.Vector((0, 0, lift * size * 0.6))) @ mathutils.Matrix.Diagonal(
+            (d * size * 0.5, d * size * 0.5, d * size * 0.8, 1)
+        )
+        obj.material_slots[0].link = "OBJECT"
+        obj.material_slots[0].material = mat
+
+
 def load(path, meshes, cache):
     # A dump with its own lights (L lines: the theme kits) doesn't need the
     # stand-in lamp over every glowing part
@@ -242,11 +331,17 @@ def load(path, meshes, cache):
         if line.startswith("R|"):
             place_prop(line.strip().split("|"))
             continue
+        if line.startswith("F|"):
+            add_flame(line.strip().split("|"), meshes)
+            continue
+        if line.startswith("E|"):
+            add_particles(line.strip().split("|"), meshes)
+            continue
         if line.startswith("B|"):
             add_bolt(line.strip().split("|"), meshes)
             continue
         if line.startswith("L|"):
-            if kit_lights < 64:
+            if kit_lights < 110:
                 add_light(line.strip().split("|"), kit_lights)
                 kit_lights += 1
             continue
@@ -291,15 +386,15 @@ def setup_scene():
     scene.world = world
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (
-        (0.06, 0.08, 0.17, 1) if NIGHT else (0.55, 0.72, 0.95, 1)
+        (0.07, 0.09, 0.19, 1) if NIGHT else (0.55, 0.72, 0.95, 1)
     )
-    world.node_tree.nodes["Background"].inputs["Strength"].default_value = 1.3 if NIGHT else 0.9
+    world.node_tree.nodes["Background"].inputs["Strength"].default_value = 1.7 if NIGHT else 0.9
     try:
         scene.eevee.taa_render_samples = 24
     except AttributeError:
         pass
     sun = bpy.data.lights.new("Sun", "SUN")
-    sun.energy = 1.0 if NIGHT else 3.5
+    sun.energy = 1.3 if NIGHT else 3.5
     if NIGHT:  # a soft moon, like the concepts: the stone still reads and the lights carry it
         sun.color = (0.86, 0.88, 1.0)
     so = bpy.data.objects.new("Sun", sun)
@@ -322,8 +417,8 @@ def setup_scene():
     cam.data.lens = 35
     target = mathutils.Vector((0, -14, 12))
     if VIEW == "front":  # the theme concepts' camera: high, square on to the gate
-        target = mathutils.Vector((0, -16, 10))
-        cam.location = (0, 108, 128)
+        target = mathutils.Vector((0, -6, 17))
+        cam.location = (0, 131, 112)
     else:
         cam.location = (-78, 118, 92) if VIEW == "aerial" else (0, 110, 25)
     cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()

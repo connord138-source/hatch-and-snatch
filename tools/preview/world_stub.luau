@@ -45,7 +45,12 @@ Vector2 = { new = function(x, y) return { X = x, Y = y } end }
 NumberRange = { new = function(a, b) return { Min = a, Max = b or a } end }
 NumberSequenceKeypoint = { new = function(t, v) return { Time = t, Value = v } end }
 NumberSequence = { new = function(v) return { Keypoints = v } end }
-ColorSequence = { new = function(v) return { Keypoints = v } end }
+ColorSequence = {
+	new = function(a, b)
+		if a and a.R ~= nil then return { Keypoints = { { Time = 0, Value = a }, { Time = 1, Value = b or a } } } end
+		return { Keypoints = a }
+	end,
+}
 Enum = setmetatable({}, { __index = function(t, k) local group = enumGroup(k); rawset(t, k, group); return group end })
 
 local DEFAULTS = {
@@ -57,6 +62,7 @@ Inst.__index = function(self, k)
 	local raw = rawget(self, "_props")[k]
 	if raw ~= nil then return raw end
 	if k == "Parent" then return rawget(self, "_parent") end
+	if k == "Position" then local cf = rawget(self, "_props").CFrame; return cf and cf.p end
 	if k == "Name" then return rawget(self, "ClassName") end
 	if k == "FindFirstChild" then
 		return function(me, name)
@@ -142,6 +148,34 @@ function dumpParts(root)
 			local p0, p1 = d.Attachment0.Parent.CFrame.p, d.Attachment1.Parent.CFrame.p
 			print(string.format("B|%.3f,%.3f,%.3f|%.3f,%.3f,%.3f", p0.X, p0.Y, p0.Z, p1.X, p1.Y, p1.Z))
 		end
+		-- Particles (the preview scatters stand-ins for them): E|kind|position|box size|color|rate|lifetime|speed|accel|size
+		if d.IsPart then
+			for _, child in rawget(d, "_children") do
+				if child.ClassName == "Fire" then
+					local p, c = d.CFrame.p, child.Color or Color3.fromRGB(255, 140, 40)
+					print(string.format("F|%.3f,%.3f,%.3f|%.3f,%.3f,%.3f|%.2f", p.X, p.Y, p.Z, c.R, c.G, c.B, child.Size or 3))
+				end
+				if child.ClassName == "ParticleEmitter" then
+					local tex = tostring(child.Texture or "")
+					local kind = if string.find(tex, "smoke") then "smoke" elseif string.find(tex, "fire") then "fire" else "sparkle"
+					local keys = child.Color and child.Color.Keypoints
+					local c = (keys and keys[1] and keys[1].Value) or Color3.new(1, 1, 1)
+					local life = child.Lifetime and child.Lifetime.Max or 2
+					local speed = child.Speed and child.Speed.Max or 1
+					local acc = child.Acceleration or Vector3.new(0, 0, 0)
+					local size = 0.4
+					local sk = child.Size and child.Size.Keypoints
+					if type(sk) == "table" then
+						for _, k in sk do if type(k) == "table" and k.Value then size = math.max(size, k.Value) end end
+					elseif type(sk) == "number" then
+						size = sk
+					end
+					local p, s = d.CFrame.p, d.Size
+					print(string.format("E|%s|%.3f,%.3f,%.3f|%.3f,%.3f,%.3f|%.3f,%.3f,%.3f|%.2f|%.2f|%.2f|%.2f|%.2f",
+						kind, p.X, p.Y, p.Z, s.X, s.Y, s.Z, c.R, c.G, c.B, child.Rate or 5, life, speed, acc.Y, size))
+				end
+			end
+		end
 		-- Lights anywhere, even on invisible anchors (theme kit lights): L|position|color|range
 		if d.IsPart then
 			for _, child in rawget(d, "_children") do
@@ -158,10 +192,12 @@ function dumpParts(root)
 		local cf = if r.model and r.mode == "height" then r.model:GetPivot() * CFrame.new(0, -r.height / 2, 0) else r.cframe
 		local size = if r.mode == "box" then r.size else Vector3.new(r.height, r.height, r.height)
 		local tint = r.model and r.model:GetAttribute("KitTint")
-		print(string.format("R|%s|%s|%.3f,%.3f,%.3f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.3f,%.3f,%.3f|%s",
+		local neon = r.model and r.model:GetAttribute("KitNeon")
+		print(string.format("R|%s|%s|%.3f,%.3f,%.3f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.3f,%.3f,%.3f|%s|%s",
 			r.name, r.mode, cf.p.X, cf.p.Y, cf.p.Z, cf.r.x.X, cf.r.x.Y, cf.r.x.Z, cf.r.y.X, cf.r.y.Y, cf.r.y.Z,
 			cf.r.z.X, cf.r.z.Y, cf.r.z.Z, size.X, size.Y, size.Z,
-			if tint then string.format("%.3f,%.3f,%.3f", tint.R, tint.G, tint.B) else ""))
+			if tint then string.format("%.3f,%.3f,%.3f", tint.R, tint.G, tint.B) else "",
+			if neon then string.format("%.3f,%.3f,%.3f", neon.R, neon.G, neon.B) else ""))
 	end
 end
 return true
