@@ -92,7 +92,12 @@ function plotContext(parent, level)
 		arcade(z0, top)
 		wall(Vector3.new(56, 9, 0.4), CFrame.new(0, top + 4.5, 46))
 		for _, x in { -28, 28 } do wall(Vector3.new(0.4, 9, depth), CFrame.new(x, top + 4.5, (z0 + 46) / 2)) end
-		for _, x in { -27, 27 } do for _, z in { if top > 20 then z0 + 3 else z0 + 1, 45 } do trim(Vector3.new(2.4, 18, 2.4), CFrame.new(x, top - 9, z), "FloorPost") end end
+		for _, x in { -27, 27 } do for _, z in (if top > 20 then { 45 } else { z0 + 1, 45 }) do trim(Vector3.new(2.4, 18, 2.4), CFrame.new(x, top - 9, z), "FloorPost") end end
+		if top > 20 then
+			-- The floor below's walls rise to meet this slab (WorldService: no front posts up here)
+			for _, x in { -28, 28 } do wall(Vector3.new(0.4, 8, depth), CFrame.new(x, top - 5, (z0 + 46) / 2)) end
+			wall(Vector3.new(56, 8, 0.4), CFrame.new(0, top - 5, 46))
+		end
 		-- vault rooms in the back corners
 		for _, side in { -1, 1 } do
 			wall(Vector3.new(0.4, 9, 12), CFrame.new(side * 16, top + 4.5, 40), "VaultWall")

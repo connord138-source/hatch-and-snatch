@@ -292,7 +292,8 @@ local slots: { Slot } = {
 				-- shine was too glary day and night (PC pass), and pale blue foil read
 				-- as the Ice Castle; the clear crystals on top carry the sparkle.
 				material = Enum.Material.Salt,
-				color = Color3.fromRGB(244, 247, 252),
+				-- A touch below pure white: near-white glared under the low afternoon sun
+				color = Color3.fromRGB(226, 231, 240),
 				sparkle = Color3.fromRGB(255, 252, 245),
 			},
 			{

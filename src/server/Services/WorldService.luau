@@ -1073,8 +1073,13 @@ local function buildPlot(index: number): PlotLayout
 		local depth = FLOOR_Z1 - z0
 		local midZ = (z0 + FLOOR_Z1) / 2
 		piece(story, nil, "Floor", Vector3.new(FLOOR_X * 2, 1, depth), CFrame.new(0, top - 0.5, midZ))
-		-- Support posts down to the floor below
+		-- Support posts down to the floor below. The Top Floor has none at the front
+		-- (they stuck out from the Second Floor's side walls and stopped anyone
+		-- walking along them): the Second Floor's walls rise to meet its slab instead.
 		for _, corner in { Vector2.new(-1, 0), Vector2.new(1, 0), Vector2.new(-1, 1), Vector2.new(1, 1) } do
+			if story > 2 and corner.Y == 0 then
+				continue
+			end
 			piece(
 				story,
 				nil,
@@ -1083,13 +1088,34 @@ local function buildPlot(index: number): PlotLayout
 				CFrame.new(
 					corner.X * (FLOOR_X - 1),
 					top - FLOOR_HEIGHT / 2,
-					-- The Top Floor's front posts stand back from the Second Floor's end
-					-- alcoves, so the way along its side walls stays open
-					if corner.Y == 1 then FLOOR_Z1 - 1 elseif story > 2 then z0 + 3 else z0 + 1
+					if corner.Y == 1 then FLOOR_Z1 - 1 else z0 + 1
 				),
 				nil,
 				nil,
 				nil,
+				true
+			)
+		end
+		if story > 2 then
+			-- The floor below's side and back walls, up from their tops to this slab
+			local from = floorTop(story - 1) + FLOOR_WALL
+			local height = top - 1 - from
+			for _, side in { -1, 1 } do
+				piece(
+					story,
+					nil,
+					"FloorWall",
+					Vector3.new(0.4, height, depth),
+					CFrame.new(side * FLOOR_X, from + height / 2, midZ),
+					true
+				)
+			end
+			piece(
+				story,
+				nil,
+				"FloorWall",
+				Vector3.new(FLOOR_X * 2, height, 0.4),
+				CFrame.new(0, from + height / 2, FLOOR_Z1),
 				true
 			)
 		end

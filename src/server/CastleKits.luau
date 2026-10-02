@@ -137,7 +137,7 @@ local KITS: { [string]: Kit } = {
 		emblem = "leaf",
 		emblemColor = Color3.fromRGB(170, 255, 140),
 		wallLight = "MossMushroomLantern",
-		lightScale = 0.65,
+		lightScale = 0.5,
 		feet = { name = "MossMushrooms", size = 11, count = 3, glow = true },
 		topBraziers = 0, -- the concept's gatehouse wears giant mushrooms instead
 		flame = Color3.fromRGB(140, 255, 120),
@@ -724,10 +724,11 @@ local TURN: { [string]: number } = {
 -- Pieces that glow in the concepts (bright mushrooms, violet crystals): their
 -- texture gives way to neon in this color, as a SurfaceAppearance can't glow.
 local NEON: { [string]: Color3 } = {
-	MossMushrooms = Color3.fromRGB(70, 235, 95),
+	-- A deep green: brighter caps bloomed into a green haze over the whole Green Hold
+	MossMushrooms = Color3.fromRGB(48, 190, 78),
 	MoonCrystal = Color3.fromRGB(196, 120, 255),
 	StormThunderStone = Color3.fromRGB(214, 228, 255),
-	MossGlowCap = Color3.fromRGB(70, 235, 95),
+	MossGlowCap = Color3.fromRGB(48, 190, 78),
 	MoonShard = Color3.fromRGB(196, 120, 255),
 	StormCrystals = Color3.fromRGB(255, 232, 140),
 }
