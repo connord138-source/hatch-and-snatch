@@ -862,6 +862,9 @@ local function tintWith(model: Model?, color: Color3)
 end
 
 -- A growth from the kit (one of its shapes), tinted.
+-- Rounded pieces that read as blobs blown up big: never taller than this
+local GROWTH_MAX: { [string]: number } = { CoralBrain = 2.8, CoralAnemone = 3.2 }
+
 local function growth(folder: Instance, kit: Kit, at: CFrame, height: number, rng: Random): Model?
 	local name = kit.growth
 	-- Tall pieces come from the upright shapes only (a sea fan blown up to ten
@@ -873,7 +876,8 @@ local function growth(folder: Instance, kit: Kit, at: CFrame, height: number, rn
 			name = alts[pick]
 		end
 	end
-	local model = piece(folder, name, at, height)
+	local model =
+		piece(folder, name, at, math.min(height, if name then GROWTH_MAX[name] or height else height))
 	tint(model, kit, rng)
 	return model
 end
