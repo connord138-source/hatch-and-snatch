@@ -47,6 +47,16 @@ local KIT = {
 	"GoldSpire", "GoldLion", "GoldBrazier", "GoldCrownCrest",
 	"DiamondCrown", "DiamondCluster", "DiamondLantern", "DiamondGateCrest",
 	"VoidShards", "VoidCrystals", "VoidBrazier", "VoidPortal", "VoidRunePillar",
+	-- Variations and keep interiors (2026-10-02)
+	"CoralGiantClam", "CoralOyster", "CoralBrain", "CoralAnemone", "CoralUrchins", "CoralBarnacleRock",
+	"MossGlowCap", "MossShelfLog", "MossFern", "MossFlowers",
+	"FireMagmaCrystals", "FireCauldron", "FireDragonSkull",
+	"IceSnowPine", "IceShards", "IceBrazier",
+	"StormCrystals", "StormCoil", "StormThunderRock",
+	"MoonShard", "MoonFlower", "MoonLampPost",
+	"GoldUrn", "GoldCoins", "GoldChest",
+	"DiamondGems", "DiamondGeode", "DiamondChandelier",
+	"VoidEyeOrb", "VoidThornTree", "VoidObelisk",
 }
 local kitPiece = {}
 for _, name in KIT do

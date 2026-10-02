@@ -1,0 +1,84 @@
+{
+  "jobs": [
+    {
+      "name": "KitSheet5Coral",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeCoral.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a giant open clam shell with a big glowing white pearl inside, ribbed shell pale pink and cream, pearly lilac inside. Top right: a round brain coral mound with deep winding grooves, pale cream-white with no color. Bottom left: a sea anemone with a thick short stalk and many soft wavy tentacles, pale cream-white with no color. Bottom right: a cluster of three spiky sea urchins on a small rock, deep purple spines."
+    },
+    {
+      "name": "KitSheet5Coral2",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeCoral.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: tall kelp seaweed, five wavy ribbon strands rising from a small rock, pale cream-white with no color. Top right: a cluster of tube sponges, five hollow vase-shaped tubes of different heights, pale cream-white with no color. Bottom left: a small closed oyster shell slightly open with a white pearl showing, rough grey-lilac outside. Bottom right: a short rock with barnacles and two small white shells stuck to it, sandy beige."
+    },
+    {
+      "name": "KitSheet5Moss",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeMoss.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: one tall glowing mushroom, thin pale stalk, wide flat bright green glowing cap with white spots. Top right: a cluster of bracket shelf fungi growing out sideways from a mossy chunk of bark, pale green-cream caps. Bottom left: a lush round fern bush with long curling fronds, rich green. Bottom right: a clump of wildflowers, pink, purple and yellow blossoms on green leaves."
+    },
+    {
+      "name": "KitSheet5Fire",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeFire.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a cluster of glowing orange magma crystals growing from black rock. Top right: a black iron cauldron on three legs full of bubbling glowing lava. Bottom left: a large horned dragon skull, bone white with dark cracks, lying on its jaw. Bottom right: a tall black iron torch stand with spikes and a flaming iron basket on top."
+    },
+    {
+      "name": "KitSheet5Ice",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeIce.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a snow-covered pine tree, dark green under thick white snow. Top right: a low wide cluster of pale blue ice crystal shards, translucent look. Bottom left: a snow mound with chunks of blue ice sticking out of it. Bottom right: a frosted silver brazier bowl on a stand holding a pale blue flame."
+    },
+    {
+      "name": "KitSheet5Storm",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeStorm.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a cluster of glowing pale yellow storm crystals growing from dark slate rock. Top right: a small copper tesla coil on a stone base, copper rings and a glass orb on top. Bottom left: a dark slate boulder cracked open with glowing electric blue veins. Bottom right: a thin iron lightning rod post with three copper rings and a pointed tip."
+    },
+    {
+      "name": "KitSheet5Moon",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeMoon.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a single tall glowing violet crystal shard standing on a small silver base. Top right: a glowing pale lilac moon flower, a lily with wide petals and a softly glowing center, on a short stem with leaves. Bottom left: a slim silver lantern post with a small crescent moon on top and a violet glowing glass lantern. Bottom right: a small silver crescent moon sculpture standing on a round white marble plinth."
+    },
+    {
+      "name": "KitSheet5Golden",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeGolden.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a tall polished golden urn with two curled handles and a red gem. Top right: a heap of gold coins with red and blue gems and a small golden goblet. Bottom left: an open treasure chest of dark red wood with gold bands, full of gold coins. Bottom right: a short white marble column with a gold capital and gold base rings."
+    },
+    {
+      "name": "KitSheet5Diamond",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeDiamond.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a cluster of cut clear diamonds of different sizes lying together on a white marble base. Top right: a split-open white rock geode lined with clear and pale blue crystals inside. Bottom left: a crystal chandelier with a gold ring frame and hanging clear crystal drops. Bottom right: a tall clear crystal obelisk on a stepped gold base."
+    },
+    {
+      "name": "KitSheet5Void",
+      "group": "concepts",
+      "type": "generate_image",
+      "model": "gemini_2.5_flash_image_preview",
+      "ref": "assets/tripo/concepts/ThemeVoid.png",
+      "prompt": "Using the attached castle concept as the exact style and design reference, draw a clean prop sheet of separate game props that belong in this castle, arranged in a 2 by 2 grid with lots of empty space between them. Each prop is whole, isolated, centered in its own quarter, three-quarter view from slightly above, on a plain light gray background, even studio lighting, no ground, no shadows, no castle walls, no creatures, no text or labels. Match the reference exactly: stylized semi-realistic low-poly Roblox game assets, smooth shading, solid color regions. Top left: a floating dark slate rune stone slab with glowing purple carved runes. Top right: a glowing purple eye orb held in a black twisted iron claw stand. Bottom left: a dead twisted black thorn tree with sharp branches and purple glowing tips. Bottom right: a short black obsidian obelisk with purple glowing cracks and a violet crystal on top."
+    }
+  ]
+}

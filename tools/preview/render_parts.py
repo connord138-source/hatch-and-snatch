@@ -124,6 +124,9 @@ def glb(name):
         return GLB_CACHE[name]
     path = os.path.join(PROPS_DIR, name + ".glb")
     if not os.path.exists(path):
+        # creatures on the pedestals (run_designs.sh)
+        path = os.path.join(os.environ.get("CREATURE_DIR", "/tmp/claude-0/allglb"), name + ".glb")
+    if not os.path.exists(path):
         GLB_CACHE[name] = None
         return None
     before = set(bpy.data.objects)

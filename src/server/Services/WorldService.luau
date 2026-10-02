@@ -47,6 +47,7 @@ export type PlotLayout = {
 	pedestalParts: { [number]: BasePart },
 	pedestalProps: { [number]: Model? },
 	floorPieces: { FloorPiece }, -- the floors above the ground, their walls and ramps
+	niches: { [number]: Niche }, -- the display niche behind each creature spot, by slot
 	vaults: { VaultRoom },
 	level: number,
 	floors: number, -- floors shown, counting the ground
@@ -57,8 +58,22 @@ export type PlotLayout = {
 }
 
 -- A part of the floors above the ground: shown while the base has `from`+ floors
--- (and at most `to`), at its own transparency (glass walls are see-through).
-export type FloorPiece = { part: BasePart, from: number, to: number?, transparency: number, vault: number? }
+-- (and at most `to`), at its own transparency (glass walls are see-through);
+-- `solid` pieces collide (the stairs drawn on the ramps don't).
+export type FloorPiece = {
+	part: BasePart,
+	from: number,
+	to: number?,
+	transparency: number,
+	vault: number?,
+	solid: boolean,
+}
+
+-- The arched display niche behind a creature spot (owner, 2026-10-02: in the
+-- concepts every creature stands in its own glowing alcove): stone parts, the
+-- glowing panel that takes the rarity color of the creature standing there
+-- (setNicheGlow), and its light. Shown with its pedestal.
+export type Niche = { stone: { BasePart }, glows: { BasePart }, light: PointLight, color: Color3? }
 
 -- A vault room: one pedestal behind a door the owner locks (StealService).
 export type VaultRoom = {
@@ -170,13 +185,19 @@ local FLOOR_HEIGHT = 18
 local FLOOR_X = 28 -- half width
 local FLOOR_Z0: { [number]: number } = { [2] = 2, [3] = 14 } -- front edges (the top floor is set back)
 local FLOOR_Z1 = 46
-local FLOOR_ROW_Z: { [number]: number } = { [2] = 20, [3] = 22 } -- the pedestal row on each floor
+-- The pedestal row on each floor: just inside the arches, so the creatures show
+-- from outside like the concepts' alcoves (a walkway in front, niches behind)
+local FLOOR_ROW_Z: { [number]: number } = { [2] = 8, [3] = 20 }
 local FLOOR_WALL = 9 -- taller than a jump
 local VAULT_SIZE = 11 -- inside width and depth of a vault room
 local VAULT_Z0 = FLOOR_Z1 - 1 - VAULT_SIZE -- vault front walls
 local DOOR_WIDTH = 6
 local PEDESTAL_SPACING = 11
 local GROUND_SLOTS = Config.Economy.groundSlots
+local NICHE_BACK = 4 -- from a pedestal's center back to its niche's face
+local NICHE_WIDTH = 6.6
+local NICHE_HEIGHT = 5.6 -- up to where the arch starts (it adds half the width)
+local NICHE_IDLE = Color3.fromRGB(255, 200, 150) -- an empty niche's glow
 
 local function floorTop(floor: number): number
 	return TOP + (floor - 1) * FLOOR_HEIGHT
@@ -224,6 +245,7 @@ local function effect(className: string, name: string): Instance
 	return instance
 end
 
+-- The daytime look; DayNightController moves the sun and fades to night on each client.
 local function setupLighting()
 	Lighting.ClockTime = 14.3
 	Lighting.Brightness = 2.4
@@ -710,6 +732,82 @@ local function buildPlot(index: number): PlotLayout
 		pedestals[i] = origin * CFrame.new(localPos + Vector3.new(0, 0.7, 0))
 	end
 
+	-- A display niche behind every pedestal but the vaults' (rooms of their own)
+	-- and the hiding spots'
+	local niches: { [number]: Niche } = {}
+	for _, i in allSlots do
+		if Config.Economy.vaultOfSlot(i) or Config.Economy.hideOfSlot(i) then
+			continue
+		end
+		local localPos = pedestalPosition(i)
+		-- Plot-local: the floor under the pedestal, at the niche's face; -Z faces out
+		local face = origin * CFrame.new(localPos.X, localPos.Y - 0.7, localPos.Z + NICHE_BACK)
+		local stone: { BasePart } = {}
+		local function block(name: string, size: Vector3, offset: CFrame, round: boolean?)
+			local p = part({
+				Name = name,
+				Shape = if round then Enum.PartType.Cylinder else Enum.PartType.Block,
+				Size = size,
+				CFrame = face * offset,
+				Material = Enum.Material.Cobblestone,
+				Color = Color3.fromRGB(140, 134, 126),
+				Transparency = 1,
+				CanCollide = false,
+				CanQuery = false,
+				Parent = model,
+			})
+			p:SetAttribute("Slot", i)
+			table.insert(stone, p)
+		end
+		local roundFace = CFrame.Angles(0, math.pi / 2, 0) -- a cylinder's round faces toward -Z
+		block("NicheBack", Vector3.new(NICHE_WIDTH, NICHE_HEIGHT, 0.8), CFrame.new(0, NICHE_HEIGHT / 2, 0.4))
+		block(
+			"NicheArch",
+			Vector3.new(0.8, NICHE_WIDTH, NICHE_WIDTH),
+			CFrame.new(0, NICHE_HEIGHT, 0.4) * roundFace,
+			true
+		)
+		for _, side in { -1, 1 } do
+			block(
+				"NichePilaster",
+				Vector3.new(0.7, NICHE_HEIGHT + 0.6, 1.3),
+				CFrame.new(side * (NICHE_WIDTH / 2 + 0.1), (NICHE_HEIGHT + 0.6) / 2, 0.25)
+			)
+		end
+		local inner = NICHE_WIDTH - 1.6
+		local function glowPart(size: Vector3, offset: CFrame, round: boolean): BasePart
+			return part({
+				Name = "NicheGlow",
+				Shape = if round then Enum.PartType.Cylinder else Enum.PartType.Block,
+				Size = size,
+				CFrame = face * offset,
+				Material = Enum.Material.Neon,
+				Color = NICHE_IDLE,
+				Transparency = 1,
+				CanCollide = false,
+				CanQuery = false,
+				CastShadow = false,
+				Parent = model,
+			})
+		end
+		local glows: { BasePart } = {
+			glowPart(
+				Vector3.new(inner, NICHE_HEIGHT - 1.4, 0.12),
+				CFrame.new(0, 0.7 + NICHE_HEIGHT / 2, -0.06),
+				false
+			),
+			glowPart(Vector3.new(0.12, inner, inner), CFrame.new(0, NICHE_HEIGHT, -0.06) * roundFace, true),
+		}
+		local glowLight = Instance.new("PointLight")
+		glowLight.Range = 9
+		glowLight.Brightness = 0
+		glowLight.Shadows = false
+		glowLight.Color = NICHE_IDLE
+		glowLight.Parent = glows[1]
+		CollectionService:AddTag(glowLight, "KitLight") -- the client switches far ones off
+		niches[i] = { stone = stone, glows = glows, light = glowLight, color = nil }
+	end
+
 	-- The floors above the ground, their glass walls, ramps and vault rooms (setFloors
 	-- shows what the owner has bought)
 	local floorPieces: { FloorPiece } = {}
@@ -726,7 +824,8 @@ local function buildPlot(index: number): PlotLayout
 		glass: boolean?,
 		vault: number?,
 		barrier: boolean?,
-		keep: boolean?
+		keep: boolean?,
+		ghost: boolean?
 	): Part
 		local p = part({
 			Name = name,
@@ -747,6 +846,7 @@ local function buildPlot(index: number): PlotLayout
 			to = to,
 			transparency = if barrier then 1 else 0,
 			vault = vault,
+			solid = ghost ~= true,
 		}
 		table.insert(floorPieces, entry)
 		return p
@@ -904,6 +1004,27 @@ local function buildPlot(index: number): PlotLayout
 		local flat = Vector3.new(b.X - a.X, 0, b.Z - a.Z)
 		local along = flat.Unit
 		local right = along:Cross(Vector3.yAxis)
+		-- Stone stairs drawn on it, as in the concepts (the slope underneath is what
+		-- players walk on, so the steps don't collide)
+		local steps = math.max(4, math.floor(flat.Magnitude / 1.5))
+		local run, rise = flat.Magnitude / steps, (b.Y - a.Y) / steps
+		for step = 0, steps - 1 do
+			local height = math.abs(rise) + 0.6
+			local top = a.Y + (step + 0.5) * rise + 0.25
+			local at = Vector3.new(a.X, top - height / 2, a.Z) + along * (step + 0.5) * run
+			piece(
+				from,
+				nil,
+				"Stair",
+				Vector3.new(5.6, height, run + 0.02),
+				CFrame.lookAt(at, at + along),
+				nil,
+				nil,
+				nil,
+				true,
+				true
+			)
+		end
 		for step = 0, RAMP_STEPS - 1 do
 			local p0 = a:Lerp(b, step / RAMP_STEPS)
 			local p1 = a:Lerp(b, (step + 1) / RAMP_STEPS)
@@ -950,6 +1071,55 @@ local function buildPlot(index: number): PlotLayout
 		end
 		-- Stone walls round the edge, open where the ramps arrive; arches at the front
 		arcade(story, -FLOOR_X, FLOOR_X, z0, top)
+		if story == 2 then
+			-- The ground floor under it gets tall arches across its front too (the
+			-- concepts' lower row of alcoves), open to walk through
+			local bays = 5
+			local bay = FLOOR_X * 2 / bays
+			local below = top - 1 - TOP -- from the ground up to the slab
+			for i = 1, bays - 1 do
+				piece(
+					story,
+					nil,
+					"ArchPillar",
+					Vector3.new(1.8, below, 1.8),
+					CFrame.new(-FLOOR_X + i * bay, TOP + below / 2, z0),
+					nil,
+					nil,
+					nil,
+					true
+				)
+			end
+			for i = 0, bays - 1 do
+				local x = -FLOOR_X + (i + 0.5) * bay
+				local span = bay - 1.8
+				piece(
+					story,
+					nil,
+					"ArchLintel",
+					Vector3.new(span, 1.8, 1.4),
+					CFrame.new(x, top - 1 - 0.9, z0),
+					nil,
+					nil,
+					nil,
+					true
+				)
+				for _, side in { -1, 1 } do
+					piece(
+						story,
+						nil,
+						"ArchCorner",
+						Vector3.new(3.4, 3.4, 1.2),
+						CFrame.new(x + side * (span / 2 - 0.6), top - 1 - 2.2, z0)
+							* CFrame.Angles(0, 0, math.rad(45)),
+						nil,
+						nil,
+						nil,
+						true
+					)
+				end
+			end
+		end
 		wallX(story, nil, -FLOOR_X, FLOOR_X, FLOOR_Z1, top)
 		if story == #Config.Economy.tunables.floors + 1 then
 			merlons(story, Vector3.new(-FLOOR_X, 0, FLOOR_Z1), Vector3.new(FLOOR_X, 0, FLOOR_Z1), top)
@@ -1215,6 +1385,7 @@ local function buildPlot(index: number): PlotLayout
 		pedestalParts = pedestalParts,
 		pedestalProps = pedestalProps,
 		floorPieces = floorPieces,
+		niches = niches,
 		vaults = vaults,
 		level = 0,
 		floors = 1,
@@ -1302,6 +1473,11 @@ local function dressKeep(plot: PlotLayout)
 			table.insert(shown, entry.part)
 		end
 	end
+	for _, niche in plot.niches do
+		if niche.stone[1].Transparency < 1 then
+			table.insert(shown, niche.stone[1]) -- the NicheBack
+		end
+	end
 	local folder = Instance.new("Folder")
 	folder.Name = "KeepKit"
 	CastleKits.dressKeep(folder, kit, shown)
@@ -1315,8 +1491,8 @@ function WorldService.setFloors(plot: PlotLayout, floors: number, vaults: number
 			and (entry.to == nil or floors <= entry.to)
 			and (entry.vault == nil or vaults >= entry.vault)
 		entry.part.Transparency = if shown then entry.transparency else 1
-		entry.part.CanCollide = shown
-		entry.part.CanQuery = shown
+		entry.part.CanCollide = shown and entry.solid
+		entry.part.CanQuery = shown and entry.solid
 	end
 	for vault, room in plot.vaults do
 		room.owned = vaults >= vault and floors >= room.floor
@@ -1327,7 +1503,6 @@ function WorldService.setFloors(plot: PlotLayout, floors: number, vaults: number
 		end
 		showDoor(room)
 	end
-	dressKeep(plot)
 	local shownSlots: { [number]: boolean } = {}
 	for _, slot in Config.Economy.slots(plot.level, floors, vaults) do
 		shownSlots[slot] = true
@@ -1348,7 +1523,36 @@ function WorldService.setFloors(plot: PlotLayout, floors: number, vaults: number
 			gui.Enabled = shown
 		end
 	end
+	for slot, niche in plot.niches do
+		local shown = shownSlots[slot] == true
+		for _, p in niche.stone do
+			p.Transparency = if shown then 0 else 1
+			p.CanCollide = shown and p.Name ~= "NicheArch"
+		end
+		for _, p in niche.glows do
+			p.Transparency = if shown then (if niche.color then 0 else 0.35) else 1
+		end
+		niche.light.Brightness = if shown then (if niche.color then 1.6 else 0.5) else 0
+	end
+	dressKeep(plot) -- after the niches, which it dresses too
 	placeLasers(plot)
+end
+
+-- Lights a creature spot's niche in the rarity color of the creature standing
+-- there (CreatureService), or back to the soft empty glow (nil).
+function WorldService.setNicheGlow(plot: PlotLayout, slot: number, color: Color3?)
+	local niche = plot.niches[slot]
+	if niche == nil then
+		return
+	end
+	niche.color = color
+	local shown = niche.stone[1].Transparency < 1
+	for _, p in niche.glows do
+		p.Color = color or NICHE_IDLE
+		p.Transparency = if shown then (if color then 0 else 0.35) else 1
+	end
+	niche.light.Color = color or NICHE_IDLE
+	niche.light.Brightness = if shown then (if color then 1.6 else 0.5) else 0
 end
 
 -- A vault door: locked (solid, glowing, blocks the way) or open, and its sign.
@@ -1524,6 +1728,12 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	end
 	for _, room in plot.vaults do
 		glow(room.door)
+	end
+	for _, niche in plot.niches do
+		for _, p in niche.stone do
+			p.Material = stoneMaterial
+			p.Color = if p.Name == "NicheBack" then stoneColor else stoneColor:Lerp(Color3.new(1, 1, 1), 0.12)
+		end
 	end
 	dressKeep(plot)
 

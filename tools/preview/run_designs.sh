@@ -11,7 +11,9 @@ shift || true
 PRESETS=${@:-Classic Ice Fire Light Dark Rainbow}
 mkdir -p "$OUT"
 rm -f "$OUT"/level*.txt
-AVAILABLE=$(python3 glb_extents.py ../../assets/tripo/props | tr '\n' ' ')
+# Creatures stand on the pedestals when their GLBs are on disk (fetch_assets.py)
+export CREATURE_DIR=${CREATURE_DIR:-/tmp/claude-0/allglb}
+AVAILABLE=$( { python3 glb_extents.py ../../assets/tripo/props; [ -d "$CREATURE_DIR" ] && python3 glb_extents.py "$CREATURE_DIR"; } | tr '\n' ' ')
 for preset in $PRESETS; do
 	chunk=$(mktemp --suffix=.luau)
 	{

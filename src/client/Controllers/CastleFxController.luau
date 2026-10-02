@@ -6,14 +6,18 @@
 --   KitArc      lightning between the Storm Spire's tesla tips flickers and jumps
 --   KitFlicker  the storm cloud's light flashes now and then
 --   KitLight    every kit light: off beyond LIGHT_RANGE from the camera (a
---               themed base carries about a hundred), checked once a second
+--               themed base carries about a hundred), checked once a second;
+--               by day only the nearest stay on (DAY_LIGHT_RANGE)
 -- Only pieces near the camera are animated, so six themed bases stay cheap.
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local DayNight = require(game:GetService("ReplicatedStorage").Shared.DayNight)
+
 local NEAR = 400 -- studs from the camera
 local LIGHT_RANGE = 230 -- a neighbour's base still glows; the far side of the island doesn't
+local DAY_LIGHT_RANGE = 110 -- in sunlight a far lantern adds nothing
 
 local CastleFxController = {}
 
@@ -75,11 +79,13 @@ function CastleFxController.start()
 		local t = os.clock()
 		if t >= nextLights then
 			nextLights = t + 1
+			local night = DayNight.night(DayNight.clock(Workspace:GetServerTimeNow()))
+			local range = DAY_LIGHT_RANGE + (LIGHT_RANGE - DAY_LIGHT_RANGE) * night
 			for instance in lights do
 				if instance:IsA("Light") then
 					local holder = instance.Parent
 					if holder and holder:IsA("BasePart") then
-						instance.Enabled = (holder.Position - eye).Magnitude < LIGHT_RANGE
+						instance.Enabled = (holder.Position - eye).Magnitude < range
 					end
 				end
 			end

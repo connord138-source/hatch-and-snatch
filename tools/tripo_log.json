@@ -494,6 +494,96 @@
   "task_id": "22a355e3-20ce-485a-94c1-da77b8766e74",
   "type": "generate_image"
  },
+ "concepts/KitSheet5Coral": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Coral.png"
+  ],
+  "status": "success",
+  "task_id": "a4cefe42-16cb-45a4-b293-748055953372",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Coral2": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Coral2.png"
+  ],
+  "status": "success",
+  "task_id": "98e1faf6-fd77-48d0-93f8-5cf6a93c527a",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Diamond": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Diamond.png"
+  ],
+  "status": "success",
+  "task_id": "8a14527d-c32f-4a77-881c-fbbc2e037c40",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Fire": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Fire.png"
+  ],
+  "status": "success",
+  "task_id": "b3214c25-8731-4be5-989f-a144adc3e64b",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Golden": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Golden.png"
+  ],
+  "status": "success",
+  "task_id": "00a46060-b4ae-4e23-a288-41ae4eb12ed2",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Ice": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Ice.png"
+  ],
+  "status": "success",
+  "task_id": "710c1f3c-f878-40a3-bbbc-3a4c9948cdde",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Moon": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Moon.png"
+  ],
+  "status": "success",
+  "task_id": "3d4bfadb-f749-4135-a294-d57cc751acea",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Moss": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Moss.png"
+  ],
+  "status": "success",
+  "task_id": "1a3f890b-b60d-449b-9868-df5ccc0512d1",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Storm": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Storm.png"
+  ],
+  "status": "success",
+  "task_id": "12401ac8-9dbc-4bcb-b9cf-2aa37428000c",
+  "type": "generate_image"
+ },
+ "concepts/KitSheet5Void": {
+  "credits": 5,
+  "files": [
+   "KitSheet5Void.png"
+  ],
+  "status": "success",
+  "task_id": "e96935d7-5faf-41a3-bf36-4e6970093cf3",
+  "type": "generate_image"
+ },
  "concepts/KitSheetCoral": {
   "credits": 5,
   "files": [
@@ -1701,6 +1791,16 @@
   "task_id": "c7dc2735-5234-431e-aba0-ad0f46f5c3ef",
   "type": "text_to_model"
  },
+ "props/CoralAnemone": {
+  "credits": 30,
+  "files": [
+   "CoralAnemone.glb",
+   "CoralAnemone_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "b487233f-03c3-486d-aac0-4daf9c4598dc",
+  "type": "image_to_model"
+ },
  "props/CoralAnemoneRock": {
   "credits": 30,
   "files": [
@@ -1709,6 +1809,26 @@
   ],
   "status": "success",
   "task_id": "17468f6f-dd4a-4c60-88ad-d60d037ce476",
+  "type": "image_to_model"
+ },
+ "props/CoralBarnacleRock": {
+  "credits": 30,
+  "files": [
+   "CoralBarnacleRock.glb",
+   "CoralBarnacleRock_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "7035cdcb-bef6-423a-b65d-e65c99889eb5",
+  "type": "image_to_model"
+ },
+ "props/CoralBrain": {
+  "credits": 30,
+  "files": [
+   "CoralBrain.glb",
+   "CoralBrain_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "bdac221d-c224-4dd9-9877-f0edd987f482",
   "type": "image_to_model"
  },
  "props/CoralClamBrazier": {
@@ -1749,6 +1869,26 @@
   ],
   "status": "success",
   "task_id": "7b29e22c-4e85-43ef-ab07-f1ee5523db74",
+  "type": "image_to_model"
+ },
+ "props/CoralGiantClam": {
+  "credits": 30,
+  "files": [
+   "CoralGiantClam.glb",
+   "CoralGiantClam_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "0dcc57ac-af11-407a-ac41-fb98f05f3896",
+  "type": "image_to_model"
+ },
+ "props/CoralOyster": {
+  "credits": 30,
+  "files": [
+   "CoralOyster.glb",
+   "CoralOyster_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "ba4fd898-0ee9-4075-b02e-72c85eb3b030",
   "type": "image_to_model"
  },
  "props/CoralPearlLantern": {
@@ -1821,6 +1961,16 @@
   "task_id": "372091e5-e701-4460-8716-788641123479",
   "type": "image_to_model"
  },
+ "props/CoralUrchins": {
+  "credits": 30,
+  "files": [
+   "CoralUrchins.glb",
+   "CoralUrchins_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "10e03b64-c1dd-4a42-9873-e7c047825ddf",
+  "type": "image_to_model"
+ },
  "props/CraterRim": {
   "credits": 20,
   "files": [
@@ -1830,6 +1980,16 @@
   "status": "success",
   "task_id": "04f67810-3c52-477a-9f41-82d754e1af32",
   "type": "text_to_model"
+ },
+ "props/DiamondChandelier": {
+  "credits": 30,
+  "files": [
+   "DiamondChandelier.glb",
+   "DiamondChandelier_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "951c9918-fbef-43de-ae67-8092d0802c3e",
+  "type": "image_to_model"
  },
  "props/DiamondCluster": {
   "credits": 30,
@@ -1861,6 +2021,26 @@
   "task_id": "fa14ebfa-1c29-440a-acc4-d88bb3847570",
   "type": "image_to_model"
  },
+ "props/DiamondGems": {
+  "credits": 30,
+  "files": [
+   "DiamondGems.glb",
+   "DiamondGems_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "334f0630-17f5-441f-be73-be8e753b7bb0",
+  "type": "image_to_model"
+ },
+ "props/DiamondGeode": {
+  "credits": 30,
+  "files": [
+   "DiamondGeode.glb",
+   "DiamondGeode_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "b71767c1-b0da-4cb3-9b83-b274e4d627ec",
+  "type": "image_to_model"
+ },
  "props/DiamondLantern": {
   "credits": 30,
   "files": [
@@ -1881,6 +2061,16 @@
   "task_id": "24bc63ff-1dae-4743-b1c1-31596514b0a1",
   "type": "text_to_model"
  },
+ "props/FireCauldron": {
+  "credits": 30,
+  "files": [
+   "FireCauldron.glb",
+   "FireCauldron_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "d61fa25c-9a62-4be4-bf08-4be057719e28",
+  "type": "image_to_model"
+ },
  "props/FireDragonGate": {
   "credits": 30,
   "files": [
@@ -1891,6 +2081,16 @@
   "task_id": "1272ef79-236f-4d89-9c62-f63a5a4ef163",
   "type": "image_to_model"
  },
+ "props/FireDragonSkull": {
+  "credits": 30,
+  "files": [
+   "FireDragonSkull.glb",
+   "FireDragonSkull_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "357a01fa-6791-40ae-bbd1-49427620e0e9",
+  "type": "image_to_model"
+ },
  "props/FireLavaRock": {
   "credits": 30,
   "files": [
@@ -1899,6 +2099,16 @@
   ],
   "status": "success",
   "task_id": "37e1fae5-3119-416d-bba7-ba4ca9b4f163",
+  "type": "image_to_model"
+ },
+ "props/FireMagmaCrystals": {
+  "credits": 30,
+  "files": [
+   "FireMagmaCrystals.glb",
+   "FireMagmaCrystals_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "36227ace-56f0-461f-9ad1-bbb7a769dbc9",
   "type": "image_to_model"
  },
  "props/FireObsidianSpikes": {
@@ -2035,6 +2245,26 @@
   "task_id": "9d64e5a0-366c-42dc-8b64-e8be46d7766e",
   "type": "image_to_model"
  },
+ "props/GoldChest": {
+  "credits": 30,
+  "files": [
+   "GoldChest.glb",
+   "GoldChest_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "5a3f0306-9e0d-44c4-b02c-ab3aca011f20",
+  "type": "image_to_model"
+ },
+ "props/GoldCoins": {
+  "credits": 30,
+  "files": [
+   "GoldCoins.glb",
+   "GoldCoins_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "32fb2112-ec8a-44c2-acfe-74168a73afbb",
+  "type": "image_to_model"
+ },
  "props/GoldCrownCrest": {
   "credits": 30,
   "files": [
@@ -2063,6 +2293,16 @@
   ],
   "status": "success",
   "task_id": "168cd9f7-a30a-4715-a0b1-3a3bdaa46959",
+  "type": "image_to_model"
+ },
+ "props/GoldUrn": {
+  "credits": 30,
+  "files": [
+   "GoldUrn.glb",
+   "GoldUrn_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "42d172c5-fc4e-4a3c-ac8b-c2ef47e48f56",
   "type": "image_to_model"
  },
  "props/HideBarrels": {
@@ -2125,6 +2365,16 @@
   "task_id": "f3a42c70-4c94-4b61-9140-b9f22d5ca09d",
   "type": "text_to_model"
  },
+ "props/IceBrazier": {
+  "credits": 30,
+  "files": [
+   "IceBrazier.glb",
+   "IceBrazier_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "ccdf23c7-22be-4d3a-883f-d8ad662e0a94",
+  "type": "image_to_model"
+ },
  "props/IceCrystalCluster": {
   "credits": 30,
   "files": [
@@ -2153,6 +2403,26 @@
   ],
   "status": "success",
   "task_id": "0eeac1fd-1b45-4e19-afb5-eb7797f60714",
+  "type": "image_to_model"
+ },
+ "props/IceShards": {
+  "credits": 30,
+  "files": [
+   "IceShards.glb",
+   "IceShards_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "14ebdc56-9dac-4fae-b1ef-9c270d858dcb",
+  "type": "image_to_model"
+ },
+ "props/IceSnowPine": {
+  "credits": 30,
+  "files": [
+   "IceSnowPine.glb",
+   "IceSnowPine_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "730a998d-6325-4969-89ee-8506eae8ccc5",
   "type": "image_to_model"
  },
  "props/IceSpire": {
@@ -2235,6 +2505,16 @@
   "task_id": "9a69b44e-7dfb-415a-b29a-7b8c532e444a",
   "type": "image_to_model"
  },
+ "props/MoonFlower": {
+  "credits": 30,
+  "files": [
+   "MoonFlower.glb",
+   "MoonFlower_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "40f58681-96b3-4d3e-a058-e9285666e317",
+  "type": "image_to_model"
+ },
  "props/MoonGateArch": {
   "credits": 30,
   "files": [
@@ -2243,6 +2523,16 @@
   ],
   "status": "success",
   "task_id": "0c3de216-f654-4c4e-8aa0-07c3a9b16685",
+  "type": "image_to_model"
+ },
+ "props/MoonLampPost": {
+  "credits": 30,
+  "files": [
+   "MoonLampPost.glb",
+   "MoonLampPost_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "78c3883c-99f4-4008-b7ef-1a2504465e1e",
   "type": "image_to_model"
  },
  "props/MoonLantern": {
@@ -2265,6 +2555,36 @@
   "task_id": "07760467-5fa2-4fe2-9392-18ec157b1245",
   "type": "text_to_model"
  },
+ "props/MoonShard": {
+  "credits": 30,
+  "files": [
+   "MoonShard.glb",
+   "MoonShard_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "e50c5031-13d6-4b50-97cf-f02fd49510b0",
+  "type": "image_to_model"
+ },
+ "props/MossFern": {
+  "credits": 30,
+  "files": [
+   "MossFern.glb",
+   "MossFern_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "b382ca55-d4d5-4639-8faa-e09faff7bcb1",
+  "type": "image_to_model"
+ },
+ "props/MossFlowers": {
+  "credits": 30,
+  "files": [
+   "MossFlowers.glb",
+   "MossFlowers_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "c09988cb-a8e7-4699-a078-ec02d538ca56",
+  "type": "image_to_model"
+ },
  "props/MossGiantTree": {
   "credits": 30,
   "files": [
@@ -2273,6 +2593,16 @@
   ],
   "status": "success",
   "task_id": "d9b31d94-1130-48f0-8f77-c95a37ac4699",
+  "type": "image_to_model"
+ },
+ "props/MossGlowCap": {
+  "credits": 30,
+  "files": [
+   "MossGlowCap.glb",
+   "MossGlowCap_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "b8d0bdf1-e86d-4ac2-9411-4c2b38e4d383",
   "type": "image_to_model"
  },
  "props/MossMushroomLantern": {
@@ -2303,6 +2633,11 @@
   ],
   "status": "success",
   "task_id": "5d4260a1-5102-4726-a595-58c2a4d40afa",
+  "type": "image_to_model"
+ },
+ "props/MossShelfLog": {
+  "status": "queued",
+  "task_id": "19035d49-c02d-4a93-9a49-238ca00fbffc",
   "type": "image_to_model"
  },
  "props/NetBallista": {
@@ -2435,6 +2770,26 @@
   "task_id": "06fd2724-f431-425b-83a7-091d84bed6b0",
   "type": "image_to_model"
  },
+ "props/StormCoil": {
+  "credits": 30,
+  "files": [
+   "StormCoil.glb",
+   "StormCoil_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "2fc3e903-0661-4895-a7d6-22f5be1f8597",
+  "type": "image_to_model"
+ },
+ "props/StormCrystals": {
+  "credits": 30,
+  "files": [
+   "StormCrystals.glb",
+   "StormCrystals_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "4af61d4a-872e-4338-8e9f-adf36ed7aa6d",
+  "type": "image_to_model"
+ },
  "props/StormLightningRod": {
   "credits": 30,
   "files": [
@@ -2463,6 +2818,16 @@
   ],
   "status": "success",
   "task_id": "c015d33d-adfc-49f5-a92b-cb71b8b078da",
+  "type": "image_to_model"
+ },
+ "props/StormThunderRock": {
+  "credits": 30,
+  "files": [
+   "StormThunderRock.glb",
+   "StormThunderRock_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "908bc503-63f5-4573-82b6-5ceb7e6d0784",
   "type": "image_to_model"
  },
  "props/StormThunderStone": {
@@ -2545,6 +2910,26 @@
   "task_id": "7aadc659-d8ed-4b74-8eff-b96f6976f8d0",
   "type": "image_to_model"
  },
+ "props/VoidEyeOrb": {
+  "credits": 30,
+  "files": [
+   "VoidEyeOrb.glb",
+   "VoidEyeOrb_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "85bcae7a-3f13-4823-93fc-7c76939c45e5",
+  "type": "image_to_model"
+ },
+ "props/VoidObelisk": {
+  "credits": 30,
+  "files": [
+   "VoidObelisk.glb",
+   "VoidObelisk_preview.webp"
+  ],
+  "status": "success",
+  "task_id": "beee5bca-4e09-43cd-b1b7-37c5d3745b5f",
+  "type": "image_to_model"
+ },
  "props/VoidPortal": {
   "credits": 30,
   "files": [
@@ -2573,6 +2958,11 @@
   ],
   "status": "success",
   "task_id": "b232a0dd-591f-4476-ac1b-9be046a911a3",
+  "type": "image_to_model"
+ },
+ "props/VoidThornTree": {
+  "status": "queued",
+  "task_id": "3fcd1f69-2d7a-4335-a049-63376dfc6e86",
   "type": "image_to_model"
  },
  "props/WallTorch": {

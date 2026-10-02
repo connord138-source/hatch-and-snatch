@@ -21,6 +21,7 @@ local DataService = require(script.Parent.DataService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local PlotService = require(script.Parent.PlotService)
+local WorldService = require(script.Parent.WorldService)
 
 type CreatureRecord = DataService.CreatureRecord
 type PlayerData = DataService.PlayerData
@@ -32,6 +33,9 @@ local models: { [Player]: { [string]: Model } } = {}
 local carried: { [Player]: { [string]: boolean? } } = {}
 -- The one creature each player is walking (following them around), if any
 local walking: { [Player]: string } = {}
+-- The display niches lit by each owner's creatures (slot -> which creature, on
+-- which plot), so a niche goes dark only when its own creature leaves
+local lit: { [Player]: { [number]: { uid: string, plot: WorldService.PlotLayout } } } = {}
 
 local tunables = Config.Economy.tunables
 local passTuning = Config.Monetization.tuning
@@ -706,7 +710,21 @@ local function addPrompt(
 	return prompt
 end
 
+local function unlight(player: Player, uid: string)
+	local slots = lit[player]
+	if slots == nil then
+		return
+	end
+	for slot, entry in slots do
+		if entry.uid == uid then
+			WorldService.setNicheGlow(entry.plot, slot, nil)
+			slots[slot] = nil
+		end
+	end
+end
+
 local function despawn(player: Player, uid: string)
+	unlight(player, uid)
 	local playerModels = models[player]
 	local model = playerModels and playerModels[uid]
 	if model then
@@ -877,6 +895,16 @@ local function spawn(player: Player, uid: string, record: CreatureRecord)
 	model.Parent = plot.model
 	models[player] = models[player] or {}
 	models[player][uid] = model
+	-- Its niche glows in its rarity's color
+	if plot.niches[slot] then
+		lit[player] = lit[player] or {}
+		lit[player][slot] = { uid = uid, plot = plot }
+		WorldService.setNicheGlow(
+			plot,
+			slot,
+			Config.Rarities[Config.CreaturesById[record.species].rarity].color
+		)
+	end
 end
 
 -- Public wrappers used by StealService
@@ -1351,6 +1379,13 @@ function CreatureService.start()
 		end
 	end)
 	DataService.releasing:connect(function(player: Player)
+		local slots = lit[player]
+		if slots then
+			for slot, entry in slots do
+				WorldService.setNicheGlow(entry.plot, slot, nil)
+			end
+		end
+		lit[player] = nil
 		local playerModels = models[player]
 		if playerModels then
 			for _, model in playerModels do

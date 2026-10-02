@@ -1,0 +1,190 @@
+{
+  "jobs": [
+    {
+      "name": "CoralAnemone",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralAnemone.png"
+    },
+    {
+      "name": "CoralBarnacleRock",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralBarnacleRock.png"
+    },
+    {
+      "name": "CoralBrain",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralBrain.png"
+    },
+    {
+      "name": "CoralGiantClam",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralGiantClam.png"
+    },
+    {
+      "name": "CoralOyster",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralOyster.png"
+    },
+    {
+      "name": "CoralUrchins",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/CoralUrchins.png"
+    },
+    {
+      "name": "DiamondChandelier",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/DiamondChandelier.png"
+    },
+    {
+      "name": "DiamondGems",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/DiamondGems.png"
+    },
+    {
+      "name": "DiamondGeode",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/DiamondGeode.png"
+    },
+    {
+      "name": "FireCauldron",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/FireCauldron.png"
+    },
+    {
+      "name": "FireDragonSkull",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/FireDragonSkull.png"
+    },
+    {
+      "name": "FireMagmaCrystals",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/FireMagmaCrystals.png"
+    },
+    {
+      "name": "GoldChest",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/GoldChest.png"
+    },
+    {
+      "name": "GoldCoins",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/GoldCoins.png"
+    },
+    {
+      "name": "GoldUrn",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/GoldUrn.png"
+    },
+    {
+      "name": "IceBrazier",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/IceBrazier.png"
+    },
+    {
+      "name": "IceShards",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/IceShards.png"
+    },
+    {
+      "name": "IceSnowPine",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/IceSnowPine.png"
+    },
+    {
+      "name": "MoonFlower",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MoonFlower.png"
+    },
+    {
+      "name": "MoonLampPost",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MoonLampPost.png"
+    },
+    {
+      "name": "MoonShard",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MoonShard.png"
+    },
+    {
+      "name": "MossFern",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MossFern.png"
+    },
+    {
+      "name": "MossFlowers",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MossFlowers.png"
+    },
+    {
+      "name": "MossGlowCap",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MossGlowCap.png"
+    },
+    {
+      "name": "MossShelfLog",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/MossShelfLog.png"
+    },
+    {
+      "name": "StormCoil",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/StormCoil.png"
+    },
+    {
+      "name": "StormCrystals",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/StormCrystals.png"
+    },
+    {
+      "name": "StormThunderRock",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/StormThunderRock.png"
+    },
+    {
+      "name": "VoidEyeOrb",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/VoidEyeOrb.png"
+    },
+    {
+      "name": "VoidObelisk",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/VoidObelisk.png"
+    },
+    {
+      "name": "VoidThornTree",
+      "group": "props",
+      "type": "image_to_model",
+      "image": "assets/tripo/concepts/VoidThornTree.png"
+    }
+  ]
+}

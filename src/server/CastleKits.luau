@@ -106,10 +106,18 @@ export type Kit = {
 	-- shells), one per `every` square studs, about `size` across, tinted
 	decor: { names: { string }, tints: { Color3 }, every: number, size: number }?,
 	-- Little gardens along the outside of the walls' feet (Coral's corals and
-	-- anemones), one every `every` studs
-	garden: { names: { string }, every: number }?,
+	-- anemones), one every `every` studs, pieces about `size` tall (default: the growth's)
+	garden: { names: { string }, every: number, size: number? }?,
 	-- A band along the walls' tops, under the battlements (Coral's sea glass)
 	wallTrim: { material: Enum.Material, color: Color3 }?,
+	-- Inside the keep (owner, 2026-10-02: "still need interior detail"): small
+	-- pieces at the foot of each creature's niche (`glow` ones give off light),
+	-- a big centerpiece at the back of each floor, what hangs from the ceilings,
+	-- and what crowns the niches' arches (default: the growth)
+	interior: { names: { string }, size: number }?,
+	centerpiece: { name: string, size: number, glow: boolean?, flame: boolean? }?,
+	chandelier: string?,
+	nicheCrown: string?,
 	effects: { [string]: boolean },
 }
 
@@ -168,6 +176,11 @@ local KITS: { [string]: Kit } = {
 			glow = false,
 			size = 7,
 		},
+		growthAlts = { "MossGlowCap" },
+		garden = { names = { "MossFern", "MossFlowers", "MossGlowCap", "MossFern" }, every = 11 },
+		interior = { names = { "MossFern", "MossFlowers", "MossGlowCap", "MossShelfLog" }, size = 2.4 },
+		centerpiece = { name = "MossGlowCap", size = 7, glow = true },
+		chandelier = "MossMushroomLantern",
 		effects = { vines = true, lilies = true, flowers = true, cypress = true, moss = true },
 	},
 	Coral = {
@@ -182,7 +195,14 @@ local KITS: { [string]: Kit } = {
 		capScale = 3.2,
 		capColor = Color3.fromRGB(120, 200, 180),
 		growth = "CoralBranches",
-		growthAlts = { "CoralStaghorn", "CoralStaghorn", "CoralFan", "CoralTubes" },
+		growthAlts = {
+			"CoralStaghorn",
+			"CoralStaghorn",
+			"CoralFan",
+			"CoralTubes",
+			"CoralBrain",
+			"CoralAnemone",
+		},
 		bigGrowths = { "CoralStaghorn", "CoralStaghorn", "CoralBranches" },
 		growthSize = 5.5,
 		growthEvery = 9,
@@ -204,7 +224,28 @@ local KITS: { [string]: Kit } = {
 			every = 15,
 			size = 2.5,
 		},
-		garden = { names = { "CoralBranches", "CoralStaghorn", "CoralFan", "CoralTubes" }, every = 8 },
+		garden = {
+			names = {
+				"CoralBranches",
+				"CoralStaghorn",
+				"CoralFan",
+				"CoralTubes",
+				"CoralBrain",
+				"CoralAnemone",
+				"CoralUrchins",
+				"CoralGiantClam",
+				"CoralOyster",
+				"CoralBarnacleRock",
+			},
+			every = 8,
+		},
+		-- Clams with pearls, brain coral, anemones and urchins inside the keep
+		interior = {
+			names = { "CoralGiantClam", "CoralOyster", "CoralBrain", "CoralAnemone", "CoralUrchins" },
+			size = 2.2,
+		},
+		centerpiece = { name = "CoralGiantClam", size = 6, glow = true },
+		chandelier = "CoralPearlLantern",
 		wallTrim = { material = Enum.Material.Glass, color = Color3.fromRGB(60, 196, 186) },
 		bands = {
 			color = Color3.fromRGB(70, 200, 190),
@@ -266,6 +307,7 @@ local KITS: { [string]: Kit } = {
 		capScale = 2.8,
 		capColor = Color3.fromRGB(40, 36, 40),
 		growth = "FireObsidianSpikes",
+		growthAlts = { "FireMagmaCrystals" },
 		growthMode = "merlons",
 		growthSize = 3.6,
 		growthEvery = 6,
@@ -296,6 +338,14 @@ local KITS: { [string]: Kit } = {
 			size = 9,
 			crust = true, -- dark rock floating on the lava, as in the concept
 		},
+		garden = { names = { "FireMagmaCrystals", "FireLavaRock", "FireDragonSkull" }, every = 12 },
+		interior = {
+			names = { "FireMagmaCrystals", "FireDragonSkull", "FireCauldron", "FireLavaRock" },
+			size = 2.4,
+		},
+		centerpiece = { name = "FireCauldron", size = 4.5, flame = true },
+		chandelier = "FireCauldron", -- iron cauldrons of lava hanging on chains
+		nicheCrown = "FireObsidianSpikes",
 		effects = { lavaFalls = true, veins = true, smoke = true },
 	},
 	Ice = {
@@ -313,6 +363,7 @@ local KITS: { [string]: Kit } = {
 		capScale = 3.6,
 		capColor = Color3.fromRGB(190, 230, 255),
 		growth = "IceCrystalCluster",
+		growthAlts = { "IceShards" },
 		growthMode = "corners",
 		growthSize = 3.8,
 		growthEvery = 7,
@@ -341,6 +392,10 @@ local KITS: { [string]: Kit } = {
 		-- A frozen lake round the walls with floes on it, as in the concept
 		ground = { material = Enum.Material.Glass, color = Color3.fromRGB(40, 92, 140) },
 		pool = { material = Enum.Material.Ice, color = Color3.fromRGB(170, 215, 245), glow = false, size = 8 },
+		garden = { names = { "IceSnowPine", "IceShards", "IceShards" }, every = 12 },
+		interior = { names = { "IceShards", "IceBrazier", "IceSnowPine" }, size = 2.4 },
+		centerpiece = { name = "IceBrazier", size = 4.5, flame = true },
+		chandelier = "IceLantern",
 		effects = { icicles = true, snow = true, floes = true },
 	},
 	Storm = {
@@ -385,6 +440,11 @@ local KITS: { [string]: Kit } = {
 			brightness = 3,
 		},
 		ground = { material = Enum.Material.Slate, color = Color3.fromRGB(70, 74, 88) },
+		garden = { names = { "StormThunderRock", "StormCrystals" }, every = 13 },
+		interior = { names = { "StormCrystals", "StormCoil", "StormThunderRock" }, size = 2.4 },
+		centerpiece = { name = "StormCoil", size = 6, glow = true },
+		chandelier = "StormThunderStone", -- glowing thunder-stones hung on chains
+		nicheCrown = "StormCrystals",
 		effects = { arcs = true, stormCloud = true, chains = true, gateBolts = true },
 	},
 	Moon = {
@@ -423,6 +483,11 @@ local KITS: { [string]: Kit } = {
 			brightness = 2,
 		},
 		ground = { material = Enum.Material.Pebble, color = Color3.fromRGB(120, 110, 150) },
+		garden = { names = { "MoonFlower", "MoonShard", "MoonFlower" }, every = 11, size = 4 },
+		interior = { names = { "MoonFlower", "MoonShard", "MoonLampPost" }, size = 2.6 },
+		centerpiece = { name = "MoonShard", size = 6.5, glow = true },
+		chandelier = "MoonLantern",
+		nicheCrown = "MoonShard",
 		effects = { mist = true, roofGems = true, keepCrystals = true },
 	},
 	Golden = {
@@ -467,6 +532,10 @@ local KITS: { [string]: Kit } = {
 		},
 		ground = { material = Enum.Material.Marble, color = Color3.fromRGB(236, 232, 224) },
 		plinth = { material = Enum.Material.Marble, color = Color3.fromRGB(242, 238, 230), height = 0.3 },
+		garden = { names = { "GoldUrn" }, every = 14, size = 4.5 },
+		interior = { names = { "GoldCoins", "GoldUrn", "GoldChest", "GoldCoins" }, size = 2.2 },
+		centerpiece = { name = "GoldChest", size = 4 },
+		chandelier = "DiamondChandelier",
 		effects = { carpet = true },
 	},
 	Diamond = {
@@ -488,6 +557,7 @@ local KITS: { [string]: Kit } = {
 		capScale = 3.2,
 		capColor = Color3.fromRGB(225, 245, 255),
 		growth = "DiamondCluster",
+		growthAlts = { "DiamondGems" },
 		growthMode = "corners",
 		growthSize = 3.4,
 		growthEvery = 7,
@@ -516,6 +586,10 @@ local KITS: { [string]: Kit } = {
 			brightness = 3,
 		},
 		ground = { material = Enum.Material.Marble, color = Color3.fromRGB(238, 240, 246) },
+		garden = { names = { "DiamondGems", "DiamondCluster" }, every = 13 },
+		interior = { names = { "DiamondGems", "DiamondGeode", "DiamondCluster" }, size = 2.2 },
+		centerpiece = { name = "DiamondGeode", size = 5.5, glow = true },
+		chandelier = "DiamondChandelier",
 		effects = { inlays = true, studs = true },
 	},
 	Void = {
@@ -556,6 +630,10 @@ local KITS: { [string]: Kit } = {
 			brightness = 1,
 		},
 		ground = { material = Enum.Material.Basalt, color = Color3.fromRGB(28, 22, 38) },
+		garden = { names = { "VoidThornTree", "VoidObelisk", "VoidShards" }, every = 12 },
+		interior = { names = { "VoidEyeOrb", "VoidObelisk", "VoidShards", "VoidThornTree" }, size = 2.4 },
+		centerpiece = { name = "VoidEyeOrb", size = 5, glow = true },
+		chandelier = "VoidEyeOrb",
 		effects = { portal = true, runes = true, keepChains = true, rocks = true, gateGlyph = true },
 	},
 }
@@ -624,6 +702,9 @@ local NEON: { [string]: Color3 } = {
 	MossMushrooms = Color3.fromRGB(70, 235, 95),
 	MoonCrystal = Color3.fromRGB(196, 120, 255),
 	StormThunderStone = Color3.fromRGB(214, 228, 255),
+	MossGlowCap = Color3.fromRGB(70, 235, 95),
+	MoonShard = Color3.fromRGB(196, 120, 255),
+	StormCrystals = Color3.fromRGB(255, 232, 140),
 }
 
 -- Pieces that read better as a plain pearly surface than their dark texture at
@@ -701,9 +782,18 @@ local function float(instance: Instance, base: CFrame, bob: number, spin: number
 end
 
 -- Tints a growth in one of the kit's colors (the pale texture takes the hue).
+-- Pieces with colors of their own (a pink clam, purple urchins), which the
+-- pale-piece tints would muddy
+local NATURAL: { [string]: boolean } = {
+	CoralGiantClam = true,
+	CoralOyster = true,
+	CoralUrchins = true,
+	CoralBarnacleRock = true,
+}
+
 local function tint(model: Model?, kit: Kit, rng: Random)
 	local tints = kit.growthTints
-	if model == nil or tints == nil or #tints == 0 then
+	if model == nil or tints == nil or #tints == 0 or NATURAL[model.Name] then
 		return
 	end
 	local color = tints[rng:NextInteger(1, #tints)]
@@ -1309,7 +1399,7 @@ local function garden(folder: Instance, kit: Kit, at: CFrame, rng: Random)
 			at
 				* CFrame.new(rng:NextNumber(-1.6, 1.6), -0.1, rng:NextNumber(-1, 1))
 				* CFrame.Angles(-rng:NextNumber(0, 0.3), rng:NextNumber(0, 6.28), 0),
-			kit.growthSize * rng:NextNumber(0.45, 0.8)
+			(set.size or kit.growthSize) * rng:NextNumber(0.45, 0.8)
 		)
 		tint(model, kit, rng)
 	end
@@ -2840,6 +2930,83 @@ end
 -- kit's growths on its battlements, and its touches on the arcades, walls and
 -- floors as in the concepts (icicles and snow, ivy and moss, lava cracks, runes,
 -- pearls, giant mushrooms).
+-- A creature's display niche (WorldService): a piece of the theme at its foot,
+-- and something crowning every other arch.
+local function dressNiche(folder: Instance, kit: Kit, back: BasePart, rng: Random)
+	local cf, size = back.CFrame, back.Size
+	local slot = back:GetAttribute("Slot")
+	local odd = typeof(slot) == "number" and slot % 2 == 1
+	local set = kit.interior
+	if set and #set.names > 0 then
+		local side = if odd then -1 else 1
+		local at = cf
+			* CFrame.new(side * (size.X / 2 - 0.7), -size.Y / 2, -size.Z / 2 - 1.1)
+			* CFrame.Angles(0, rng:NextNumber(0, 6.28), 0)
+		local model = piece(
+			folder,
+			set.names[rng:NextInteger(1, #set.names)],
+			at,
+			set.size * rng:NextNumber(0.85, 1.15)
+		)
+		tint(model, kit, rng)
+	end
+	local crown = kit.nicheCrown or kit.growth
+	if crown and odd then
+		-- The arch is a disc as wide as the back, centered on its top edge
+		local top = (cf * CFrame.new(0, size.Y / 2 + size.X / 2 - 0.4, 0)).Position
+		if kit.growthMode == "clusters" and crown == kit.growth then
+			cluster(folder, kit, CFrame.lookAt(top, top + cf.LookVector), 0.45, rng, 3)
+		else
+			local model =
+				piece(folder, crown, CFrame.new(top) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0), 2.2)
+			tint(model, kit, rng)
+		end
+	end
+end
+
+-- A floor of the keep (its slab): the theme's centerpiece at the back middle,
+-- between the vault rooms, and lights hung on chains underneath, over the floor
+-- below.
+local function dressFloor(folder: Instance, kit: Kit, slab: BasePart, rng: Random)
+	local cf, size = slab.CFrame, slab.Size
+	local center = kit.centerpiece
+	if center then
+		local model = piece(
+			folder,
+			center.name,
+			cf * CFrame.new(0, size.Y / 2, size.Z / 2 - 5) * CFrame.Angles(0, rng:NextNumber(-0.3, 0.3), 0),
+			center.size
+		)
+		if model and center.glow then
+			glow(folder, model, kit, 16)
+		end
+		if model and center.flame then
+			CastleKits.flame(anchor(folder, topOf(model), "CenterFlame"), kit, 3, 16)
+		end
+	end
+	local hang = kit.chandelier
+	if hang then
+		for _, x in { -11, 11 } do
+			for _, side in { -1, 1 } do
+				local top = cf * CFrame.new(x, -size.Y / 2, side * size.Z / 4)
+				local drop, height = 2.6, 3.2
+				chain(
+					folder,
+					top.Position,
+					(top * CFrame.new(0.01, -drop, 0)).Position,
+					0,
+					Color3.fromRGB(70, 66, 72),
+					false
+				)
+				local model = piece(folder, hang, top * CFrame.new(0, -drop - height, 0), height)
+				if model then
+					light(anchor(folder, topOf(model), "HangingLight"), kit.light, 16, 1.2)
+				end
+			end
+		end
+	end
+end
+
 function CastleKits.dressKeep(folder: Instance, kit: Kit, pieces: { BasePart })
 	local rng = Random.new(#pieces * 7 + 3)
 	if #pieces == 0 then
@@ -2847,10 +3014,14 @@ function CastleKits.dressKeep(folder: Instance, kit: Kit, pieces: { BasePart })
 	end
 	local sum = Vector3.zero
 	local topFloor: BasePart? = nil
+	local slabs: { BasePart } = {}
 	for _, p in pieces do
 		sum += p.Position
-		if p.Name == "Floor" and (topFloor == nil or p.Position.Y > (topFloor :: BasePart).Position.Y) then
-			topFloor = p
+		if p.Name == "Floor" then
+			table.insert(slabs, p)
+			if topFloor == nil or p.Position.Y > (topFloor :: BasePart).Position.Y then
+				topFloor = p
+			end
 		end
 	end
 	local centre = sum / #pieces
@@ -2903,6 +3074,8 @@ function CastleKits.dressKeep(folder: Instance, kit: Kit, pieces: { BasePart })
 					Color = IVY,
 				})
 			end
+		elseif p.Name == "NicheBack" then
+			dressNiche(folder, kit, p, rng)
 		elseif p.Name == "VaultWall" and kit.growthMode == "clusters" and kit.growth and size.X < size.Z then
 			-- A big cluster crowning each vault room (the concept's coral towers)
 			local top = cf.Position + Vector3.new(0, size.Y / 2, 0)
@@ -2958,6 +3131,9 @@ function CastleKits.dressKeep(folder: Instance, kit: Kit, pieces: { BasePart })
 				)
 			end
 		end
+	end
+	for _, slab in slabs do
+		dressFloor(folder, kit, slab, rng)
 	end
 	-- Giant glowing mushrooms on the top floor's front corners (Moss)
 	local feet = kit.feet
