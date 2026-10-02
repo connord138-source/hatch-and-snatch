@@ -121,6 +121,9 @@ export type Kit = {
 	centerpiece: { name: string, size: number, glow: boolean?, flame: boolean? }?,
 	chandelier: string?,
 	nicheCrown: string?,
+	-- Its lights' brightness, scaled (the white and bright themes washed out their
+	-- own walls at night: Diamond, Ice, Moss)
+	lightScale: number?,
 	effects: { [string]: boolean },
 }
 
@@ -134,6 +137,7 @@ local KITS: { [string]: Kit } = {
 		emblem = "leaf",
 		emblemColor = Color3.fromRGB(170, 255, 140),
 		wallLight = "MossMushroomLantern",
+		lightScale = 0.65,
 		feet = { name = "MossMushrooms", size = 11, count = 3, glow = true },
 		topBraziers = 0, -- the concept's gatehouse wears giant mushrooms instead
 		flame = Color3.fromRGB(140, 255, 120),
@@ -356,6 +360,7 @@ local KITS: { [string]: Kit } = {
 		emblem = "flake",
 		emblemColor = Color3.fromRGB(235, 248, 255),
 		wallLight = "IceLantern",
+		lightScale = 0.6,
 		frontCap = "IceCrystalCluster", -- the concept's front towers wear huge crystal clusters
 		frontCapScale = 4.2,
 		crystalCap = true,
@@ -500,6 +505,7 @@ local KITS: { [string]: Kit } = {
 		emblemFoil = true,
 		wallLight = "GoldBrazier",
 		wallLightFlame = true,
+		lightScale = 0.8,
 		carpetLength = 30,
 		bands = {
 			color = Color3.fromRGB(244, 240, 232),
@@ -547,6 +553,7 @@ local KITS: { [string]: Kit } = {
 		emblemColor = Color3.fromRGB(235, 248, 255),
 		crystalCap = true,
 		prism = true,
+		lightScale = 0.5,
 		wallLight = "DiamondLantern",
 		bands = {
 			color = Color3.fromRGB(240, 195, 70),
@@ -676,6 +683,20 @@ local function light(parent: Instance, color: Color3, range: number, brightness:
 	l.Parent = parent
 	CollectionService:AddTag(l, "KitLight")
 	return l
+end
+
+-- Scales every kit light under `folder` by the kit's lightScale (run once, after
+-- a castle or keep is built).
+function CastleKits.scaleLights(folder: Instance, kit: Kit)
+	local scale = kit.lightScale
+	if scale == nil or scale == 1 then
+		return
+	end
+	for _, d in folder:GetDescendants() do
+		if d:IsA("Light") and CollectionService:HasTag(d, "KitLight") then
+			d.Brightness *= scale
+		end
+	end
 end
 
 -- A themed flame on `parent`: a Fire in the kit's colors and its light.
@@ -3206,6 +3227,7 @@ function CastleKits.dressKeep(folder: Instance, kit: Kit, pieces: { BasePart })
 			glow(folder, model, kit, 16)
 		end
 	end
+	CastleKits.scaleLights(folder, kit)
 end
 
 return CastleKits

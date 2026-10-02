@@ -860,6 +860,9 @@ function Fortress.build(
 	end
 	-- The designer's finishing touches: gold roofs or banners, banner-colored bands,
 	-- the glow color on the spire crystals, and rainbow parts for the client to cycle (RainbowController)
+	if kit then
+		CastleKits.scaleLights(folder, kit)
+	end
 	local rainbow = theme.rainbow
 	local shine = wall and wall.reflectance
 	for _, descendant in folder:GetDescendants() do

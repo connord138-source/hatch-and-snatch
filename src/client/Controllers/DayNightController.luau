@@ -11,10 +11,12 @@ local Workspace = game:GetService("Workspace")
 local DayNight = require(game:GetService("ReplicatedStorage").Shared.DayNight)
 
 local STEP = 0.1 -- seconds between updates (the sun moves at most a few minutes of clock each)
-local NIGHT_AMBIENT = Color3.fromRGB(88, 98, 140)
-local NIGHT_BRIGHTNESS = 1.6
+-- Tuned from the PC's night pass (2026-10-02): the dark designs were too dark,
+-- the white ones blown out (with the template's extra bloom, now removed)
+local NIGHT_AMBIENT = Color3.fromRGB(100, 110, 152)
+local NIGHT_BRIGHTNESS = 1.8
 local NIGHT_EXPOSURE = 0.15
-local NIGHT_BLOOM = 0.85
+local NIGHT_BLOOM = 0.7
 local NIGHT_TINT = Color3.fromRGB(202, 214, 255)
 local TWILIGHT_TINT = Color3.fromRGB(255, 214, 186)
 local WHITE = Color3.new(1, 1, 1)

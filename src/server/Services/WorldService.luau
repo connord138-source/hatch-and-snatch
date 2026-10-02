@@ -195,9 +195,15 @@ local DOOR_WIDTH = 6
 local PEDESTAL_SPACING = 11
 local GROUND_SLOTS = Config.Economy.groundSlots
 local NICHE_BACK = 4 -- from a pedestal's center back to its niche's face
-local NICHE_WIDTH = 6.6
+local NICHE_WIDTH = 6.2
 local NICHE_HEIGHT = 5.6 -- up to where the arch starts (it adds half the width)
-local NICHE_IDLE = Color3.fromRGB(255, 200, 150) -- an empty niche's glow
+-- An empty niche's panel: a dim warm stone, not neon (empty neon niches bloomed
+-- into white blobs at night), and a faint light
+local NICHE_IDLE = Color3.fromRGB(150, 122, 98)
+-- The floors' pedestals sit a little closer together than the ground's, so the
+-- end alcoves leave room to walk past along the side walls (2.4+ studs)
+local FLOOR_COLUMN_X0 = -21.6
+local FLOOR_COLUMN_SPACING = 10.8
 
 local function floorTop(floor: number): number
 	return TOP + (floor - 1) * FLOOR_HEIGHT
@@ -227,7 +233,11 @@ local function pedestalPosition(i: number): Vector3
 		return Vector3.new(x, TOP + 0.7, 6 + row * PEDESTAL_SPACING)
 	end
 	local floor = Config.Economy.slotFloor(i)
-	return Vector3.new(x, floorTop(floor) + 0.7, FLOOR_ROW_Z[floor] or 20)
+	return Vector3.new(
+		FLOOR_COLUMN_X0 + column * FLOOR_COLUMN_SPACING,
+		floorTop(floor) + 0.7,
+		FLOOR_ROW_Z[floor] or 20
+	)
 end
 
 ---------------------------------------------------------------------------
@@ -245,8 +255,20 @@ local function effect(className: string, name: string): Instance
 	return instance
 end
 
+-- The island's own post effects and atmosphere (the client adds DayNightGrade
+-- and ZoneMood); anything else in Lighting came with the place template
+local OWN_EFFECTS =
+	{ IslandAtmosphere = true, IslandBloom = true, IslandSunRays = true, IslandGrade = true, MoonTint = true }
+
 -- The daytime look; DayNightController moves the sun and fades to night on each client.
 local function setupLighting()
+	-- The place template's own Bloom, SunRays, DepthOfField and Atmosphere stacked
+	-- on ours (the PC found Ice and Diamond blown out at night)
+	for _, child in Lighting:GetChildren() do
+		if (child:IsA("PostEffect") or child:IsA("Atmosphere")) and not OWN_EFFECTS[child.Name] then
+			child:Destroy()
+		end
+	end
 	Lighting.ClockTime = 14.3
 	Lighting.Brightness = 2.4
 	Lighting.EnvironmentDiffuseScale = 1
@@ -781,7 +803,7 @@ local function buildPlot(index: number): PlotLayout
 				Shape = if round then Enum.PartType.Cylinder else Enum.PartType.Block,
 				Size = size,
 				CFrame = face * offset,
-				Material = Enum.Material.Neon,
+				Material = Enum.Material.SmoothPlastic,
 				Color = NICHE_IDLE,
 				Transparency = 1,
 				CanCollide = false,
@@ -1061,7 +1083,9 @@ local function buildPlot(index: number): PlotLayout
 				CFrame.new(
 					corner.X * (FLOOR_X - 1),
 					top - FLOOR_HEIGHT / 2,
-					if corner.Y == 0 then z0 + 1 else FLOOR_Z1 - 1
+					-- The Top Floor's front posts stand back from the Second Floor's end
+					-- alcoves, so the way along its side walls stays open
+					if corner.Y == 1 then FLOOR_Z1 - 1 elseif story > 2 then z0 + 3 else z0 + 1
 				),
 				nil,
 				nil,
@@ -1453,6 +1477,19 @@ function WorldService.setLevel(plot: PlotLayout, level: number)
 	placeLasers(plot)
 end
 
+-- A niche's panel and light: neon in its creature's rarity color, or dim warm
+-- stone when empty; nothing while the niche is hidden.
+local function lightNiche(niche: Niche, shown: boolean)
+	local color = niche.color
+	for _, p in niche.glows do
+		p.Material = if color then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		p.Color = color or NICHE_IDLE
+		p.Transparency = if shown then 0 else 1
+	end
+	niche.light.Color = color or Color3.fromRGB(255, 196, 140)
+	niche.light.Brightness = if shown then (if color then 1.6 else 0.2) else 0
+end
+
 -- Shows the floors, vault rooms and pedestals a base has: `floors` counts the
 -- ground, `vaults` the vault rooms bought (Config.Economy.slots).
 -- A theme kit's dressing on the keep (the pieces that show: battlements, arcades,
@@ -1529,10 +1566,7 @@ function WorldService.setFloors(plot: PlotLayout, floors: number, vaults: number
 			p.Transparency = if shown then 0 else 1
 			p.CanCollide = shown and p.Name ~= "NicheArch"
 		end
-		for _, p in niche.glows do
-			p.Transparency = if shown then (if niche.color then 0 else 0.35) else 1
-		end
-		niche.light.Brightness = if shown then (if niche.color then 1.6 else 0.5) else 0
+		lightNiche(niche, shown)
 	end
 	dressKeep(plot) -- after the niches, which it dresses too
 	placeLasers(plot)
@@ -1546,13 +1580,7 @@ function WorldService.setNicheGlow(plot: PlotLayout, slot: number, color: Color3
 		return
 	end
 	niche.color = color
-	local shown = niche.stone[1].Transparency < 1
-	for _, p in niche.glows do
-		p.Color = color or NICHE_IDLE
-		p.Transparency = if shown then (if color then 0 else 0.35) else 1
-	end
-	niche.light.Color = color or NICHE_IDLE
-	niche.light.Brightness = if shown then (if color then 1.6 else 0.5) else 0
+	lightNiche(niche, niche.stone[1].Transparency < 1)
 end
 
 -- A vault door: locked (solid, glowing, blocks the way) or open, and its sign.

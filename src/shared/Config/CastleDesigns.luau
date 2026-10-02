@@ -288,11 +288,11 @@ local slots: { Slot } = {
 				cost = 10_000_000_000_000,
 				unlock = { rebirths = 5 },
 				-- The whole castle made of diamond (owner, 2026-10-02: "fully diamond
-				-- structure, walls and all"): white crystal with a shine (pale blue
-				-- foil read as the Ice Castle)
-				material = Enum.Material.Glass,
+				-- structure, walls and all"): white crystalline stone. Glass with a
+				-- shine was too glary day and night (PC pass), and pale blue foil read
+				-- as the Ice Castle; the clear crystals on top carry the sparkle.
+				material = Enum.Material.Salt,
 				color = Color3.fromRGB(244, 247, 252),
-				reflectance = 0.14,
 				sparkle = Color3.fromRGB(255, 252, 245),
 			},
 			{

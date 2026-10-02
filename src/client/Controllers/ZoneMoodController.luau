@@ -84,7 +84,8 @@ function ZoneMoodController.start()
 	grade.Name = "ZoneMood"
 	grade.Parent = Lighting
 	local drops = rainAroundCamera()
-	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
+	local found = Lighting:FindFirstChild("IslandAtmosphere") -- WorldService's (not a template leftover)
+	local atmosphere = if found and found:IsA("Atmosphere") then found else nil
 	local clearAtmosphere: Look? = if atmosphere
 		then {
 			Density = atmosphere.Density,

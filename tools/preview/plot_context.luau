@@ -33,7 +33,7 @@ function plotContext(parent, level)
 	local function spot(x, floorY, z)
 		shown += 1
 		p({ Name = "Pedestal", Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.4, 6, 6), CFrame = CFrame.new(x, floorY + 0.7, z) * CFrame.Angles(0, 0, math.rad(90)), Material = Enum.Material.Slate, Color = Color3.fromRGB(120, 120, 130) })
-		local W_, H_ = 6.6, 5.6
+		local W_, H_ = 6.2, 5.6
 		local face = CFrame.new(x, floorY, z + 4)
 		local roundFace = CFrame.Angles(0, math.pi / 2, 0)
 		local back = p({ Name = "NicheBack", Size = Vector3.new(W_, H_, 0.8), CFrame = face * CFrame.new(0, H_ / 2, 0.4), Material = stoneMat, Color = stone })
@@ -85,14 +85,14 @@ function plotContext(parent, level)
 	end
 	local function storey(top, z0)
 		for col = 0, 4 do
-			spot(-22 + col * 11, top, z0 + 6)
+			spot(-21.6 + col * 10.8, top, z0 + 6)
 		end
 		local depth = 46 - z0
 		p({ Name = "Floor", Size = Vector3.new(56, 1, depth), CFrame = CFrame.new(0, top - 0.5, (z0 + 46) / 2), Material = Enum.Material.WoodPlanks, Color = Color3.fromRGB(130, 105, 75) })
 		arcade(z0, top)
 		wall(Vector3.new(56, 9, 0.4), CFrame.new(0, top + 4.5, 46))
 		for _, x in { -28, 28 } do wall(Vector3.new(0.4, 9, depth), CFrame.new(x, top + 4.5, (z0 + 46) / 2)) end
-		for _, x in { -27, 27 } do for _, z in { z0 + 1, 45 } do trim(Vector3.new(2.4, 18, 2.4), CFrame.new(x, top - 9, z), "FloorPost") end end
+		for _, x in { -27, 27 } do for _, z in { if top > 20 then z0 + 3 else z0 + 1, 45 } do trim(Vector3.new(2.4, 18, 2.4), CFrame.new(x, top - 9, z), "FloorPost") end end
 		-- vault rooms in the back corners
 		for _, side in { -1, 1 } do
 			wall(Vector3.new(0.4, 9, 12), CFrame.new(side * 16, top + 4.5, 40), "VaultWall")
