@@ -15,17 +15,31 @@ shading) by working from its brightness, and treats three kinds of texel apart:
 Mutations (owner, 2026-10-01: mutations must be "by far the most desirable yet
 rarest", look professional, and not like decolored skins):
 
-  Albino      snow-white coat that keeps its detail, pink skin in the creases,
-              pale pastel features, ruby-red eyes
+  Albino      snow-white coat with a cool silver-blue cast that keeps its detail,
+              its markings ghosting through in pale blue-grey, cool lavender-grey
+              in the creases, the features frosted to icy pastels, ruby-red eyes
   Melanistic  jet-black coat with its pattern still ghosting through, a cool sheen,
               and the features and eyes left blazing against the black
-  Leucistic   pale cream coat, features in soft color, eyes turned ice blue
-  Piebald     crisp white patches laid out on the body in 3D (no UV seams), heavier
-              on the belly, legs and face
+  Piebald     crisp cool-white patches laid out on the body in 3D (no UV seams),
+              heavier on the belly, legs and face, with the eyes always in colored
+              fur (a dark eye in a pale patch is a pattern nsfw classifiers pick up)
   Chimera     split down the middle: one half its normal self, the other half the
-              opposite (albino or melanistic), with odd-colored eyes
-  Iridescent  an oil-slick film over the coat whose colors follow the body's curves
-              (the client drifts it further in game)
+              opposite (the silver-white albino or melanistic), with odd-colored eyes
+  Iridescent  a cool opal film (teal, blue, violet, mint) over the coat whose colors
+              follow the body's curves (the client drifts it further in game)
+
+No skin may look like human skin (2026-10-03): Roblox suspended the owner's account
+for "Sexual Content" over an uploaded Chimera atlas. A UV atlas is dozens of loose
+body pieces, and the old recipes painted them pale pinkish white (Albino's "pink
+creases" covered every texel brighter than 0.16, through a smoothstep with its edges
+swapped; the features went peach; the whites were warm), which reads as fragments
+of bare skin. So every pale tone here is cool: whites lean silver-blue, shading
+leans lavender-grey, warm feature colors fold into cool pastels (`cool_hue`), and
+the opal film has no pink, peach or gold. Leucistic (a cream coat, retired
+2026-10-02) is gone. Even so, an nsfw classifier still reads some creatures' Piebald
+and Chimera atlases (pale pieces among dark or tan ones) as nsfw, so screen the
+packed GLBs with screen_skins.py before importing them, and never upload a skin it
+flags (MutationLooks falls back to the solid v1 look).
 
 Writes <out_dir>/<Mutation>.png at the texture's full size, plus eyes_debug.png.
 """
@@ -38,10 +52,21 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-ALL = ["Albino", "Melanistic", "Leucistic", "Piebald", "Chimera", "Iridescent"]
+ALL = ["Albino", "Melanistic", "Piebald", "Chimera", "Iridescent"]
+
+# Cool whites (never warm: a warm white on loose atlas pieces reads as skin)
+SNOW = np.array([0.91, 0.95, 1.0], np.float32)  # albino coat: snow with a silver-blue cast
+PATCH = np.array([0.92, 0.955, 1.0], np.float32)  # piebald patches
+CREASE = np.array([0.56, 0.58, 0.74], np.float32)  # albino pads, nose, inner ears: lavender-grey
+GHOST = np.array([0.62, 0.70, 0.86], np.float32)  # albino markings ghosting through: blue-grey
+GLINT = np.array([0.95, 0.97, 1.0], np.float32)  # the eyes' painted highlight
 
 
 def smoothstep(a, b, x):
+    # Edges in rising order only: with a > b this is a hard step up at a, not a falling
+    # ramp (use 1 - smoothstep(b, a, x)). Piebald's belly, face and underside terms and
+    # eye_color's highlight are written swapped and so act as steps; the approved looks
+    # were made that way, so they're left as they are.
     t = np.clip((x - a) / max(b - a, 1e-6), 0, 1)
     return t * t * (3 - 2 * t)
 
@@ -261,8 +286,20 @@ def detail(m: Model, base, fine, broad):
     return np.clip(base + fine * high + broad * low, 0, 1.2)[..., None]
 
 
-def pastel(m: Model, sat, val):
+def cool_hue(h):
+    """Folds the warm half of the hue wheel (red, orange, yellow, pink) onto the cool
+    half, so a pale tint can't come out peach or pink. Continuous: cool hues stay
+    roughly put, and every result lands between teal-green and violet (153-279 deg)."""
+    rel = (h - 0.6 + 0.5) % 1.0 - 0.5
+    rel = np.where(np.abs(rel) > 0.25, np.sign(rel) * (0.5 - np.abs(rel)), rel)
+    return (0.6 + 0.7 * rel) % 1.0
+
+
+def cool_pastel(m: Model, sat, val):
+    """The texels' own colors as pale cool tints: hue folded cool, saturation scaled
+    by `sat`, brightness lifted toward 1 from `val`."""
     hsv = m.hsv.copy()
+    hsv[..., 0] = cool_hue(hsv[..., 0])
     hsv[..., 1] *= sat
     hsv[..., 2] = val + (1 - val) * hsv[..., 2]
     return hsv_to_rgb(np.clip(hsv, 0, 1))
@@ -275,18 +312,31 @@ def eye_color(m: Model, rgb, keep_highlight=True):
     iris = np.array(rgb, np.float32) * (0.22 + 0.95 * t)
     if keep_highlight:
         white = (smoothstep(0.78, 0.92, m.lum) * smoothstep(0.35, 0.15, m.hsv[..., 1]))[..., None]
-        iris = iris * (1 - white) + np.array([1.0, 0.94, 0.94]) * white
+        iris = iris * (1 - white) + GLINT * white
     return iris
 
 
 def albino(m: Model):
-    white = np.array([1.0, 0.988, 0.972], np.float32)
-    out = white * detail(m, 0.93, 1.0, 0.10)
-    # Pink skin only in the deepest creases (pads, nose, inner ears)
-    crease = smoothstep(0.16, 0.04, m.lum)[..., None] * 0.45
-    out = out * (1 - crease) + np.array([0.97, 0.76, 0.80]) * crease
+    # A dark coat's painted strokes are faint against its bright features, so they
+    # get a boost: the fur detail is what keeps a white coat from looking like skin
+    gain = float(np.clip(0.55 / max(m.coat_lum / max(m.lum_hi, 1e-3), 0.1), 1.0, 2.2))
+    fur = detail(m, 0.95, gain, 0.04)
+    out = SNOW * fur
+    # The markings ghost through in pale blue-grey (like an albino tiger's faint
+    # stripes), which also keeps big pieces from reading as flat skin
+    _, low = m.lum_split
+    ghost = (np.clip(-low * 0.9, 0, 0.32) * m.cov)[..., None]
+    out = out * (1 - ghost) + GHOST * fur * ghost
+    # Lavender-grey in the deepest creases (pads, nose, inner ears), measured against
+    # the creature's own coat, so a dark-coated one isn't shaded all over
+    # (smoothstep needs its edges in rising order: with them swapped it's a hard step
+    # the wrong way round, which is how the old recipe's pink "crease" covered every
+    # texel brighter than 0.16)
+    rel = m.lum / max(m.coat_lum, 0.05)
+    crease = ((1 - smoothstep(0.12, 0.42, rel)) * 0.45)[..., None]
+    out = out * (1 - crease) + CREASE * crease
     f = m.feature[..., None]
-    out = out * (1 - f) + pastel(m, 0.22, 0.8) * f
+    out = out * (1 - f) + cool_pastel(m, 0.30, 0.78) * f
     e = m.eyes[..., None]
     return out * (1 - e) + eye_color(m, (0.86, 0.06, 0.16)) * e
 
@@ -294,24 +344,18 @@ def albino(m: Model):
 def melanistic(m: Model):
     sheen = np.array([0.86, 0.88, 1.0], np.float32)
     out = sheen * detail(m, 0.09, 0.55, 0.12)
+    # The features glow vivid (more saturated as well as brighter), so where they fade
+    # into the black they pass through deep ember, not brown
     f = m.feature[..., None]
-    glow = np.clip(m.color * 1.12, 0, 1)
+    hsv = m.hsv.copy()
+    hsv[..., 1] = 1 - (1 - hsv[..., 1]) * 0.15
+    hsv[..., 2] = np.clip(hsv[..., 2] * 1.12, 0, 1)
+    glow = hsv_to_rgb(hsv)
     out = out * (1 - f) + glow * f
     e = m.eyes[..., None]
     eyes = hsv_to_rgb(np.clip(m.hsv * [1, 1.15, 0] + [0, 0, 1], 0, 1))  # its own eye color at full brightness
     eyes = eyes * (0.3 + 0.8 * np.clip(m.lum / max(m.lum_hi, 1e-3), 0, 1))[..., None]
     return out * (1 - e) + eyes * e
-
-
-def leucistic(m: Model):
-    cream = np.array([1.0, 0.965, 0.90], np.float32)
-    out = cream * detail(m, 0.88, 1.0, 0.18)
-    crease = smoothstep(0.25, 0.05, m.lum)[..., None] * 0.6
-    out = out * (1 - crease) + np.array([0.42, 0.40, 0.44]) * crease  # dark pads and nose
-    f = m.feature[..., None]
-    out = out * (1 - f) + pastel(m, 0.7, 0.45) * f
-    e = m.eyes[..., None]
-    return out * (1 - e) + eye_color(m, (0.42, 0.78, 1.0)) * e
 
 
 def piebald(m: Model, seed=3):
@@ -330,12 +374,22 @@ def piebald(m: Model, seed=3):
     )
     field = n + bias
     cut = np.percentile(field[m.cov], 60)
-    patch = smoothstep(cut - 0.05, cut + 0.05, field)[..., None] * (1 - m.eyes[..., None])
-    white = np.array([1.0, 0.985, 0.96], np.float32) * detail(m, 0.92, 1.0, 0.08)
-    white_f = pastel(m, 0.25, 0.8)
+    # The eyes sit in colored fur, like a piebald dog's eye patches: a dark eye in a
+    # pale patch is a pattern an nsfw classifier picks up on
+    for c in m.eye_centres:
+        centre = m.mn + np.array(c) * (m.mx - m.mn)
+        dist = np.linalg.norm(m.pos - centre.astype(np.float32), axis=-1) / m.length
+        field = field - 4.0 * (1 - smoothstep(0.045, 0.075, dist))
+    patch = smoothstep(cut - 0.02, cut + 0.02, field)[..., None] * (1 - m.eyes[..., None])
+    white = PATCH * detail(m, 0.92, 1.0, 0.08)
+    white_f = cool_pastel(m, 0.30, 0.8)
     f = m.feature[..., None]
     white = white * (1 - f) + white_f * f
-    return m.color * (1 - patch) + white * patch
+    out = m.color * (1 - patch) + white * patch
+    # Halfway between a warm coat and the white the mix goes cream, so the patch
+    # edges pass through a cool grey-white instead
+    mid = 4 * patch * (1 - patch) * 0.9
+    return out * (1 - mid) + out.mean(-1, keepdims=True) * PATCH * mid
 
 
 def chimera(m: Model, seed=5):
@@ -357,14 +411,14 @@ def chimera(m: Model, seed=5):
     return out * (1 - e) + odd * e
 
 
+# A cool opal film: no magenta, peach or gold, which turn pinkish over a warm coat
 FILM = np.array(
     [
         (0.20, 0.85, 0.80),  # teal
-        (0.35, 0.45, 1.00),  # blue
-        (0.72, 0.38, 1.00),  # violet
-        (1.00, 0.40, 0.75),  # magenta
-        (1.00, 0.80, 0.35),  # gold
-        (0.45, 1.00, 0.55),  # green
+        (0.30, 0.62, 1.00),  # azure
+        (0.52, 0.46, 1.00),  # periwinkle
+        (0.40, 0.80, 1.00),  # sky
+        (0.38, 0.95, 0.66),  # mint
         (0.20, 0.85, 0.80),
     ],
     np.float32,
@@ -381,9 +435,16 @@ def iridescent(m: Model):
     film = FILM[i] * (1 - f) + FILM[np.minimum(i + 1, len(FILM) - 1)] * f
     body = film * detail(m, 0.62, 1.0, 0.35)
     sheen = smoothstep(0.3, 0.9, nrm[..., 2])[..., None] * 0.12
-    coat = np.clip(m.color * 0.45 + body * 0.55 + sheen, 0, 1)
-    fe = m.feature[..., None]
-    feat = np.clip(m.color * 0.6 + film * 0.5, 0, 1)
+    # The coat's own colors stay readable under the film, folded into cool hues
+    # (a warm coat half-mixed with a cool film comes out tan, salmon or mauve)
+    hsv = m.hsv.copy()
+    hsv[..., 0] = cool_hue(hsv[..., 0])
+    own = hsv_to_rgb(hsv)
+    coat = np.clip(own * 0.45 + body * 0.55 + sheen * GLINT, 0, 1)
+    # The features keep their own color under a light film (orange lava under a
+    # violet film went salmon pink)
+    fe = smoothstep(0.3, 0.7, m.feature)[..., None]  # a short edge: cool into warm mixes salmon
+    feat = np.clip(m.color * 1.05 + film * 0.15, 0, 1)
     out = coat * (1 - fe) + feat * fe
     e = m.eyes[..., None]
     return out * (1 - e) + m.color * e
@@ -392,7 +453,6 @@ def iridescent(m: Model):
 RECIPES = {
     "Albino": albino,
     "Melanistic": melanistic,
-    "Leucistic": leucistic,
     "Piebald": piebald,
     "Chimera": chimera,
     "Iridescent": iridescent,

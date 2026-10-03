@@ -103,11 +103,13 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
    | Mutation | Odds | Earnings | Look |
    |---|---|---|---|
-   | Albino | 1 in 8,000 | ×10 | Snow-white coat that keeps its fur detail, pink skin in the creases, pale element, ruby-red eyes |
+   | Albino | 1 in 8,000 | ×10 | Snow-white coat with a silver-blue cast that keeps its fur detail, lavender-grey creases, markings ghosting through in blue-grey, ruby-red eyes (no pink anywhere since 2026-10-03, see §5 moderation note) |
    | Melanistic | 1 in 8,000 | ×10 | Jet-black coat with its pattern ghosting through; the element and eyes blaze against it |
-   | Piebald | 1 in 12,000 | ×12 | White patches laid out like a real animal's: face, chest and paws first, the spine keeps its color |
-   | Chimera | 1 in 12,000 | ×12 | Split down the middle: its normal self on one side, the opposite on the other, one odd-colored eye |
-   | Iridescent | 1 in 100,000 | ×40 | An oil-slick film whose colors follow the body's curves; in game it also drifts slowly (the rarest roll in the game) |
+   | Piebald | 1 in 12,000 | ×12 | Cool-white patches laid out like a real animal's: face, chest and paws first, the spine keeps its color; the eyes always sit in colored fur |
+   | Chimera | 1 in 12,000 | ×12 | Split down the middle: its normal self on one side, the opposite on the other (cool albino for dark coats, melanistic for light ones), one odd-colored eye |
+   | Iridescent | 1 in 100,000 | ×40 | A cool oil-slick film (teal, azure, periwinkle, sky, mint) whose colors follow the body's curves; in game it also drifts slowly (the rarest roll in the game) |
+
+   **Moderation (2026-10-03):** an uploaded Chimera atlas got the owner's account suspended 7 days for "Sexual Content": automated image moderation read the pale pink fur pieces of the unwrapped atlas as human skin (a swapped `smoothstep` had put 45% pink on every Albino texel brighter than 0.16). The recipes are now free of skin tones, and `tools/mutations/screen_skins.py` gates every upload: color checks against the creature's own (already accepted) texture plus an NSFW classifier on the packed GLBs. 37 of 615 skins (mostly Piebald and Chimera on pale-and-dark coats such as Nullcat and Laundrophant) still trip the classifier and are held back; those creatures fall back to the plain v1 look for that mutation.
 
    - **Skins, not paint** (owner, 2026-10-01: "immensely more detail... Albino needs red eyes"; v2 approved the same day, Chimera replacing Leucistic, which read as a paler Albino). Finishes change what a creature is made of; mutations change how it was born. Each mutation is a texture made offline from the model's own texture (`tools/mutations/`): the patterns are laid out on the 3D body (no seams), and the eyes are picked on face renders and recolored on purpose. In game they live in `ReplicatedStorage.MutationSkins.<Model>.<Mutation>` (a SurfaceAppearance, or an image id for a plain MeshPart). A model without its skins falls back to the v1 solid looks (Leucistic saves became Chimera).
    - Plus a thin ring in the mutation's accent color round the rarity halo (readable across a base), its name in that color on the nameplate and in the Creatures menu, and a few soft glints. No outlines or particle clouds.
