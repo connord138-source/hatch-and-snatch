@@ -83,6 +83,7 @@ local function snapshot(player: Player): { [string]: any }?
 			mutation = record.mutation,
 			slot = record.slot,
 			homegrown = record.homegrown,
+			eggBiome = record.eggBiome,
 			stolenFrom = record.stolenFrom,
 			nextStageAt = CreatureService.nextStageAt(record),
 			carried = CreatureService.isCarried(player, uid),

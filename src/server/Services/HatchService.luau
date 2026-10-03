@@ -254,10 +254,21 @@ function HatchService.tierNameFor(biomeId: string): string
 	return Progression.incubatorTiers[Progression.tierForBiome(biomeOrder(biomeId))].name
 end
 
--- Hands a just-bought egg to the player. Caller has already charged them.
-function HatchService.giveEgg(player: Player, biomeId: string)
+export type EggPreset = { species: string, finish: string, mutation: string? }
+
+-- Hands a just-bought egg to the player. Caller has already charged them. An admin
+-- can `preset` what it hatches into (AdminActions.egg); then no luck is spent.
+function HatchService.giveEgg(player: Player, biomeId: string, preset: EggPreset?)
 	local data = DataService.get(player)
 	if data == nil then
+		return
+	end
+	if preset then
+		data.heldEgg =
+			{ biome = biomeId, species = preset.species, finish = preset.finish, mutation = preset.mutation }
+		attachHeldEgg(player, biomeId)
+		refreshIncubators(player, data)
+		DataService.markDirty(player)
 		return
 	end
 	-- A luck charge from the Luck Wheel is spent on this egg, and a Server Luck boost
@@ -402,7 +413,10 @@ local function hatch(player: Player, data: PlayerData, index: number)
 		mutation = mutation,
 		homegrown = true,
 		-- Secrets roll from every egg and earn like a creature of the egg's biome
-		eggBiome = if Config.CreaturesById[egg.species].biome ~= egg.biome then egg.biome else nil,
+		eggBiome = if Config.CreaturesById[egg.species].rarity == "Secret"
+				and Config.CreaturesById[egg.species].biome ~= egg.biome
+			then egg.biome
+			else nil,
 	})
 
 	local creature = Config.CreaturesById[egg.species]

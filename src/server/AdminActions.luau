@@ -142,6 +142,7 @@ function AdminActions.grant(targets: { Player }, species: any, finish: any, stag
 	local mutationId = if typeof(mutation) == "string" and Config.MutationsById[mutation]
 		then mutation
 		else nil
+	local creature = Config.CreaturesById[species]
 	local count = each(targets, function(player)
 		CreatureService.add(player, {
 			species = species,
@@ -151,25 +152,56 @@ function AdminActions.grant(targets: { Player }, species: any, finish: any, stag
 			mutation = mutationId,
 			homegrown = true,
 		})
+		-- The case-opening reveal plays on their screen too, for the effect
+		Net.hatchReveal(player, {
+			species = species,
+			biome = creature.biome,
+			finish = finishId,
+			mutation = mutationId,
+		})
 	end)
-	local name = Config.CreaturesById[species].displayName
+	local name = creature.displayName
 	return `Gave {if mutationId then mutationId .. " " else ""}{finishId} {stageId} {name} to {count} player(s)`
 end
 
--- Puts a freshly rolled egg of a biome in each player's hands, to place in an incubator.
-function AdminActions.egg(targets: { Player }, biomeId: any): string
+-- Puts an egg of a biome in each player's hands, to place in an incubator: freshly
+-- rolled, or set to hatch into `species` with that finish and mutation (it plays
+-- the normal hatch reveal when it hatches).
+function AdminActions.egg(targets: { Player }, biomeId: any, species: any, finish: any, mutation: any): string
 	if typeof(biomeId) ~= "string" or Config.Biomes[biomeId] == nil then
 		return "Unknown biome"
+	end
+	local preset: HatchService.EggPreset? = nil
+	if species ~= nil then
+		if typeof(species) ~= "string" or Config.CreaturesById[species] == nil then
+			return "Unknown species"
+		end
+		local finishId = "Normal"
+		for _, entry in Config.Finishes do
+			if entry.id == finish then
+				finishId = entry.id
+			end
+		end
+		preset = {
+			species = species,
+			finish = finishId,
+			mutation = if typeof(mutation) == "string" and Config.MutationsById[mutation]
+				then mutation
+				else nil,
+		}
 	end
 	local count = 0
 	for _, player in targets do
 		local data = DataService.get(player)
 		if data and data.heldEgg == nil then
-			HatchService.giveEgg(player, biomeId)
+			HatchService.giveEgg(player, biomeId, preset)
 			count += 1
 		end
 	end
-	return `Gave a {Config.Biomes[biomeId].displayName} egg to {count} player(s) (hands must be empty)`
+	local what = if preset
+		then ` that hatches into a {Config.CreaturesById[preset.species].displayName}`
+		else ""
+	return `Gave a {Config.Biomes[biomeId].displayName} egg{what} to {count} player(s) (hands must be empty)`
 end
 
 -- Every egg in an incubator hatches now.
