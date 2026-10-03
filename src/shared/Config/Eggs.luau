@@ -12,24 +12,25 @@ local basePrice = 150
 
 -- Species weight inside a biome egg = weight of its rarity.
 local rarityWeights: { [Types.RarityId]: number } = {
-	Common = 60,
-	Uncommon = 25,
-	Rare = 11,
-	Epic = 3,
-	Legendary = 1,
-	Mythic = 0.1, -- ~1 in 1,000
-	Celestial = 0.03, -- ~1 in 3,300, moon events only
-	Cosmic = 0.01, -- ~1 in 10,000, Moonfall only
-	Secret = 0.002, -- ~1 in 50,000
+	-- Loosened 2026-10-03 (owner: "pretty ruthless"; was 60/25/11/3/1)
+	Common = 46,
+	Uncommon = 28,
+	Rare = 16,
+	Epic = 7,
+	Legendary = 3,
+	Mythic = 0.12, -- ~1 in 800 (was 1,000)
+	Celestial = 0.036, -- ~1 in 2,500, moon events only
+	Cosmic = 0.01, -- ~1 in 10,000, Moonfall only (the store art quotes it)
+	Secret = 0.002, -- ~1 in 50,000 (the store page quotes it)
 	Junk = 0,
 }
 
 -- Per-biome overrides. Moonfall eggs start at Rare, so the shared weights would
--- make its ultra-rares ~7x more common than anywhere else.
+-- make its ultra-rares ~4x more common than anywhere else.
 local biomeRarityWeights: { [string]: { [string]: number } } = {
 	Moonfall = {
-		Mythic = 0.015, -- ~1 in 1,000
-		Cosmic = 0.0015, -- ~1 in 10,000 each
+		Mythic = 0.0325, -- ~1 in 800
+		Cosmic = 0.0026, -- ~1 in 10,000 each
 	},
 }
 

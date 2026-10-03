@@ -103,28 +103,28 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 
    | Mutation | Odds | Earnings | Look |
    |---|---|---|---|
-   | Albino | 1 in 10,000 | ×10 | Snow-white coat that keeps its fur detail, pink skin in the creases, pale element, ruby-red eyes |
-   | Melanistic | 1 in 10,000 | ×10 | Jet-black coat with its pattern ghosting through; the element and eyes blaze against it |
-   | Piebald | 1 in 15,000 | ×12 | White patches laid out like a real animal's: face, chest and paws first, the spine keeps its color |
-   | Chimera | 1 in 15,000 | ×12 | Split down the middle: its normal self on one side, the opposite on the other, one odd-colored eye |
+   | Albino | 1 in 8,000 | ×10 | Snow-white coat that keeps its fur detail, pink skin in the creases, pale element, ruby-red eyes |
+   | Melanistic | 1 in 8,000 | ×10 | Jet-black coat with its pattern ghosting through; the element and eyes blaze against it |
+   | Piebald | 1 in 12,000 | ×12 | White patches laid out like a real animal's: face, chest and paws first, the spine keeps its color |
+   | Chimera | 1 in 12,000 | ×12 | Split down the middle: its normal self on one side, the opposite on the other, one odd-colored eye |
    | Iridescent | 1 in 100,000 | ×40 | An oil-slick film whose colors follow the body's curves; in game it also drifts slowly (the rarest roll in the game) |
 
    - **Skins, not paint** (owner, 2026-10-01: "immensely more detail... Albino needs red eyes"; v2 approved the same day, Chimera replacing Leucistic, which read as a paler Albino). Finishes change what a creature is made of; mutations change how it was born. Each mutation is a texture made offline from the model's own texture (`tools/mutations/`): the patterns are laid out on the 3D body (no seams), and the eyes are picked on face renders and recolored on purpose. In game they live in `ReplicatedStorage.MutationSkins.<Model>.<Mutation>` (a SurfaceAppearance, or an image id for a plain MeshPart). A model without its skins falls back to the v1 solid looks (Leucistic saves became Chimera).
    - Plus a thin ring in the mutation's accent color round the rarity halo (readable across a base), its name in that color on the nameplate and in the Creatures menu, and a few soft glints. No outlines or particle clouds.
    - **On a finish** the texture is already gone, so the mutation shifts the finish's color instead: a black-gold Melanistic, a white-gold Albino. Piebald patches and a lighter Iridescent sheen go over any finish.
-   - **Hype:** every mutated hatch is announced to the whole server with its odds ("🧬 Connor hatched an ALBINO Emberlynx! (1 in 10,000)"), the hatch reveal gives it a banner and a second flash in its accent color, and the first one earns the "One in Ten Thousand" achievement (3,000 XP, 5 spins).
+   - **Hype:** every mutated hatch is announced to the whole server with its odds ("🧬 Connor hatched an ALBINO Emberlynx! (1 in 8,000)"), the hatch reveal gives it a banner and a second flash in its accent color, and the first one earns the "One in Ten Thousand" achievement (3,000 XP, 5 spins).
    - The odds panel lists them before purchase (paid random items). Rerun the economy sim after changing them; the 2026-10-01 rework moved pacing by about a day at most.
 3. **Finishes**, the flashy layer. Each is a material and particle swap, so no new models are needed:
 
 | Finish | Odds | Earnings | Look |
 |---|---|---|---|
 | Normal | — | ×1 | — |
-| Gold | 1 in 25 | ×1.5 | Gold with sparkles |
-| Chrome | 1 in 100 | ×2 | Mirror finish that reflects the world |
-| Diamond | 1 in 400 | ×3 | See-through crystal that bends light |
-| Molten | 1 in 1,500 | ×5 | Glowing lava cracks, drips embers, sizzles |
-| Galaxy | 1 in 5,000 | ×8 | A window onto space: a starfield that holds still on screen while the creature moves through it (`FinishLooks` sky texture, slid each frame by CreatureAnimator; the image is `assets/textures/galaxy_sky.png`), plus a tiny orbiting planet; server announcement |
-| Prismatic | 1 in 20,000 | ×15 | Color-shifting glow and a rainbow trail; server-wide fanfare |
+| Gold | 1 in 15 | ×1.5 | Gold with sparkles |
+| Chrome | 1 in 60 | ×2 | Mirror finish that reflects the world |
+| Diamond | 1 in 250 | ×3 | See-through crystal that bends light |
+| Molten | 1 in 1,000 | ×5 | Glowing lava cracks, drips embers, sizzles |
+| Galaxy | 1 in 4,000 | ×8 | A window onto space: a starfield that holds still on screen while the creature moves through it (`FinishLooks` sky texture, slid each frame by CreatureAnimator; the image is `assets/textures/galaxy_sky.png`), plus a tiny orbiting planet; server announcement |
+| Prismatic | 1 in 16,000 | ×15 | Color-shifting glow and a rainbow trail; server-wide fanfare |
 | Blood Moon | Blood Moon event only | ×10 | Black and red with a red aura |
 
 4. **Color palettes:** unlockable recolors of each species' color regions. Palettes are a collection track and something players can buy.
@@ -168,7 +168,7 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
   - The Castle Designer sets the stone, the roofs, the banners and the glow (below). Tower and gatehouse models replace the part-built ones when imported (a 9-stud walk-through arch between invisible colliders); they carry the Classic look in their textures, so they are used only for the Classic design and any other design builds its towers from parts in its own colors. The gatehouse model is turned to face out whichever way it was imported. At the Citadel a custom design also recolors the gold trim (tower bands, wall caps, gate trim) to its banner color.
   - The floors above are a **stone keep**: solid stone walls (the glass boxes looked see-through and unfinished), an arched front with balustrades so the creatures show, stone pillars, battlements on the Top Floor. Tall arches run across the ground floor's front under the Second Floor too, and the ramps are drawn as stone stairs (the slope underneath is what players walk on).
   - **Display niches** (owner, 2026-10-02: in the concepts every creature stands in its own alcove, "spacing and second story spots"): every pedestal but the vaults' and hiding spots' has an arched stone niche behind it with a glowing panel. It glows in the **rarity color of the creature standing there**; an empty one shows dim warm stone with a faint light (empty neon panels bloomed into white blobs at night). Each floor has 9 spots (owner, 2026-10-02: "more spots on second and third floors"): 5 just inside the front arches, so the upper creatures show from outside like the concepts' two rows of alcoves, and 2 along each side wall facing in, clear of the vault doors (the Top Floor has no front posts: the Second Floor's side and back walls rise to meet its slab instead, so nothing sticks out along the walls). A walkway runs in front and gaps between the niches lead to the back.
-- **Base level 1 to 5:** 60K, 25M, 5B and 500B. Each level:
+- **Base level 1 to 5:** 60K, 25M, 5B and 800B. Each level:
   - widens and deepens the plot (64×56 up to 88×80 studs), so thieves have a longer run out;
   - adds ground pedestals at levels 2 and 3 (10 → 15 → 20); levels 3 and 4 open the floors above. The ground's spots stand in two wings either side of an open hall down the middle (owner, 2026-10-02: "far too cramped together on the bottom floor ... spots on the left and right of the center"): two columns a side, 13 studs apart, in rows 12 apart, with the theme kit's centerpiece at the hall's far end;
   - adds 15 s to the laser lock (+60 s at max).
@@ -240,8 +240,8 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 | Common | 1 | 10 s | ×1 |
 | Uncommon | 3 | 20 s | ×1.25 |
 | Rare | 8 | 45 s | ×1.5 |
-| Epic | 25 | 2 min | ×2 |
-| Legendary | 80 | 4 min | ×3 |
+| Epic | 18 | 2 min | ×2 |
+| Legendary | 60 | 4 min | ×3 |
 | Mythic | 400 | 8 min | ×4 |
 | Celestial | 1200 | 10 min | ×5 |
 | Cosmic | 3000 | 12 min | ×6 |
@@ -253,7 +253,8 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 - **Egg prices:** $150 × the biome's price multiplier (×16 per biome): Mossvale 150, Coral 2.4K, Magma 38.4K, Frost 614K, Storm 9.8M, Moonfall 157M (Junk 38.4K). New players start with $300 (two eggs).
 - **Biome earnings multiplier:** creatures earn base cash/sec × their biome's earnings multiplier (Mossvale 1, Coral 4, Magma 16, Frost 60, Storm 220, Moonfall 300, Junk 1). It grows much slower than egg prices, so each biome is a bigger investment than the last.
 - **Resulting payback** for a Common baby: 2 min in Mossvale, 8 min in Coral, 32 min in Magma, 2.3 h in Frost, 10 h in Storm and 15 h in Moonfall (whose eggs start at Rare). Adults earn ×6, and rare rolls pay back much faster.
-- **Rarity earnings are compressed** (Legendary is 80× a Common, not 250×). Players keep only their best creatures on pedestals, so a steep rarity curve made income explode after a few hundred hatches.
+- **Drop rates** (loosened 2026-10-03, owner: "pretty ruthless ... not too much for the extreme rares"): a biome egg is about 47–55% Common, 29–33% Uncommon, 17% Rare, 7–8% Epic and 3–4% Legendary (was 60/25/11/3/1); Mythic about 1 in 800, Celestial 1 in 2,500. Cosmic (1 in 10,000), Secret (1 in 50,000) and Iridescent (1 in 100,000) stay put, since the store page quotes them. To keep the pacing, Epic and Legendary earn 18 and 60 (were 25 and 80) and base level 5 costs 800B (was 500B).
+- **Rarity earnings are compressed** (Legendary is 60× a Common, not 250×). Players keep only their best creatures on pedestals, so a steep rarity curve made income explode after a few hundred hatches.
 - **Rebirth** is the endgame sink (see §7.2): the first costs 1T, then 2.5T, 6T, 15T and 40T, and each one after that costs ×2.5.
 - **Offline earnings** are capped at 8 hours; the cap can be raised by a game pass.
 
@@ -263,19 +264,19 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 
 | Milestone | 1 h/day | 3 h/day | 8 h/day | 12 h/day |
 |---|---|---|---|---|
-| Coral Coast (Lv 4) | 10 min | 10 min | 10 min | 10 min |
+| Coral Coast (Lv 4) | 9 min | 9 min | 9 min | 9 min |
 | Base level 2 | day 1 | day 1 | day 1 | day 1 |
 | Magma Rift | day 2 | day 1 | day 1 | day 1 |
-| Second Floor | day 3 | day 3 | day 2 | day 2 |
-| Vault 2 | day 6 | day 4 | day 2 | day 2 |
+| Second Floor | day 3 | day 2 | day 2 | day 1 |
+| Vault 2 | day 4 | day 3 | day 2 | day 2 |
 | Frost Shelf | day 7 | day 3 | day 2 | day 1 |
-| Top Floor | day 16 | day 9 | day 5 | day 4 |
-| Vault 4 | day 30 | day 15 | day 8 | day 6 |
-| Storm Peaks | day 26 | day 10 | day 4 | day 3 |
-| Base level 5 (max) | — | day 19 | day 10 | day 8 |
-| Moonfall | — | day 22 | day 10 | day 8 |
-| Everything bought (6 Cosmic incubators) | — | — | day 18 | day 13 |
-| First rebirth | — | — | day 20 | day 14 |
+| Top Floor | day 14 | day 8 | day 4 | day 3 |
+| Vault 4 | day 26 | day 13 | day 7 | day 5 |
+| Storm Peaks | day 27 | day 10 | day 4 | day 3 |
+| Base level 5 (max) | — | day 22 | day 11 | day 9 |
+| Moonfall | — | day 22 | day 11 | day 9 |
+| Everything bought (6 Cosmic incubators) | — | day 22 | day 17 | day 13 |
+| First rebirth | — | — | day 18 | day 14 |
 
 Before the retune, a 3 h/day player had bought everything in about 3 hours of play. Rerun the sim after any economy change. Paid boosts, events and stealing make real players somewhat faster than this baseline.
 
@@ -283,8 +284,8 @@ Before the retune, a 3 h/day player had bought everything in about 3 hours of pl
 
 | Tier | Where it rolls | Odds per egg | Species |
 |---|---|---|---|
-| Mythic | Any biome egg, any time | about 1 in 1,000 | Sylvanox (Mossvale), Lurehound (Coral), Pyrodrake (Magma), Glacierion (Frost), Stormgriff (Storm), Lunaris (Moonfall) |
-| Celestial | Magma and Storm eggs, **only during a moon event** | about 1 in 3,000 | Solarion (Magma), Halosaur (Storm) |
+| Mythic | Any biome egg, any time | about 1 in 800 | Sylvanox (Mossvale), Lurehound (Coral), Pyrodrake (Magma), Glacierion (Frost), Stormgriff (Storm), Lunaris (Moonfall) |
+| Celestial | Magma and Storm eggs, **only during a moon event** | about 1 in 2,500 | Solarion (Magma), Halosaur (Storm) |
 | Cosmic | Moonfall eggs only | about 1 in 10,000 each | Quasarfox, Singularis |
 | Secret | Hidden in ordinary eggs; shows as ??? in the Index | about 1 in 50,000 | Capybaron (Mossvale, the $150 starter egg), Nullcat (Junk Egg) |
 

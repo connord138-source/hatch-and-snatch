@@ -9,10 +9,10 @@
 local Types = require(script.Parent.Types)
 
 local Mutations: { Types.Mutation } = {
-	{ id = "Albino", displayName = "Albino", chance = 1 / 10_000, earningsMultiplier = 10 },
-	{ id = "Melanistic", displayName = "Melanistic", chance = 1 / 10_000, earningsMultiplier = 10 },
-	{ id = "Chimera", displayName = "Chimera", chance = 1 / 15_000, earningsMultiplier = 12 },
-	{ id = "Piebald", displayName = "Piebald", chance = 1 / 15_000, earningsMultiplier = 12 },
+	{ id = "Albino", displayName = "Albino", chance = 1 / 8_000, earningsMultiplier = 10 },
+	{ id = "Melanistic", displayName = "Melanistic", chance = 1 / 8_000, earningsMultiplier = 10 },
+	{ id = "Chimera", displayName = "Chimera", chance = 1 / 12_000, earningsMultiplier = 12 },
+	{ id = "Piebald", displayName = "Piebald", chance = 1 / 12_000, earningsMultiplier = 12 },
 	{ id = "Iridescent", displayName = "Iridescent", chance = 1 / 100_000, earningsMultiplier = 40 },
 }
 

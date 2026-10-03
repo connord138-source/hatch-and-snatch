@@ -11,7 +11,7 @@
 --    looks only. Security items all run on a timer or recharge, so no base is
 --    ever fully closed: a patient thief can always wait one out (owner's rule).
 --
--- Costs sit between the base level prices (60K, 25M, 5B, 500B) so each level
+-- Costs sit between the base level prices (60K, 25M, 5B, 800B) so each level
 -- opens a few things worth saving for without slowing the next upgrade much.
 
 export type Tier = {

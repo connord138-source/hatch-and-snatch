@@ -66,7 +66,7 @@ local Tunables = {
 		{ cost = 60_000, pedestals = 15, lockBonusSeconds = 15 },
 		{ cost = 25_000_000, pedestals = 20, lockBonusSeconds = 30 },
 		{ cost = 5_000_000_000, pedestals = 20, lockBonusSeconds = 45 },
-		{ cost = 500_000_000_000, pedestals = 20, lockBonusSeconds = 60 },
+		{ cost = 800_000_000_000, pedestals = 20, lockBonusSeconds = 60 }, -- 500B before the 2026-10-03 drop loosening
 	},
 
 	-- Floors (owner, 2026-10-01), bought in order in the Base menu. Each adds 9
