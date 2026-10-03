@@ -10,12 +10,23 @@
 -- sets a "Carrying" attribute on your Player). The owner is the nearest ancestor
 -- with an OwnerUserId attribute. This is cosmetic only: the server re-validates
 -- every trigger.
+--
+-- It also gives each prompt a controller button matching its key (Xbox players):
+-- every prompt defaults to X, and only one prompt per button shows at a time, so
+-- a pedestal creature's Walk (R) and Nursery (F) hid behind each other on a pad.
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 
 local localPlayer = Players.LocalPlayer
 local localUserId = localPlayer.UserId
 local prompts: { [ProximityPrompt]: boolean } = {}
+
+-- Keyboard key -> controller button (E stays on the default X)
+local GAMEPAD_KEYS: { [Enum.KeyCode]: Enum.KeyCode } = {
+	[Enum.KeyCode.E] = Enum.KeyCode.ButtonX,
+	[Enum.KeyCode.R] = Enum.KeyCode.ButtonY,
+	[Enum.KeyCode.F] = Enum.KeyCode.ButtonB,
+}
 
 local PromptFilter = {}
 
@@ -54,7 +65,20 @@ local function evaluateAll()
 	end
 end
 
+local function matchGamepadKey(prompt: ProximityPrompt)
+	local button = GAMEPAD_KEYS[prompt.KeyboardKeyCode]
+	if button then
+		prompt.GamepadKeyCode = button
+	end
+end
+
 local function track(instance: Instance)
+	if instance:IsA("ProximityPrompt") then
+		matchGamepadKey(instance)
+		instance:GetPropertyChangedSignal("KeyboardKeyCode"):Connect(function()
+			matchGamepadKey(instance)
+		end)
+	end
 	if instance:IsA("ProximityPrompt") and instance:GetAttribute("VisibleTo") ~= nil then
 		prompts[instance] = true
 		evaluate(instance)

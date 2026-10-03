@@ -123,10 +123,11 @@ function Ui.autoScale(gui: ScreenGui)
 	end)
 end
 
--- Key hints like " (E)" mean nothing on a touch screen (prompts show a tap
--- button there), so they're dropped for touch-only players.
+-- Key hints like " (E)" mean nothing without a keyboard (prompts show a tap
+-- button on touch screens and a controller button on consoles), so they're
+-- dropped for players with no keyboard.
 function Ui.hint(text: string): string
-	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+	if not UserInputService.KeyboardEnabled then
 		return (text:gsub(" %(%u%)", ""))
 	end
 	return text
