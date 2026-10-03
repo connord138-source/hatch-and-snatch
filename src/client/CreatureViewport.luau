@@ -18,11 +18,62 @@ export type Placement = {
 
 local CreatureViewport = {}
 
--- Twinkling stars over the reveal's viewport, standing in for the Galaxy finish's
--- star particles. 2D frames on top (a diamond each), so no image assets are needed.
-local STAR_COLORS = { Color3.new(1, 1, 1), Color3.fromRGB(190, 170, 255), Color3.fromRGB(150, 220, 255) }
+-- Twinkling glints over the viewport, standing in for a finish's particles (which
+-- viewports don't draw): 2D frames on top (a diamond each), so no image assets are
+-- needed. Count, size and twinkle speed per finish.
+type Glints = { colors: { Color3 }, count: number, size: NumberRange, twinkle: NumberRange }
+local GLINTS: { [string]: Glints } = {
+	Galaxy = {
+		colors = { Color3.new(1, 1, 1), Color3.fromRGB(190, 170, 255), Color3.fromRGB(150, 220, 255) },
+		count = 22,
+		size = NumberRange.new(4, 9),
+		twinkle = NumberRange.new(0.5, 1.1),
+	},
+	Diamond = {
+		colors = { Color3.new(1, 1, 1), Color3.fromRGB(190, 240, 255), Color3.fromRGB(255, 215, 240) },
+		count = 28,
+		size = NumberRange.new(5, 12),
+		twinkle = NumberRange.new(0.25, 0.6),
+	},
+	Gold = {
+		colors = { Color3.fromRGB(255, 240, 160), Color3.fromRGB(255, 200, 60) },
+		count = 16,
+		size = NumberRange.new(4, 9),
+		twinkle = NumberRange.new(0.4, 0.9),
+	},
+	Chrome = {
+		colors = { Color3.new(1, 1, 1), Color3.fromRGB(205, 225, 255) },
+		count = 12,
+		size = NumberRange.new(4, 8),
+		twinkle = NumberRange.new(0.25, 0.5),
+	},
+	Molten = {
+		colors = { Color3.fromRGB(255, 220, 110), Color3.fromRGB(255, 110, 30) },
+		count = 16,
+		size = NumberRange.new(3, 7),
+		twinkle = NumberRange.new(0.3, 0.7),
+	},
+	Prismatic = {
+		colors = {
+			Color3.fromRGB(255, 90, 90),
+			Color3.fromRGB(255, 230, 90),
+			Color3.fromRGB(90, 255, 150),
+			Color3.fromRGB(90, 170, 255),
+			Color3.fromRGB(220, 100, 255),
+		},
+		count = 26,
+		size = NumberRange.new(5, 11),
+		twinkle = NumberRange.new(0.35, 0.8),
+	},
+	BloodMoon = {
+		colors = { Color3.fromRGB(255, 70, 80), Color3.fromRGB(200, 0, 25) },
+		count = 18,
+		size = NumberRange.new(4, 10),
+		twinkle = NumberRange.new(0.3, 0.7),
+	},
+}
 
-local function starfield(parent: Instance, over: ViewportFrame)
+local function glints(parent: Instance, over: ViewportFrame, spec: Glints)
 	local layer = Instance.new("Frame")
 	layer.BackgroundTransparency = 1
 	layer.AnchorPoint = over.AnchorPoint
@@ -35,22 +86,22 @@ local function starfield(parent: Instance, over: ViewportFrame)
 	end
 	layer.Parent = parent
 	local rng = Random.new()
-	for i = 1, 22 do
+	for i = 1, spec.count do
 		local star = Instance.new("Frame")
-		local size = rng:NextInteger(4, 9)
+		local size = rng:NextInteger(spec.size.Min, spec.size.Max)
 		star.Size = UDim2.fromOffset(size, size)
 		star.AnchorPoint = Vector2.new(0.5, 0.5)
 		star.Position = UDim2.fromScale(rng:NextNumber(0.2, 0.8), rng:NextNumber(0.15, 0.85))
 		star.Rotation = 45
 		star.BorderSizePixel = 0
-		star.BackgroundColor3 = STAR_COLORS[(i % #STAR_COLORS) + 1]
+		star.BackgroundColor3 = spec.colors[(i % #spec.colors) + 1]
 		star.BackgroundTransparency = 1
 		star.ZIndex = layer.ZIndex
 		star.Parent = layer
 		TweenService:Create(
 			star,
 			TweenInfo.new(
-				rng:NextNumber(0.5, 1.1),
+				rng:NextNumber(spec.twinkle.Min, spec.twinkle.Max),
 				Enum.EasingStyle.Sine,
 				Enum.EasingDirection.InOut,
 				-1,
@@ -138,9 +189,9 @@ function CreatureViewport.create(
 	frame.LightDirection = Vector3.new(-1, -0.35, 0)
 	model:PivotTo(CFrame.new())
 	model.Parent = frame
-	if finish == "Galaxy" then
-		-- Its stars are particles in the world, which viewports don't draw
-		starfield(parent, frame)
+	local glint = GLINTS[finish]
+	if glint then
+		glints(parent, frame, glint)
 	end
 	-- Spin around the model's own middle (its pivot can sit at its feet or off to one
 	-- side), and put the camera just far enough back for it to fill the frame
@@ -152,15 +203,35 @@ function CreatureViewport.create(
 	camera.CFrame = CFrame.lookAt(Vector3.new(0, size.Y * 0.35, -fit * 1.15), Vector3.zero)
 	camera.Parent = frame
 	frame.CurrentCamera = camera
+	-- The finish's color moves as it does in the world (CreatureAnimator): Prismatic
+	-- cycles, Diamond's opal glints drift, Blood Moon beats. A mutation keeps its colors.
+	local shine = FinishLooks.shine(finish)
+	local function recolor(color: Color3)
+		for _, part in parts do
+			part.Color = color
+		end
+	end
 	task.spawn(function()
 		local angle = 0
 		local started = os.clock()
 		while frame.Parent do
 			angle += 0.03
 			model:PivotTo(CFrame.Angles(0, angle, 0) * toCenter)
+			local t = os.clock() - started
 			if iridescent then
 				-- Faster than in the world, so the sheen shows during the reveal
-				MutationLooks.shimmer(parts, MutationLooks.sheen((os.clock() - started) * 4, 0), appearances)
+				MutationLooks.shimmer(parts, MutationLooks.sheen(t * 4, 0), appearances)
+			elseif not mutated and finish == "Prismatic" then
+				recolor(Color3.fromHSV((t * 0.25) % 1, 0.8, 1))
+			elseif not mutated and shine == "Diamond" then
+				recolor(Color3.fromRGB(244, 249, 255):Lerp(Color3.fromHSV((t * 0.3) % 1, 0.2, 1), 0.4))
+			elseif not mutated and shine == "BloodMoon" then
+				local phase = t % 1.1
+				local beat = math.max(
+					math.exp(-((phase - 0.1) / 0.07) ^ 2),
+					0.7 * math.exp(-((phase - 0.34) / 0.07) ^ 2)
+				)
+				recolor(Color3.fromRGB(90, 0, 12):Lerp(Color3.fromRGB(220, 24, 42), 0.35 + 0.65 * beat))
 			end
 			task.wait()
 		end

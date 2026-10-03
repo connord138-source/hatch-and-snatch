@@ -197,6 +197,8 @@ type ParticleSpec = {
 	lifetime: number,
 	rise: number,
 	light: Color3?,
+	lightBrightness: number?, -- default 0.45: brighter lights washed out neighbouring creatures
+	lightRange: number?,
 	brightness: number?, -- above 1 blooms (the rarer stardust)
 }
 local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
@@ -238,86 +240,185 @@ local function addParticles(part: BasePart, spec: ParticleSpec)
 		local light = Instance.new("PointLight")
 		light.Name = "LookLight"
 		light.Color = spec.light
-		light.Brightness = 0.45 -- subtle: brighter lights washed out neighbouring creatures
-		light.Range = 6
+		light.Brightness = spec.lightBrightness or 0.45
+		light.Range = spec.lightRange or 6
 		light.Parent = part
 	end
 end
 
-local FINISH_FX: { [string]: ParticleSpec } = {
+-- Each finish's particles (several layers for the showy ones) and light. Dialed up
+-- 2026-10-03 (owner: "the blood moon and other effects needed to be tweaked and
+-- dialed up"): brighter glints that bloom, a second layer on Diamond, Molten,
+-- Prismatic and Blood Moon, and stronger lights (CreatureAnimator pulses them).
+local FINISH_FX: { [string]: { ParticleSpec } } = {
 	Gold = {
-		texture = SPARKLE,
-		colors = { Color3.fromRGB(255, 230, 120) },
-		rate = 3,
-		size = 0.35,
-		speed = 0.5,
-		lifetime = 1.2,
-		rise = 0,
+		{
+			texture = SPARKLE,
+			colors = { Color3.fromRGB(255, 236, 140), Color3.fromRGB(255, 190, 40) },
+			rate = 9,
+			size = 0.5,
+			speed = 0.4,
+			lifetime = 1.1,
+			rise = 0.2,
+			brightness = 1.8,
+			light = Color3.fromRGB(255, 200, 80),
+			lightBrightness = 0.7,
+		},
 	},
 	Chrome = {
-		texture = SPARKLE,
-		colors = { Color3.new(1, 1, 1) },
-		rate = 2,
-		size = 0.3,
-		speed = 0.3,
-		lifetime = 1,
-		rise = 0,
+		{
+			texture = SPARKLE,
+			colors = { Color3.new(1, 1, 1), Color3.fromRGB(200, 225, 255) },
+			rate = 7,
+			size = 0.45,
+			speed = 0.2,
+			lifetime = 0.6,
+			rise = 0,
+			brightness = 2.2,
+			light = Color3.fromRGB(220, 235, 255),
+			lightBrightness = 0.5,
+		},
 	},
 	Diamond = {
-		texture = SPARKLE,
-		colors = { Color3.fromRGB(200, 245, 255), Color3.new(1, 1, 1) },
-		rate = 8,
-		size = 0.4,
-		speed = 0.4,
-		lifetime = 1.2,
-		rise = 0,
-		light = Color3.fromRGB(180, 230, 255),
+		-- Quick, bright star glints all over the crystal, like light catching facets
+		{
+			texture = SPARKLE,
+			colors = { Color3.new(1, 1, 1), Color3.fromRGB(190, 240, 255), Color3.fromRGB(255, 220, 245) },
+			rate = 18,
+			size = 0.7,
+			speed = 0,
+			lifetime = 0.45,
+			rise = 0,
+			brightness = 3,
+			light = Color3.fromRGB(200, 240, 255),
+			lightBrightness = 0.9,
+			lightRange = 9,
+		},
+		-- A slow drift of rainbow-tinted dust, the refraction
+		{
+			texture = SPARKLE,
+			colors = {
+				Color3.fromRGB(255, 200, 230),
+				Color3.fromRGB(200, 230, 255),
+				Color3.fromRGB(210, 255, 225),
+			},
+			rate = 6,
+			size = 0.3,
+			speed = 0.5,
+			lifetime = 2,
+			rise = 0.4,
+			brightness = 1.6,
+		},
 	},
 	Molten = {
-		texture = FIRE,
-		colors = { Color3.fromRGB(255, 200, 60), Color3.fromRGB(255, 70, 10) },
-		rate = 14,
-		size = 0.45,
-		speed = 2,
-		lifetime = 1.4,
-		rise = 4,
-		light = Color3.fromRGB(255, 120, 30),
+		{
+			texture = FIRE,
+			colors = { Color3.fromRGB(255, 210, 70), Color3.fromRGB(255, 70, 10) },
+			rate = 22,
+			size = 0.55,
+			speed = 2,
+			lifetime = 1.4,
+			rise = 4,
+			brightness = 1.4,
+			light = Color3.fromRGB(255, 120, 30),
+			lightBrightness = 1,
+			lightRange = 9,
+		},
+		-- Embers spitting off it
+		{
+			texture = SPARKLE,
+			colors = { Color3.fromRGB(255, 230, 120), Color3.fromRGB(255, 90, 20) },
+			rate = 10,
+			size = 0.25,
+			speed = 4,
+			lifetime = 1,
+			rise = 6,
+			brightness = 2,
+		},
 	},
 	Galaxy = {
-		texture = SPARKLE,
-		colors = { Color3.fromRGB(150, 220, 255), Color3.fromRGB(190, 120, 255), Color3.new(1, 1, 1) },
-		rate = 16,
-		size = 0.35,
-		speed = 0.4,
-		lifetime = 3,
-		rise = 0.3,
-		light = Color3.fromRGB(120, 70, 255),
+		{
+			texture = SPARKLE,
+			colors = { Color3.fromRGB(150, 220, 255), Color3.fromRGB(190, 120, 255), Color3.new(1, 1, 1) },
+			rate = 22,
+			size = 0.4,
+			speed = 0.4,
+			lifetime = 3,
+			rise = 0.3,
+			brightness = 2,
+			light = Color3.fromRGB(130, 80, 255),
+			lightBrightness = 0.8,
+			lightRange = 9,
+		},
 	},
 	Prismatic = {
-		texture = SPARKLE,
-		colors = {
-			Color3.fromRGB(255, 80, 80),
-			Color3.fromRGB(255, 230, 80),
-			Color3.fromRGB(80, 255, 140),
-			Color3.fromRGB(80, 160, 255),
-			Color3.fromRGB(220, 90, 255),
+		{
+			texture = SPARKLE,
+			colors = {
+				Color3.fromRGB(255, 80, 80),
+				Color3.fromRGB(255, 230, 80),
+				Color3.fromRGB(80, 255, 140),
+				Color3.fromRGB(80, 160, 255),
+				Color3.fromRGB(220, 90, 255),
+			},
+			rate = 30,
+			size = 0.55,
+			speed = 1.5,
+			lifetime = 2,
+			rise = 1,
+			brightness = 2.4,
+			light = Color3.new(1, 1, 1),
+			lightBrightness = 1,
+			lightRange = 10,
 		},
-		rate = 20,
-		size = 0.45,
-		speed = 1.5,
-		lifetime = 2,
-		rise = 1,
-		light = Color3.new(1, 1, 1),
+		-- Big soft rainbow flares
+		{
+			texture = SPARKLE,
+			colors = { Color3.fromRGB(255, 120, 200), Color3.fromRGB(120, 220, 255) },
+			rate = 5,
+			size = 1.4,
+			speed = 0.2,
+			lifetime = 0.8,
+			rise = 0,
+			brightness = 1.6,
+		},
 	},
 	BloodMoon = {
-		texture = SMOKE,
-		colors = { Color3.fromRGB(200, 0, 20), Color3.fromRGB(40, 0, 0) },
-		rate = 8,
-		size = 1.2,
-		speed = 0.6,
-		lifetime = 2.5,
-		rise = 1.5,
-		light = Color3.fromRGB(255, 20, 30),
+		-- Crimson embers boiling off it
+		{
+			texture = FIRE,
+			colors = { Color3.fromRGB(255, 40, 50), Color3.fromRGB(120, 0, 10) },
+			rate = 20,
+			size = 0.6,
+			speed = 1.6,
+			lifetime = 1.5,
+			rise = 3.5,
+			brightness = 1.6,
+			light = Color3.fromRGB(255, 20, 35),
+			lightBrightness = 1.2,
+			lightRange = 10,
+		},
+		-- A dark red haze around its feet
+		{
+			texture = SMOKE,
+			colors = { Color3.fromRGB(160, 0, 20), Color3.fromRGB(30, 0, 0) },
+			rate = 7,
+			size = 1.6,
+			speed = 0.5,
+			lifetime = 2.8,
+			rise = 0.6,
+		},
+		-- Blood-red glints
+		{
+			texture = SPARKLE,
+			colors = { Color3.fromRGB(255, 90, 100), Color3.fromRGB(255, 20, 40) },
+			rate = 8,
+			size = 0.45,
+			speed = 0.3,
+			lifetime = 0.8,
+			rise = 0,
+			brightness = 2.4,
+		},
 	},
 }
 
@@ -437,7 +538,9 @@ local function applyFinish(model: Model, finish: string)
 	end
 	local fx = FINISH_FX[finish]
 	if fx and model.PrimaryPart then
-		addParticles(model.PrimaryPart, fx)
+		for _, layer in fx do
+			addParticles(model.PrimaryPart, layer)
+		end
 	end
 	if finish == "Prismatic" then
 		CollectionService:AddTag(model, "Prismatic")
@@ -685,6 +788,7 @@ local function buildModel(owner: Player, uid: string, record: CreatureRecord, at
 	model:SetAttribute("Uid", uid)
 	model:SetAttribute("Species", record.species)
 	model:SetAttribute("Stage", record.stage)
+	model:SetAttribute("Mutation", record.mutation) -- its look wins over a finish's color shine
 	model:SetAttribute("BodyPlan", creature.bodyPlan)
 	model:SetAttribute("OwnerUserId", owner.UserId)
 	CollectionService:AddTag(model, "Creature")

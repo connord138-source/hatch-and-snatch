@@ -43,6 +43,7 @@ unrelated to the Polymarket worker.
   - Each base has protected **nursery** slots for players who prefer raising their own.
 - **Rarity layers:** species rarity, then genetic mutations at hatch, then **finishes** (Gold → Chrome → Diamond → Molten → Galaxy → Prismatic, plus event-only Blood Moon), then color palettes.
   - The owner loved the finish-sheet look (the toaster tortoise in 7 finishes).
+  - **Finish effects dialed up** (owner, 2026-10-03): every finish has brighter, layered particles and a stronger light (`CreatureService` `FINISH_FX`); Diamond is a Fortnite-style faceted crystal (the `DiamondGem` MaterialVariant from `tools/textures/make_gem_tex.py`, glass until its maps are uploaded and `make_materials.luau` is run), and Diamond, Blood Moon and Molten animate on the client (`FinishLooks` `shine`: opal drift, a heartbeat pulse, a flicker). Viewports (reveal, details card) get matching 2D glints.
   - **Galaxy** (owner, 2026-10-01): the starfield holds still on screen while the creature moves through it (like galaxy skins elsewhere). Roblox has no custom shaders, so CreatureAnimator slides a tiling Texture on each face (`FinishLooks` `sky`); it's off until `assets/textures/galaxy_sky.png` is uploaded and its id pasted in.
 - **Junk Egg:** rare and event-only, containing comic household-object creatures such as the Toaster Tortoise and Fridge Hedgehog.
 - **Roster:** 30 launch creatures are final. See `docs/ROSTER.md` and `src/shared/Config/Creatures.luau`.

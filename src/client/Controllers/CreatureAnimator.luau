@@ -47,6 +47,7 @@ type Tracked = {
 	skies: { Texture }?, -- Galaxy starfield textures, gathered once
 	appearances: { SurfaceAppearance }?, -- Secret shimmer tint list, gathered once
 	ring: UIStroke?, -- Iridescent: the mutation ring round the halo, found once
+	light: PointLight?, -- finish shine: the finish's light, found once
 }
 
 local STAGE_MOTION: { [string]: { stride: number, height: number, speed: number } } = {
@@ -174,6 +175,52 @@ local SKY_AXES: { [Enum.NormalId]: { Vector3 } } = {
 	[Enum.NormalId.Top] = { Vector3.new(-1, 0, 0), Vector3.new(0, 0, -1) },
 }
 local SKY_SIGN = -1
+
+-- Finish shine (Shared/FinishLooks): Diamond's opal glints drift over the crystal
+-- and its light twinkles, Blood Moon's color and light beat like a heart (two quick
+-- beats, then a rest), Molten's light flickers. A mutated creature keeps its own
+-- colors; only the light moves.
+local DIAMOND_WHITE = Color3.fromRGB(244, 249, 255)
+local BLOOD_DARK = Color3.fromRGB(90, 0, 12)
+local BLOOD_BRIGHT = Color3.fromRGB(220, 24, 42)
+local function shine(info: Tracked, model: Model, t: number)
+	if info.parts == nil then
+		local parts: { BasePart } = {}
+		for _, part in model:GetDescendants() do
+			if part:IsA("BasePart") and not part:GetAttribute("KeepMaterial") then
+				table.insert(parts, part)
+			end
+		end
+		info.parts = parts
+		local body = model.PrimaryPart
+		local light = body and body:FindFirstChild("LookLight")
+		info.light = if light and light:IsA("PointLight") then light else nil
+	end
+	local kind = model:GetAttribute("Shine")
+	local recolor = model:GetAttribute("Mutation") == nil
+	local color: Color3? = nil
+	local brightness: number? = nil
+	if kind == "Diamond" then
+		color = DIAMOND_WHITE:Lerp(Color3.fromHSV((t * 0.12 + info.seed) % 1, 0.2, 1), 0.4)
+		brightness = 0.7 + 0.4 * math.abs(math.sin(t * 3.1 + info.seed * 7))
+	elseif kind == "BloodMoon" then
+		local phase = (t + info.seed) % 1.1
+		local beat =
+			math.max(math.exp(-((phase - 0.1) / 0.07) ^ 2), 0.7 * math.exp(-((phase - 0.34) / 0.07) ^ 2))
+		color = BLOOD_DARK:Lerp(BLOOD_BRIGHT, 0.35 + 0.65 * beat)
+		brightness = 0.6 + 1.5 * beat
+	elseif kind == "Molten" then
+		brightness = 0.8 + 0.45 * math.noise(t * 5, info.seed * 10)
+	end
+	if color and recolor then
+		for _, part in info.parts :: { BasePart } do
+			part.Color = color
+		end
+	end
+	if brightness and info.light then
+		info.light.Brightness = brightness
+	end
+end
 
 local function slideSky(info: Tracked, cameraPos: Vector3)
 	if info.skies == nil then
@@ -480,6 +527,8 @@ function CreatureAnimator.start()
 				if info.ring then
 					info.ring.Color = Color3.fromHSV((t * 0.05 + info.seed) % 1, 0.55, 1)
 				end
+			elseif CollectionService:HasTag(model, FinishLooks.SHINE_TAG) then
+				shine(info, model, t)
 			elseif CollectionService:HasTag(model, "Shimmer") then
 				-- Secret rarity: its texture tint drifts slowly through the rainbow
 				local tint = Color3.fromHSV((t * 0.08 + info.seed) % 1, 0.45, 1)

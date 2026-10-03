@@ -10,6 +10,11 @@
 --   with the creatures"): cut-diamond bricks with faint opal tints baked into the
 --   color map, mid-tone (max 235) so sun and bloom don't blow it out. Made by
 --   tools/textures/make_diamond_tex.py (assets/textures/diamond_*.png).
+--
+--   DiamondGem (owner, 2026-10-03: the creatures' Diamond finish was "far too flat
+--   and needs to resemble diamond from Fortnite"): a crystal skin of brilliant-cut
+--   facets, ice-white faces against blue ones with bright seams and opal tints, for
+--   FinishLooks. Made by tools/textures/make_gem_tex.py (assets/textures/gem_*.png).
 export type Material = {
 	base: Enum.Material, -- parts must be this material for the variant to show
 	colorMap: string,
@@ -29,6 +34,14 @@ local materials: { [string]: Material } = {
 		roughnessMap = "rbxassetid://98779874609985",
 		studsPerTile = 8,
 		brightness = 0.92,
+	},
+	DiamondGem = {
+		base = Enum.Material.Ice,
+		colorMap = "", -- upload assets/textures/gem_color.png and paste its id
+		normalMap = "", -- gem_normal.png
+		roughnessMap = "", -- gem_roughness.png
+		studsPerTile = 4,
+		brightness = 0.96,
 	},
 }
 

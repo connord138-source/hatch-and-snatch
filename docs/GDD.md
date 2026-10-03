@@ -116,18 +116,18 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
    - The odds panel lists them before purchase (paid random items). Rerun the economy sim after changing them; the 2026-10-01 rework moved pacing by about a day at most.
 3. **Finishes**, the flashy layer. Each is a material and particle swap, so no new models are needed:
 
-Odds are **per pull**: every egg rolls its finish, whatever species hatches (loosened 2026-10-03 for Gold to Molten; Galaxy and Prismatic stay).
+Effects were dialed up 2026-10-03 (owner: "the blood moon and other effects needed to be tweaked and dialed up"): more particle layers that bloom, stronger lights, and client animation for Diamond, Blood Moon and Molten (`FinishLooks` `shine`, CreatureAnimator); the hatch reveal and details card show matching 2D glints and color animation (`CreatureViewport`). Odds are **per pull**: every egg rolls its finish, whatever species hatches (loosened 2026-10-03 for Gold to Molten; Galaxy and Prismatic stay).
 
 | Finish | Odds | Earnings | Look |
 |---|---|---|---|
 | Normal | — | ×1 | — |
-| Gold | 1 in 8 | ×1.5 | Gold with sparkles |
-| Chrome | 1 in 25 | ×2 | Mirror finish that reflects the world |
-| Diamond | 1 in 80 | ×3 | See-through crystal that bends light |
-| Molten | 1 in 250 | ×5 | Glowing lava cracks, drips embers, sizzles |
+| Gold | 1 in 8 | ×1.5 | Rich gold foil with blooming gold sparkles and a warm glow |
+| Chrome | 1 in 25 | ×2 | Mirror finish that reflects the world, quick white glints |
+| Diamond | 1 in 80 | ×3 | Fortnite-style faceted crystal (owner, 2026-10-03: "far too flat"): the `DiamondGem` material, brilliant-cut facets of ice white and blue with bright seams and opal tints (`tools/textures/make_gem_tex.py`), opal glints drifting over it, bright star flashes and a twinkling light; glass until Studio has the material |
+| Molten | 1 in 250 | ×5 | Glowing lava cracks, flames and spitting embers, a flickering light |
 | Galaxy | 1 in 4,000 | ×8 | A window onto space: a starfield that holds still on screen while the creature moves through it (`FinishLooks` sky texture, slid each frame by CreatureAnimator; the image is `assets/textures/galaxy_sky.png`), plus a tiny orbiting planet; server announcement |
-| Prismatic | 1 in 16,000 | ×15 | Color-shifting glow and a rainbow trail; server-wide fanfare |
-| Blood Moon | Blood Moon event only | ×10 | Black and red with a red aura |
+| Prismatic | 1 in 16,000 | ×15 | Color-shifting glow, rainbow sparkles and big soft flares; server-wide fanfare |
+| Blood Moon | Blood Moon event only | ×10 | Crimson lava skin whose color and light beat like a heart, boiling red embers, a dark red haze and blood-red glints |
 
 4. **Color palettes:** unlockable recolors of each species' color regions. Palettes are a collection track and something players can buy.
 
