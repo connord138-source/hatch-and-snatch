@@ -11,6 +11,7 @@ for level in 1 2 3 4 5; do
 	{
 		grep -v '^return true$' ../tests/stub.luau
 		grep -v '^return true$' world_stub.luau
+		bash keep_constants.sh # WorldService's layout numbers, for plot_context
 		grep -v '^return true$' plot_context.luau
 		grep -v '^return true$' props_stub.luau
 		echo 'local CastleKits = (function()'

@@ -13,22 +13,29 @@ end
 check(#Economy.slots(1, 1, 0) == 10, "level 1: 10 ground pedestals")
 check(#Economy.slots(3, 1, 0) == 20, "level 3: 20 ground pedestals")
 local all = Economy.slots(#T.baseLevels, #T.floors + 1, #T.vaults)
-check(#all == 20 + 5 * #T.floors + #T.vaults, "max base: ground + floors + vaults")
+local floorSpots = 0
+for _, floor in T.floors do
+	floorSpots += floor.pedestals
+end
+check(#all == 20 + floorSpots + #T.vaults, "max base: ground + floors + vaults")
+check(20 + floorSpots < Economy.vaultSlot(1), "the floors' slots stay below the vaults'")
 local seen = {}
 for _, slot in all do
 	check(not seen[slot], `slot {slot} listed twice`)
 	seen[slot] = true
 end
 
--- Floors: 1-20 ground, 21-25 second, 26-30 top; vaults by their floor
+-- Floors: 1-20 ground, then each floor's pedestals in turn (Second 21-29, Top
+-- 30-38 with 9 each); vaults by their floor
 for slot = 1, 20 do
 	check(Economy.slotFloor(slot) == 1, `slot {slot} is on the ground`)
 end
-for slot = 21, 25 do
-	check(Economy.slotFloor(slot) == 2, `slot {slot} is on the Second Floor`)
-end
-for slot = 26, 30 do
-	check(Economy.slotFloor(slot) == 3, `slot {slot} is on the Top Floor`)
+local first = 21
+for i, floor in T.floors do
+	for slot = first, first + floor.pedestals - 1 do
+		check(Economy.slotFloor(slot) == i + 1, `slot {slot} is on floor {i + 1}`)
+	end
+	first += floor.pedestals
 end
 for vault, entry in T.vaults do
 	local slot = Economy.vaultSlot(vault)
@@ -36,7 +43,7 @@ for vault, entry in T.vaults do
 	check(Economy.slotFloor(slot) == entry.floor, `vault {vault} is on floor {entry.floor}`)
 	check(entry.floor <= #T.floors + 1, `vault {vault}'s floor exists`)
 end
-check(Economy.vaultOfSlot(25) == nil and Economy.vaultOfSlot(nil) == nil, "open pedestals aren't vaults")
+check(Economy.vaultOfSlot(first - 1) == nil and Economy.vaultOfSlot(nil) == nil, "open pedestals aren't vaults")
 
 -- Buying order: each floor and vault costs more than the one before
 for i = 2, #T.floors do

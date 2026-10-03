@@ -19,6 +19,7 @@ for preset in $PRESETS; do
 	{
 		grep -v '^return true$' ../tests/stub.luau
 		grep -v '^return true$' world_stub.luau
+		bash keep_constants.sh # WorldService's layout numbers, for plot_context
 		grep -v '^return true$' plot_context.luau
 		echo "AVAILABLE_PROPS = { $AVAILABLE }"
 		grep -v '^return true$' props_stub.luau
@@ -36,7 +37,7 @@ for preset in $PRESETS; do
 		echo 'end)()'
 		cat <<LUA
 local root = Instance.new("Folder")
-local W, D = plotContext(root, 5)
+local W, D, hallEnd = plotContext(root, 5)
 local theme = Designs.resolve(Designs.presetsById["$preset"].picks)
 -- The stand-in plot takes the design's floor and stone like WorldService does
 for _, d in root:GetDescendants() do
@@ -61,6 +62,7 @@ if kit then
 		end
 	end
 	CastleKits.dressKeep(root, kit, keep)
+	CastleKits.dressHall(root, kit, CFrame.new(0, 1, hallEnd)) -- the ground hall's centerpiece
 end
 dumpParts(root)
 LUA
