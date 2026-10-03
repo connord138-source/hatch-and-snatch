@@ -164,7 +164,7 @@ def main():
     place(c, logo_at(430, logo), 10, 0)
     place(
         c,
-        text_layer("HATCH A\n1 IN 10,000!", "LuckiestGuy-Regular.ttf", 118, angle=4),
+        text_layer("HATCH A\nCOSMIC!", "LuckiestGuy-Regular.ttf", 118, angle=4),
         W - 50,
         H - 40,
         "rb",
@@ -252,7 +252,7 @@ def shots():
     # 7. The case-opening reveal landing on the Secret
     c = shot("shot_7_reveal", 60)
     place(c, logo_at(430, logo), 10, 0)
-    place(c, text_layer("1 IN 50,000\nSECRET!", big, 112, angle=3), W - 50, 30, "rt")
+    place(c, text_layer("1 IN 20,000\nSECRET!", big, 112, angle=3), W - 50, 30, "rt")
     place(c, text_layer("WATCH THE REEL SPIN", sub, 58, white, sky), W // 2, H - 40, "mb")
     c.convert("RGB").save(OUT / "thumb_7_reveal.jpg", quality=92)
 

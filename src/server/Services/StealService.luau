@@ -222,6 +222,7 @@ local function endCarry(carry: Carry, outcome: Outcome)
 			finish = record.finish,
 			mutation = record.mutation,
 			homegrown = false,
+			eggBiome = record.eggBiome,
 			stolenFrom = owner.DisplayName,
 			stolenAt = now,
 		})

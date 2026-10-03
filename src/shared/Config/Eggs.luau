@@ -20,17 +20,24 @@ local rarityWeights: { [Types.RarityId]: number } = {
 	Legendary = 3,
 	Mythic = 0.12, -- ~1 in 800 (was 1,000)
 	Celestial = 0.036, -- ~1 in 2,500, moon events only
-	Cosmic = 0.01, -- ~1 in 10,000, Moonfall only (the store art quotes it)
-	Secret = 0.002, -- ~1 in 50,000 (the store page quotes it)
+	Cosmic = 0.04, -- Moonfall only (see the Moonfall override)
+	Secret = 0, -- rolled from every egg instead (secretChance)
 	Junk = 0,
 }
+
+-- Secrets hide in every biome egg, not just their own biome's (owner, 2026-10-03:
+-- "50000 still feels crazy even 10k feels crazy for a single hyper rare"; a
+-- 3 h/day player buys only ~260 Mossvale eggs a month, so a Mossvale-only Secret
+-- never came). Each Secret has this chance per egg; it earns like a creature of
+-- the egg's biome (CreatureRecord.eggBiome).
+local secretChance = 1 / 20_000
 
 -- Per-biome overrides. Moonfall eggs start at Rare, so the shared weights would
 -- make its ultra-rares ~4x more common than anywhere else.
 local biomeRarityWeights: { [string]: { [string]: number } } = {
 	Moonfall = {
 		Mythic = 0.0325, -- ~1 in 800
-		Cosmic = 0.0026, -- ~1 in 10,000 each
+		Cosmic = 0.0104, -- ~1 in 2,500 each (was 1 in 10,000)
 	},
 }
 
@@ -42,7 +49,7 @@ local junkWeights: { [string]: number } = {
 	Laundrophant = 12,
 	Lawnmoose = 8,
 	Bassdog = 5,
-	Nullcat = 0.002, -- Secret
+	Nullcat = 0.005, -- Secret, ~1 in 20,000 like the biome eggs' Secret
 }
 
 -- How often each biome's egg shows up on the shared conveyor.
@@ -85,8 +92,12 @@ end
 local function speciesOdds(biomeId: string, eventActive: boolean, luck: number?): { SpeciesOdds }
 	local weighted: { SpeciesOdds } = {}
 	local total = 0
+	local secrets: { SpeciesOdds } = {}
 	for _, creature in Creatures do
-		if creature.biome == biomeId then
+		if biomeId ~= "Junk" and creature.biome ~= "Junk" and creature.rarity == "Secret" then
+			-- A fixed share of every biome egg, luck included
+			table.insert(secrets, { id = creature.id, chance = math.min(0.05, secretChance * (luck or 1)) })
+		elseif creature.biome == biomeId then
 			local weight: number
 			if biomeId == "Junk" then
 				weight = junkWeights[creature.id] or 0
@@ -105,8 +116,15 @@ local function speciesOdds(biomeId: string, eventActive: boolean, luck: number?)
 			end
 		end
 	end
+	local secretShare = 0
+	for _, entry in secrets do
+		secretShare += entry.chance
+	end
 	for _, entry in weighted do
-		entry.chance /= total
+		entry.chance = entry.chance / total * (1 - secretShare)
+	end
+	for _, entry in secrets do
+		table.insert(weighted, entry)
 	end
 	return weighted
 end

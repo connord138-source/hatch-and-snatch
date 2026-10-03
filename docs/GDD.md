@@ -85,7 +85,7 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 ### 4.2 Movement
 
 - **On a pedestal, creatures sit:** the body tilts nose-up about the front feet, the back legs fold down so the rear rests low, and they breathe, look around and swish their tail. They don't hop in place. Feet always stay on the ground: the pose is solved per model (`src/client/CreatureGrounding.luau`), and the lowest foot is clamped to the ground every frame, including mid-run landings.
-- **Walks:** you can take one creature for a walk (R, or Walk in the Creatures menu). It follows you with the bounding run while you move and sits beside you when you stop. A walked creature can't be stolen and grows 2× faster; it still earns from its pedestal. (Owner, 2026-10-03: AFK-walking your best creature is fine; it shows active players, and the rest of the base can still be raided.)
+- **Walks:** you can take one creature for a walk (R, or Walk in the Creatures menu). It follows you with the bounding run while you move and sits beside you when you stop. A walked creature can't be stolen and grows 2× faster, or **4× inside its own biome's zone** (owner, 2026-10-03: "a way to speed up the growth rate ... walking or taking them into biomes"; Junk creatures have no zone); it still earns from its pedestal. (Owner, 2026-10-03: AFK-walking your best creature is fine; it shows active players, and the rest of the base can still be raided.)
 - **The run itself is a slow bound with a hop:** front paws reach together, back legs push off together, there's a short airborne arc, and a squash on landing.
 
 - **By stage:** babies bounce too much and occasionally face-plant; adults land with heavy, powerful bounds, a thud, and a puff of their element (dust, embers, frost, sparks).
@@ -253,7 +253,7 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 - **Egg prices:** $150 × the biome's price multiplier (×16 per biome): Mossvale 150, Coral 2.4K, Magma 38.4K, Frost 614K, Storm 9.8M, Moonfall 157M (Junk 38.4K). New players start with $300 (two eggs).
 - **Biome earnings multiplier:** creatures earn base cash/sec × their biome's earnings multiplier (Mossvale 1, Coral 4, Magma 16, Frost 60, Storm 220, Moonfall 300, Junk 1). It grows much slower than egg prices, so each biome is a bigger investment than the last.
 - **Resulting payback** for a Common baby: 2 min in Mossvale, 8 min in Coral, 32 min in Magma, 2.3 h in Frost, 10 h in Storm and 15 h in Moonfall (whose eggs start at Rare). Adults earn ×6, and rare rolls pay back much faster.
-- **Drop rates** (loosened 2026-10-03, owner: "pretty ruthless ... not too much for the extreme rares"): a biome egg is about 47–55% Common, 29–33% Uncommon, 17% Rare, 7–8% Epic and 3–4% Legendary (was 60/25/11/3/1); Mythic about 1 in 800, Celestial 1 in 2,500. Cosmic (1 in 10,000), Secret (1 in 50,000) and Iridescent (1 in 100,000) stay put, since the store page quotes them. To keep the pacing, Epic and Legendary earn 18 and 60 (were 25 and 80) and base level 5 costs 800B (was 500B).
+- **Drop rates** (loosened 2026-10-03, owner: "pretty ruthless ... not too much for the extreme rares"): a biome egg is about 47–55% Common, 29–33% Uncommon, 17% Rare, 7–8% Epic and 3–4% Legendary (was 60/25/11/3/1); Mythic about 1 in 800, Celestial 1 in 2,500, each Cosmic 1 in 2,500 and the Secret 1 in 20,000 from **every** biome egg (§7.1). Iridescent stays 1 in 100,000. To keep the pacing, Epic and Legendary earn 18 and 60 (were 25 and 80) and base level 5 costs 800B (was 500B).
 - **Rarity earnings are compressed** (Legendary is 60× a Common, not 250×). Players keep only their best creatures on pedestals, so a steep rarity curve made income explode after a few hundred hatches.
 - **Rebirth** is the endgame sink (see §7.2): the first costs 1T, then 2.5T, 6T, 15T and 40T, and each one after that costs ×2.5.
 - **Offline earnings** are capped at 8 hours; the cap can be raised by a game pass.
@@ -273,10 +273,10 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 | Top Floor | day 14 | day 8 | day 4 | day 3 |
 | Vault 4 | day 26 | day 13 | day 7 | day 5 |
 | Storm Peaks | day 27 | day 10 | day 4 | day 3 |
-| Base level 5 (max) | — | day 22 | day 11 | day 9 |
-| Moonfall | — | day 22 | day 11 | day 9 |
-| Everything bought (6 Cosmic incubators) | — | day 22 | day 17 | day 13 |
-| First rebirth | — | — | day 18 | day 14 |
+| Base level 5 (max) | — | day 21 | day 11 | day 8 |
+| Moonfall | — | day 22 | day 11 | day 8 |
+| Everything bought (6 Cosmic incubators) | — | day 21 | day 17 | day 12 |
+| First rebirth | — | — | day 18 | day 12 |
 
 Before the retune, a 3 h/day player had bought everything in about 3 hours of play. Rerun the sim after any economy change. Paid boosts, events and stealing make real players somewhat faster than this baseline.
 
@@ -286,9 +286,10 @@ Before the retune, a 3 h/day player had bought everything in about 3 hours of pl
 |---|---|---|---|
 | Mythic | Any biome egg, any time | about 1 in 800 | Sylvanox (Mossvale), Lurehound (Coral), Pyrodrake (Magma), Glacierion (Frost), Stormgriff (Storm), Lunaris (Moonfall) |
 | Celestial | Magma and Storm eggs, **only during a moon event** | about 1 in 2,500 | Solarion (Magma), Halosaur (Storm) |
-| Cosmic | Moonfall eggs only | about 1 in 10,000 each | Quasarfox, Singularis |
-| Secret | Hidden in ordinary eggs; shows as ??? in the Index | about 1 in 50,000 | Capybaron (Mossvale, the $150 starter egg), Nullcat (Junk Egg) |
+| Cosmic | Moonfall eggs only | about 1 in 2,500 each (1 in 1,250 for either) | Quasarfox, Singularis |
+| Secret | Hidden in **every** biome egg; shows as ??? in the Index | 1 in 20,000 | Capybaron (any biome egg; it earns like a creature of the egg's biome, `CreatureRecord.eggBiome`), Nullcat (Junk Egg, about 1 in 20,000) |
 
+- Odds rework (owner, 2026-10-03: "50000 still feels crazy even 10k feels crazy for a single hyper rare especially if it can be stolen"): a 3 h/day player buys about 10,800 eggs in a month but only ~260 of them Mossvale and ~470 Moonfall, so the old Mossvale-only 1-in-50,000 Secret and the 1-in-10,000 Cosmics almost never came. Now, in the sim's egg counts, a Mythic comes every couple of days, a Cosmic every few weeks after Moonfall opens (about a week for an 8 h/day player) and a Secret in about two months (three weeks at 8 h/day).
 - Moonfall eggs start at Rare, so their Mythic/Cosmic weights are overridden (`Eggs.biomeRarityWeights`) to keep the odds in line with other biomes.
 - Every ultra-rare hatch is announced server-wide in its tier color.
 - **Incubator tease:** since the species is rolled at purchase, Epic+ eggs glow in their rarity color, brighter as they near hatching, and pulse in the last 10%. An ultra-rare incubator is visible across the base, which is both hype and a clip moment.

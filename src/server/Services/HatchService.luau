@@ -401,6 +401,8 @@ local function hatch(player: Player, data: PlayerData, index: number)
 		finish = finishId,
 		mutation = mutation,
 		homegrown = true,
+		-- Secrets roll from every egg and earn like a creature of the egg's biome
+		eggBiome = if Config.CreaturesById[egg.species].biome ~= egg.biome then egg.biome else nil,
 	})
 
 	local creature = Config.CreaturesById[egg.species]

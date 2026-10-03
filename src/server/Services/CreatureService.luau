@@ -15,6 +15,7 @@ local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local RarityLooks = require(ReplicatedStorage.Shared.RarityLooks)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
+local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
 local Signal = require(ReplicatedStorage.Shared.Signal)
 local Net = require(script.Parent.Parent.Net)
 local DataService = require(script.Parent.DataService)
@@ -75,7 +76,7 @@ end
 function CreatureService.stats(record: CreatureRecord)
 	local creature = Config.CreaturesById[record.species]
 	return {
-		biome = creature.biome :: string,
+		biome = record.eggBiome or creature.biome :: string,
 		rarity = creature.rarity,
 		stage = record.stage :: Types.StageId,
 		finish = record.finish,
@@ -983,9 +984,13 @@ function CreatureService.walk(player: Player, uid: string)
 		CreatureService.respawn(player, previous)
 	end
 	spawn(player, uid, record)
+	local species = Config.CreaturesById[record.species]
+	local home = if Config.Zones.byBiome[species.biome]
+		then `, {tunables.homeWalkGrowthMultiplier}× in {Config.Biomes[species.biome].displayName}`
+		else "" -- Junk creatures have no zone
 	Net.notify(
 		player,
-		`{Config.CreaturesById[record.species].displayName} is following you! It grows {tunables.walkGrowthMultiplier}× faster on walks.`,
+		`{species.displayName} is following you! It grows {tunables.walkGrowthMultiplier}× faster on walks{home}.`,
 		"good"
 	)
 end
@@ -1328,6 +1333,20 @@ function CreatureService.add(player: Player, record: CreatureRecord): string?
 	return uid
 end
 
+-- Whether `player` stands in the zone of `biome` (a walked creature grows fastest at home).
+local function inBiomeZone(player: Player, biome: string): boolean
+	local root = characterRoot(player)
+	if root == nil then
+		return false
+	end
+	for _, zone in WorldService.zones do
+		if zone.biome == biome then
+			return ZoneShape.contains(zone.sector, root.Position)
+		end
+	end
+	return false
+end
+
 local function tick()
 	local now = Timing.now()
 	for player, data in DataService.loadedPlayers() do
@@ -1338,8 +1357,12 @@ local function tick()
 				record.stageStartedAt -= passTuning.growthElixir.multiplier - 1
 			end
 			if walking[player] == uid then
-				-- Walked creatures grow faster
-				record.stageStartedAt -= tunables.walkGrowthMultiplier - 1
+				-- Walked creatures grow faster, fastest in their own biome's zone
+				local home = inBiomeZone(player, Config.CreaturesById[record.species].biome)
+				local multiplier = if home
+					then tunables.homeWalkGrowthMultiplier
+					else tunables.walkGrowthMultiplier
+				record.stageStartedAt -= multiplier - 1
 				ProgressionService.bump(player, "walkSeconds")
 				followOwner(player, uid)
 			end

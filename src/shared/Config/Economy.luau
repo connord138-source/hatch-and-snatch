@@ -116,8 +116,11 @@ local Tunables = {
 	},
 	tripwireSlow = 0.75,
 
-	-- Walking a creature: it follows you around, can't be stolen, and grows faster
+	-- Walking a creature: it follows you around, can't be stolen, and grows faster,
+	-- fastest in its own biome's zone (owner, 2026-10-03: "a way to speed up the
+	-- growth rate ... walking or taking them into biomes")
 	walkGrowthMultiplier = 2,
+	homeWalkGrowthMultiplier = 4,
 
 	-- Luck Wheel: a physical wheel by the hub. Spending a spin lands on a prize.
 	-- "luck" charges the player's NEXT egg (Epic+ weights × value; the best unspent

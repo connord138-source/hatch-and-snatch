@@ -12,12 +12,12 @@ The files to upload are in `marketing/`. Rebuild them with `python3 tools/market
 ## Thumbnails (1920×1080, in this order)
 
 1. `thumb_1_steal.jpg`: logo plus "STEAL THEIR RAREST!", a player sprinting off with a giant Tidalotl while the owner chases. This is the lead image and says what the game is.
-2. `thumb_2_hatch.jpg`: "HATCH A 1 IN 10,000!", a Cosmic creature bursting from an incubator.
+2. `thumb_2_hatch.jpg`: "HATCH A COSMIC!", a Cosmic creature bursting from an incubator (was "1 IN 10,000" before the 2026-10-03 odds change).
 3. `thumb_3_collect.jpg`: "COLLECT 41 CREATURES / 7 SHINY FINISHES", the finish lineup.
 4. `thumb_4_moon.jpg`: "MOON EVENTS!", the cracked Moon Egg turning red.
 5. `thumb_5_fortress.jpg`: "BUILD YOUR FORTRESS! / 3 FLOORS · 4 VAULTS", the three-story base from above.
 6. `thumb_6_vault.jpg`: "LOCK THE VAULT!", a Sylvanox behind a glowing vault door.
-7. `thumb_7_reveal.jpg`: "1 IN 50,000 SECRET! / WATCH THE REEL SPIN", the hatch reveal landing on Capybaron.
+7. `thumb_7_reveal.jpg`: "1 IN 20,000 SECRET! / WATCH THE REEL SPIN", the hatch reveal landing on Capybaron.
 8. `thumb_8_lineup.jpg`: "SHOW OFF YOUR RAREST!", rarity halos and stardust at night.
 9. `thumb_9_biome.jpg`: "EXPLORE 6 BIOMES! / ERUPTIONS · METEORS · LIGHTNING", the Magma Rift mid-eruption.
 
@@ -34,7 +34,7 @@ Tips:
 976 characters, under Roblox's 1,000 limit. Rewritten 2026-10-01 (owner: the first version read as AI): concrete moments from a session instead of a feature list.
 
 ```
-Every egg on the conveyor could hatch a 1 in 50,000 Secret. Raise it, show it off, and keep it safe, because everyone in your server wants it. 🥚
+Every egg on the conveyor could hatch a 1 in 20,000 Secret. Raise it, show it off, and keep it safe, because everyone in your server wants it. 🥚
 
 🆕 FLOORS & VAULTS: put your rarest on the top floor and lock it in a vault when a thief walks in.
 

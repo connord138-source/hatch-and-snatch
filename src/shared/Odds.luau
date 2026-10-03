@@ -10,7 +10,7 @@ local EconomyConfig = require(script.Parent.Config.Economy)
 export type Line = { label: string, detail: string?, percent: string, color: Color3? }
 export type EggOdds = { species: { Line }, finishes: { Line }, mutations: { Line } }
 
-local DECIMALS = 4 -- enough to show a 1-in-50,000 Secret (0.0020%)
+local DECIMALS = 4 -- enough to show a 1-in-20,000 Secret (0.0050%)
 
 local Odds = {}
 

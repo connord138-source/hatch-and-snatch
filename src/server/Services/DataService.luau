@@ -16,6 +16,7 @@ export type CreatureRecord = {
 	finish: string,
 	mutation: string?,
 	homegrown: boolean,
+	eggBiome: string?, -- the egg it hatched from when that's not its own biome (a Secret earns like that biome)
 	stolenFrom: string?,
 	stolenAt: number?, -- unix time of the last steal (no steal rewards again for a while)
 	slot: number?, -- pedestal index, nil = in storage
