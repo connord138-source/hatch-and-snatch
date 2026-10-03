@@ -116,13 +116,15 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
    - The odds panel lists them before purchase (paid random items). Rerun the economy sim after changing them; the 2026-10-01 rework moved pacing by about a day at most.
 3. **Finishes**, the flashy layer. Each is a material and particle swap, so no new models are needed:
 
+Odds are **per pull**: every egg rolls its finish, whatever species hatches (loosened 2026-10-03 for Gold to Molten; Galaxy and Prismatic stay).
+
 | Finish | Odds | Earnings | Look |
 |---|---|---|---|
 | Normal | — | ×1 | — |
-| Gold | 1 in 15 | ×1.5 | Gold with sparkles |
-| Chrome | 1 in 60 | ×2 | Mirror finish that reflects the world |
-| Diamond | 1 in 250 | ×3 | See-through crystal that bends light |
-| Molten | 1 in 1,000 | ×5 | Glowing lava cracks, drips embers, sizzles |
+| Gold | 1 in 8 | ×1.5 | Gold with sparkles |
+| Chrome | 1 in 25 | ×2 | Mirror finish that reflects the world |
+| Diamond | 1 in 80 | ×3 | See-through crystal that bends light |
+| Molten | 1 in 250 | ×5 | Glowing lava cracks, drips embers, sizzles |
 | Galaxy | 1 in 4,000 | ×8 | A window onto space: a starfield that holds still on screen while the creature moves through it (`FinishLooks` sky texture, slid each frame by CreatureAnimator; the image is `assets/textures/galaxy_sky.png`), plus a tiny orbiting planet; server announcement |
 | Prismatic | 1 in 16,000 | ×15 | Color-shifting glow and a rainbow trail; server-wide fanfare |
 | Blood Moon | Blood Moon event only | ×10 | Black and red with a red aura |
@@ -273,10 +275,10 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 | Top Floor | day 14 | day 8 | day 4 | day 3 |
 | Vault 4 | day 26 | day 13 | day 7 | day 5 |
 | Storm Peaks | day 27 | day 10 | day 4 | day 3 |
-| Base level 5 (max) | — | day 21 | day 11 | day 8 |
-| Moonfall | — | day 22 | day 11 | day 8 |
-| Everything bought (6 Cosmic incubators) | — | day 21 | day 17 | day 12 |
-| First rebirth | — | — | day 18 | day 12 |
+| Base level 5 (max) | — | day 19 | day 10 | day 8 |
+| Moonfall | — | day 22 | day 10 | day 8 |
+| Everything bought (6 Cosmic incubators) | — | day 19 | day 16 | day 12 |
+| First rebirth | — | — | day 17 | day 12 |
 
 Before the retune, a 3 h/day player had bought everything in about 3 hours of play. Rerun the sim after any economy change. Paid boosts, events and stealing make real players somewhat faster than this baseline.
 
