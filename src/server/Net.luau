@@ -39,6 +39,12 @@ local requests: { [string]: RemoteEvent } = {
 	RerollQuest = makeEvent("RerollQuest"), -- (index: number) swap one daily quest
 }
 
+-- The owner's admin panel: (action, target, ...) → a line of text (Admin.luau
+-- checks who's asking on every call)
+local admin = Instance.new("RemoteFunction")
+admin.Name = "Admin"
+admin.Parent = folder
+
 folder.Parent = ReplicatedStorage
 
 local REQUEST_INTERVAL = 0.15 -- minimum seconds between one player's requests of one kind
@@ -82,6 +88,20 @@ function Net.teleport(player: Player, cframe: CFrame)
 		character:PivotTo(cframe)
 	end
 	teleport:FireClient(player, cframe)
+end
+
+-- Answers the admin panel's calls (rate limited like the requests).
+function Net.onAdmin(handler: (Player, any, any, ...any) -> string)
+	admin.OnServerInvoke = function(player: Player, action: any, target: any, ...: any): string
+		local now = os.clock()
+		local last: { [string]: number } = lastRequest[player] or {}
+		lastRequest[player] = last
+		if now - (last.Admin or 0) < REQUEST_INTERVAL then
+			return "Too fast"
+		end
+		last.Admin = now
+		return handler(player, action, target, ...)
+	end
 end
 
 function Net.onRequest(name: string, handler: (Player, ...any) -> ())

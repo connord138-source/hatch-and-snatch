@@ -6,7 +6,6 @@
 -- WorldService is the daytime look).
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 
 local DayNight = require(game:GetService("ReplicatedStorage").Shared.DayNight)
 
@@ -40,7 +39,7 @@ function DayNightController.start()
 			return
 		end
 		nextStep = now + STEP
-		local clock = DayNight.clock(Workspace:GetServerTimeNow())
+		local clock = DayNight.current()
 		local night = DayNight.night(clock)
 		local twilight = 1 - math.abs(2 * night - 1) -- peaks halfway through dusk and dawn
 		Lighting.ClockTime = clock

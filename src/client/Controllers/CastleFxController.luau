@@ -79,7 +79,7 @@ function CastleFxController.start()
 		local t = os.clock()
 		if t >= nextLights then
 			nextLights = t + 1
-			local night = DayNight.night(DayNight.clock(Workspace:GetServerTimeNow()))
+			local night = DayNight.night(DayNight.current())
 			local range = DAY_LIGHT_RANGE + (LIGHT_RANGE - DAY_LIGHT_RANGE) * night
 			for instance in lights do
 				if instance:IsA("Light") then

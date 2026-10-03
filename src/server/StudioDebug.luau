@@ -40,106 +40,27 @@
 --       -- moves every creature on a pedestal to storage (free pedestals for grants)
 --
 -- It is a BindableFunction, so only server code and the Studio Command Bar can
--- reach it (never clients), and it is only created in Studio.
+-- reach it (never clients), and it is only created in Studio. The actions
+-- themselves live in AdminActions, shared with the owner's in-game admin panel.
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Config = require(ReplicatedStorage.Shared.Config)
-local Timing = require(ReplicatedStorage.Shared.Timing)
-local Net = require(script.Parent.Net)
-local BaseService = require(script.Parent.Services.BaseService)
-local CreatureService = require(script.Parent.Services.CreatureService)
-local DailyService = require(script.Parent.Services.DailyService)
+local AdminActions = require(script.Parent.AdminActions)
 local DataService = require(script.Parent.Services.DataService)
-local EconomyService = require(script.Parent.Services.EconomyService)
-local EventService = require(script.Parent.Services.EventService)
 local MonetizationService = require(script.Parent.Services.MonetizationService)
-local ZoneEventService = require(script.Parent.Services.ZoneEventService)
-local ZoneService = require(script.Parent.Services.ZoneService)
 
 local StudioDebug = {}
 
-local function grant(species: any, finish: any, stage: any, mutation: any): string
-	if typeof(species) ~= "string" or Config.CreaturesById[species] == nil then
-		return "unknown species"
-	end
-	local stageId = if typeof(stage) == "string" and Config.Stages[stage :: any] then stage else "Adult"
-	local finishId = if typeof(finish) == "string" then finish else "Normal"
-	local mutationId = if typeof(mutation) == "string" and Config.MutationsById[mutation]
-		then mutation
-		else nil
-	local given = 0
+-- Every player in the test session
+local function everyone(): { Player }
+	local list: { Player } = {}
 	for player in DataService.loadedPlayers() do
-		CreatureService.add(player, {
-			species = species,
-			stage = stageId,
-			stageStartedAt = Timing.now(),
-			finish = finishId,
-			mutation = mutationId,
-			homegrown = true,
-		})
-		given += 1
+		table.insert(list, player)
 	end
-	return `gave {mutationId or ""} {finishId} {stageId} {species} to {given} player(s)`
+	return list
 end
 
--- Moves every creature on a pedestal into storage, so fresh grants land on pedestals.
-local function storeAll(): string
-	local moved = 0
-	for player, data in DataService.loadedPlayers() do
-		for uid, record in data.creatures do
-			if record.slot ~= nil then
-				CreatureService.store(player, uid)
-				if record.slot == nil then
-					moved += 1
-				end
-			end
-		end
-	end
-	return `moved {moved} creature(s) to storage`
-end
-
-local function startEvent(id: any): string
-	for _, event in Config.MoonEvents do
-		if event.id == id then
-			task.spawn(EventService.run, event)
-			return `started {event.displayName}`
-		end
-	end
-	return "unknown event"
-end
-
-local function essence(biomeId: any, amount: any): string
-	if typeof(biomeId) ~= "string" or Config.Zones.byBiome[biomeId] == nil then
-		return "unknown biome"
-	end
-	local count = if typeof(amount) == "number" then amount else 50
-	for player in DataService.loadedPlayers() do
-		ZoneService.grantEssence(player, biomeId, count)
-	end
-	return `gave {count} {Config.Zones.byBiome[biomeId].essence}`
-end
-
-local function zoneEvent(biomeId: any): string
-	local zone = if typeof(biomeId) == "string" then ZoneEventService.zone(biomeId) else nil
-	if zone == nil then
-		return "unknown biome"
-	end
-	task.spawn(ZoneEventService.run, zone, true)
-	return `running the {biomeId} event`
-end
-
-local function pass(key: any): string
-	if typeof(key) ~= "string" or Config.Monetization.passesByKey[key] == nil then
-		return "unknown pass"
-	end
-	for player in DataService.loadedPlayers() do
-		MonetizationService.grantPass(player, key)
-	end
-	return `granted {key}`
-end
-
+-- Pretend Roblox Premium, group membership or a restricted region (Studio only)
 local function perk(name: any): string
 	if name ~= "premium" and name ~= "group" and name ~= "restricted" then
 		return "perk is premium, group or restricted"
@@ -157,48 +78,6 @@ local function perk(name: any): string
 	return `{name} {if on then "on" else "off"}`
 end
 
-local function cash(amount: any): string
-	if typeof(amount) ~= "number" or amount <= 0 then
-		return "cash needs a positive amount"
-	end
-	for player in DataService.loadedPlayers() do
-		EconomyService.grant(player, amount, "Debug")
-	end
-	return `gave {amount}`
-end
-
-local function restartGuide(): string
-	for player, data in DataService.loadedPlayers() do
-		data.onboarding = 1
-		DataService.markDirty(player)
-	end
-	return "guide restarted"
-end
-
-local function resetCodes(): string
-	for player, data in DataService.loadedPlayers() do
-		table.clear(data.codes)
-		DataService.markDirty(player)
-	end
-	return "codes can be redeemed again"
-end
-
-local function product(key: any): string
-	if typeof(key) ~= "string" or Config.Monetization.productsByKey[key] == nil then
-		return "unknown product"
-	end
-	local count = 0
-	for player in DataService.loadedPlayers() do
-		if MonetizationService.grantProduct(player, key) then
-			count += 1
-		end
-		if key == "ServerLuck" then
-			break -- server-wide: once is enough
-		end
-	end
-	return `ran {key} for {count} player(s)`
-end
-
 function StudioDebug.start()
 	if not RunService:IsStudio() then
 		return
@@ -206,75 +85,37 @@ function StudioDebug.start()
 	local hook = Instance.new("BindableFunction")
 	hook.Name = "StudioDebug"
 	hook.OnInvoke = function(action: any, ...: any): string
+		local all = everyone()
 		if action == "grant" then
-			return grant(...)
+			return AdminActions.grant(all, ...)
 		elseif action == "event" then
-			return startEvent(...)
+			return AdminActions.moonEvent(...)
 		elseif action == "essence" then
-			return essence(...)
+			return AdminActions.essence(all, ...)
 		elseif action == "store" then
-			return storeAll()
+			return AdminActions.storeAll(all)
 		elseif action == "zone" then
-			return zoneEvent(...)
+			return AdminActions.zoneEvent(...)
 		elseif action == "pass" then
-			return pass(...)
+			return AdminActions.pass(all, ...)
 		elseif action == "product" then
-			return product(...)
+			return AdminActions.product(all, ...)
 		elseif action == "perk" then
 			return perk(...)
 		elseif action == "codes" then
-			return resetCodes()
+			return AdminActions.resetCodes(all)
 		elseif action == "cash" then
-			return cash(...)
+			return AdminActions.addCash(all, ...)
 		elseif action == "guide" then
-			return restartGuide()
+			return AdminActions.restartGuide(all)
 		elseif action == "reveal" then
-			local species, finish, mutation = ...
-			local creature = if typeof(species) == "string" then Config.CreaturesById[species] else nil
-			if not creature then
-				return "unknown species"
-			end
-			for player in DataService.loadedPlayers() do
-				Net.hatchReveal(player, {
-					species = species,
-					biome = creature.biome,
-					finish = if typeof(finish) == "string" then finish else "Normal",
-					mutation = if typeof(mutation) == "string" and Config.MutationsById[mutation]
-						then mutation
-						else nil,
-				})
-			end
-			return `revealing {species}`
+			return AdminActions.reveal(all, ...)
 		elseif action == "build" then
-			local tunables = Config.Economy.tunables
-			for player, data in DataService.loadedPlayers() do
-				data.baseLevel = #tunables.baseLevels
-				data.floors = #tunables.floors + 1
-				data.vaults = #tunables.vaults
-				data.security = #tunables.securityLevels
-				data.hides = #Config.BaseBuilds.hidingSpots
-				for _, item in Config.BaseBuilds.items do
-					data.builds[item.id] = true
-				end
-				BaseService.apply(player, data)
-				DataService.markDirty(player)
-			end
-			return "every base maxed: level 5, both floors, all vaults, security, hiding spots and every build"
+			return AdminActions.maxBase(all)
 		elseif action == "designs" then
-			for player, data in DataService.loadedPlayers() do
-				for slot, options in Config.CastleDesigns.options do
-					for id in options do
-						data.ownedDesigns[`{slot}:{id}`] = true
-					end
-				end
-				DataService.markDirty(player)
-			end
-			return "every Castle Designer option owned (pick them in the Base menu)"
+			return AdminActions.allDesigns(all)
 		elseif action == "daily" then
-			for player in DataService.loadedPlayers() do
-				DailyService.debugNextDay(player)
-			end
-			return "a day passed (for the Daily menu)"
+			return AdminActions.nextDay(all)
 		end
 		return "actions: grant(species, finish?, stage?), event(id), essence(biome, amount?), zone(biome), pass(key), product(key), perk(premium|group|restricted), codes(), cash(amount), guide(), daily(), store(), build(), designs(), reveal(species, finish?)"
 	end

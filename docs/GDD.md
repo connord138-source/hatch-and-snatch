@@ -434,6 +434,18 @@ Built 2026-09-30 (`Config/Monetization.luau`, `MonetizationService`). Prices are
    - move glowing parts onto separate meshes (Neon material, swapped per finish).
 5. Import through Studio's 3D Importer, then make baby, juvenile and adult versions by scaling proportions (babies get bigger heads and shorter legs).
 
+### Admin panel
+
+The owner's account (the user who owns the experience, or the owner of the group that does, plus any UserId in `Admin.luau`'s `ADMIN_USER_IDS`; anyone in Studio) gets an **Admin** button in the bottom-left corner. The panel applies to *me*, *everyone* or one player in the server:
+
+- **Cash:** add or set any amount (type 2.5M, 1B, 3T, 1e15…), quick +1M/+1B/+1T. **Progress:** add XP, add Luck Wheel spins, set rebirths, give a biome's Essence.
+- **Creatures:** spawn any species at any stage, finish and mutation (or only play its hatch reveal); give a biome's egg to the hands; hatch every incubator now; grow every creature to Adult; move everything to storage.
+- **Base:** max it (level 5, floors, vaults, security, hiding spots, every build), own every Castle Designer option, grant a pass, run a product's effect.
+- **World (whole server):** start a moon event or a zone event, hold the sky at day, dusk or night (or let it run).
+- **Testing:** restart the first-session guide, skip to the next day, reset redeemed codes.
+
+The server re-checks the caller on every request (a client can't make itself an admin), prints each action to the server log, and admin cash goes to Analytics under its own `Admin` SKU so the economy dashboard can leave it out. It's allowed by Roblox's rules; don't sell admin powers or items off-platform.
+
 ## 11. Roadmap
 
 | Week | Goal |

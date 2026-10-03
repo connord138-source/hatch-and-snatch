@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Ads = require(script.Ads)
+local AdminController = require(script.Controllers.AdminController)
 local BeltController = require(script.Controllers.BeltController)
 local ClientState = require(script.ClientState)
 local CreatureAnimator = require(script.Controllers.CreatureAnimator)
@@ -41,5 +42,6 @@ task.spawn(ZoneMoodController.start) -- waits for the world to replicate
 task.spawn(GuideController.start) -- waits for the world to replicate
 task.spawn(BeltController.start) -- waits for the belt folder
 task.spawn(Ads.start) -- checks every minute whether a rewarded ad can play
+task.spawn(AdminController.start) -- only shows for admins (waits for the server's Admin attribute)
 
 print(`[HatchAndSnatch] Client ready — {#Config.Creatures} creatures in config`)

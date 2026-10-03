@@ -4,6 +4,8 @@
 -- comes from the server's clock (Workspace:GetServerTimeNow), so every player
 -- sees the same sky without any network traffic; DayNightController moves the
 -- lighting each frame.
+local Workspace = game:GetService("Workspace")
+
 local DayNight = {
 	DAY_SECONDS = 12 * 60,
 	NIGHT_SECONDS = 4 * 60,
@@ -29,6 +31,16 @@ end
 local function smooth(x: number): number
 	local c = math.clamp(x, 0, 1)
 	return c * c * (3 - 2 * c)
+end
+
+-- The clock everyone sees now: the cycle at the server's time, unless the admin
+-- panel holds the sky at a time of day (Workspace's ClockHold attribute).
+function DayNight.current(): number
+	local hold = Workspace:GetAttribute("ClockHold")
+	if typeof(hold) == "number" then
+		return hold
+	end
+	return DayNight.clock(Workspace:GetServerTimeNow())
 end
 
 -- How much of the night look to show at a clock time: 0 by day, 1 by night,

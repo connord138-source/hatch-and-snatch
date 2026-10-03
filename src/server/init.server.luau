@@ -112,5 +112,6 @@ ZoneEventService.start() -- set-piece events in the zones, every few minutes eac
 StateService.start()
 DataService.start() -- last: fires loaded for players already in the server
 require(script.StudioDebug).start() -- Studio only: Command Bar test hook (see the module)
+require(script.Admin).start() -- the owner's in-game admin panel (AdminController on the client)
 
 print("[HatchAndSnatch] Server started")
