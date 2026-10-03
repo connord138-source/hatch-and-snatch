@@ -7,6 +7,8 @@ local Finishes = require(script.Parent.Finishes)
 local Mutations = require(script.Parent.Mutations)
 local Biomes = require(script.Parent.Biomes)
 local BaseBuilds = require(script.Parent.BaseBuilds)
+local Eggs = require(script.Parent.Eggs)
+local Creatures = require(script.Parent.Creatures)
 
 local Tunables = {
 	-- Growth: stage N -> N+1 takes base × rarity growthFactor (runs offline too)
@@ -29,10 +31,14 @@ local Tunables = {
 	pedestalsBase = 10,
 	basePlotsPerServer = 6, -- also set Max Players = 6 in Game Settings → Places
 
-	-- Creatures menu. A creature sells for this many seconds of its own earnings:
-	-- low enough that a fresh hatch sells for less than its egg on average, even in
-	-- a Blood Moon, so buying eggs just to sell them never pays.
-	sellValueSeconds = 15,
+	-- What a creature is worth (sellValue, the Creatures menu's Sell): this share of
+	-- its egg's price for an average Adult from that egg, more or less with its
+	-- earnings, and never under sellValueSeconds of its own earnings for its stage.
+	-- A fresh hatch (a Baby) stays worth less than its egg on average, even in a
+	-- Blood Moon, so buying eggs just to sell them never pays; grown creatures took
+	-- half an hour to hours to raise, so they're worth minutes of their earnings.
+	sellEggShare = 0.5,
+	sellValueSeconds = { Baby = 15, Juvenile = 120, Adult = 600 } :: { [Types.StageId]: number },
 	storageSlots = 40, -- off-pedestal creatures; buying and stealing stop when full
 
 	-- Rebirth N costs rebirthCosts[N]; after the list each one costs
@@ -177,9 +183,48 @@ local function cashPerSecond(stats: CreatureInstanceStats): number
 		* bonus
 end
 
--- Cash a creature sells for in the Creatures menu.
+-- What an average Adult hatched from a biome's egg earns (no finish or mutation,
+-- homegrown as hatched creatures are), worked out once per biome.
+local creaturesById: { [string]: Types.Creature } = {}
+for _, creature in Creatures do
+	creaturesById[creature.id] = creature
+end
+local averageAdult: { [string]: number } = {}
+local function averageAdultRate(biomeId: string): number
+	local cached = averageAdult[biomeId]
+	if cached then
+		return cached
+	end
+	local total = 0
+	for _, entry in Eggs.speciesOdds(biomeId, false) do
+		local creature = creaturesById[entry.id]
+		if creature then
+			total += entry.chance * cashPerSecond({
+				biome = biomeId,
+				rarity = creature.rarity,
+				stage = "Adult",
+				finish = "Normal",
+				homegrown = true,
+			})
+		end
+	end
+	averageAdult[biomeId] = total
+	return total
+end
+
+-- What a creature is worth: the Creatures menu's Sell price, and how bases rank
+-- their creatures (Rarest up top, statues). An average Adult from an egg is worth
+-- half that egg; better earners are worth more in proportion, so a rare hatch is
+-- worth many eggs (owner, 2026-10-03: a Lunaris earning ~2M/s "only worth 13M"
+-- made no sense; it was 15 s of earnings everywhere, a sliver of a Moonfall egg).
+-- Never under minutes of its own earnings once grown (10 for an Adult), so a rare
+-- creature from a cheap early egg isn't near-worthless either. A Baby's floor is
+-- only 15 s, so hatching to sell straight away always loses.
 local function sellValue(stats: CreatureInstanceStats): number
-	return math.floor(cashPerSecond(stats) * Tunables.sellValueSeconds)
+	local rate = cashPerSecond(stats)
+	local average = averageAdultRate(stats.biome)
+	local basis = if average > 0 then Eggs.price(stats.biome) * Tunables.sellEggShare * rate / average else 0
+	return math.floor(math.max(basis, rate * (Tunables.sellValueSeconds[stats.stage] or 15)))
 end
 
 -- Cash needed for the next rebirth, given how many the player has done.

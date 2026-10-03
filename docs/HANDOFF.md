@@ -50,7 +50,7 @@ binding.
 - **Economy numbers confirmed in the UI** (all prices, B/T/Qa formatting, rebirth at $1T).
 - **Batches A, B and C confirmed in Studio** (2026-09-30, PC fixes ec03ea4…e05f635). Measured: steals, reach checks, mobile scaling (UIScale 0.59 on iPhone 14), about 3 KB/s per client with 4 clients, 60 FPS at a full base, and daily rewards Days 1–7 plus quests.
   - The store title and description are set. **The icon and thumbnails still need uploading** (the built-in browser can't attach files): `marketing/icon_512.png` (realistic-eyed Emberlynx, 50464a2) and `thumb_1`…`thumb_4`.
-- **Open design question (from the audit):** a walked creature can't be stolen and keeps earning, so an AFK player can protect their best one forever. Options: no earnings while walked, or a walk time limit. Ask the owner.
+- **Walks decided (owner, 2026-10-03):** a walked creature stays unstealable and keeps earning; AFK walking is fine (it shows active players, and the rest of the base can still be raided).
 - **All 41 Juveniles exist** (the 18 ultra-rare and Junk ones were added 2026-09-30, 630 Tripo credits). They are rigged and facing-checked in the sandbox (flips: Grillgator, Lunaris, Quasarfox, Solarion; Sylvanox `+x`). The PC still has to fetch, rig and import them. **The ultra-rare designs themselves still await the owner's approval** (a sheet was sent 2026-09-30; five are lean cat or dog bodies).
 - **Launch checklist:** `docs/LAUNCH.md`.
 - **Later (owner's ideas):** taming, training, biome shops, larger biomes. Wild nests (race a wild egg home) are still a good fit.

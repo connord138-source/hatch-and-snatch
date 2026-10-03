@@ -57,7 +57,8 @@ unrelated to the Polymarket worker.
   - The rarity color fades in from 40% incubation.
   - There is a physical Luck Wheel at the North Commons (charges the next egg's luck) and a case-opening hatch reveal. See GDD §3.1.
 - **Belt:** eggs roll out of and back into the hatchery tunnel; they never vanish in view.
-- **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed.
+- **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed; it keeps earning, and AFK walking is fine (owner, 2026-10-03).
+- **Worth** (owner, 2026-10-03: a Lunaris earning ~2M/s "only worth 13M" made no sense): a creature's Sell price is half its egg's price for an average Adult from that egg, scaled by its earnings, and at least 15 s / 2 min / 10 min of its earnings as a Baby / Juvenile / Adult (`Economy.sellValue`). Fresh Babies stay below their egg, so hatch-to-sell never pays.
 - **Bases:** 5 upgrade levels (bigger plot, ground pedestals up to 20, longer lock), 3 security upgrades (alarm, tripwire, auto-lock) and the Castle Designer. See GDD §6.1.
   - **Roomy ground floor** (owner, 2026-10-02: "far too cramped together on the bottom floor ... spots on the left and right of the center"): the plot grows to 88×80, and the 20 ground spots stand in two wings (2 columns × 5 rows a side, 13 studs apart) either side of an open hall with the kit's centerpiece at its end (`WorldService` `GROUND_COLUMNS`, `GROUND_ROWS`).
 - **Fortress bases** (owner, 2026-10-01; approved concepts FortressStages/FortressCitadel): the walls grow with base level, Camp → Stockade → Keep → Fortress → Citadel (`Fortress.luau`). The floors are a solid stone keep, never glass ("not see-through").

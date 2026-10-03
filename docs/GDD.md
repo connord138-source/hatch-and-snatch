@@ -85,7 +85,7 @@ buy egg from the belt → carry it home → place it in an incubator (optional L
 ### 4.2 Movement
 
 - **On a pedestal, creatures sit:** the body tilts nose-up about the front feet, the back legs fold down so the rear rests low, and they breathe, look around and swish their tail. They don't hop in place. Feet always stay on the ground: the pose is solved per model (`src/client/CreatureGrounding.luau`), and the lowest foot is clamped to the ground every frame, including mid-run landings.
-- **Walks:** you can take one creature for a walk (R, or Walk in the Creatures menu). It follows you with the bounding run while you move and sits beside you when you stop. A walked creature can't be stolen and grows 2× faster; it still earns from its pedestal.
+- **Walks:** you can take one creature for a walk (R, or Walk in the Creatures menu). It follows you with the bounding run while you move and sits beside you when you stop. A walked creature can't be stolen and grows 2× faster; it still earns from its pedestal. (Owner, 2026-10-03: AFK-walking your best creature is fine; it shows active players, and the rest of the base can still be raided.)
 - **The run itself is a slow bound with a hop:** front paws reach together, back legs push off together, there's a short airborne arc, and a squash on landing.
 
 - **By stage:** babies bounce too much and occasionally face-plant; adults land with heavy, powerful bounds, a thud, and a puff of their element (dust, embers, frost, sparks).
@@ -334,6 +334,7 @@ Before the retune, a 3 h/day player had bought everything in about 3 hours of pl
     | Moonfall | A meteor lands in the crater | First to grab the moonstone: ×10 luck (+3 spins if already lucky) |
   - **Later (owner's ideas, 2026-09-30):** taming wild creatures, training, biome shops, and larger biomes. Essence is the natural currency for all of them.
   - **Release:** unwanted or duplicate creatures can be released from the Creatures menu for their biome's Essence (by rarity × stage: Baby ×1, Juvenile ×2, Adult ×3), plus Luck Wheel spins for Legendary and up. Selling for cash is still there.
+  - **Worth (the Sell price; owner, 2026-10-03):** an average Adult from an egg is worth half that egg, and better earners are worth more in proportion, so a rare hatch is worth many eggs (`Economy.sellValue`). It's never under its own earnings for 15 s (Baby), 2 min (Juvenile) or 10 min (Adult). So every grown creature is worth real money: a Lunaris (Moonfall Mythic, 900K/s) is worth 1.8B, where 15 s of earnings had made it 13.5M. A fresh Baby still sells for under half its egg on average, so buying eggs to sell never pays. The same worth ranks creatures for Rarest up top, full-floor swaps and the Guardian Statues.
 - **Lighting:** atmosphere, bloom, sun rays, clouds and a slight color grade. During moon events the whole world is tinted in the moon's color, and the banner says what the event does.
 
 ### 7.4 Daily rewards (retention)
