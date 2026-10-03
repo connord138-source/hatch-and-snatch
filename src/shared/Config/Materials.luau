@@ -37,9 +37,9 @@ local materials: { [string]: Material } = {
 	},
 	DiamondGem = {
 		base = Enum.Material.Ice,
-		colorMap = "", -- upload assets/textures/gem_color.png and paste its id
-		normalMap = "", -- gem_normal.png
-		roughnessMap = "", -- gem_roughness.png
+		colorMap = "rbxassetid://83891185187480", -- assets/textures/gem_color.png
+		normalMap = "rbxassetid://122955736534217", -- gem_normal.png
+		roughnessMap = "rbxassetid://79115828987523", -- gem_roughness.png
 		studsPerTile = 4,
 		brightness = 0.96,
 	},
