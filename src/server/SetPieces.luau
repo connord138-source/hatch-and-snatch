@@ -9,6 +9,7 @@
 local Lighting = game:GetService("Lighting")
 
 local Props = require(script.Parent.Props)
+local ZoneShape = require(game:GetService("ReplicatedStorage").Shared.ZoneShape)
 
 local SetPieces = {}
 
@@ -985,16 +986,21 @@ function SetPieces.has(name: string): boolean
 	return SPECS[name] ~= nil
 end
 
-local CLOUD_HEIGHT = 38
+local CLOUD_HEIGHT = 40
 local CLOUD_COLOR = Color3.fromRGB(52, 56, 66)
+local CLOUD_DARK = Color3.fromRGB(38, 41, 50)
 local CLOUD_TOP = Color3.fromRGB(98, 102, 114)
+local CLOUD_RIM = Color3.fromRGB(132, 136, 148)
 local FLASH_COLOR = Color3.fromRGB(175, 200, 245)
 
--- The storm over a zone `radius` studs across the middle: a low bank of dark cloud
--- (set off toward the sun, so its shadow falls on the zone), rain, mist blowing
--- along `wind`, and lightning flickering inside the cloud. The lightning crag's
--- bolts come down out of it.
-function SetPieces.stormSky(center: Vector3, radius: number, wind: Vector3, parent: Instance)
+-- The storm over a whole zone sector (owner, 2026-10-02: the cloud "needs to be
+-- bigger and more detailed over the storm section"): a layered bank of dark cloud
+-- covering the sector edge to edge and overhanging its walls (set off toward the
+-- sun, so its shadow falls on the zone) — a flat dark base, billows heaped on it,
+-- thunderheads towering out of it, ragged scud hanging under it and a soft fringe
+-- round its edges — with rain and mist blowing along `wind` and lightning
+-- flickering inside it. The lightning crag's bolts come down out of it.
+function SetPieces.stormSky(sector: ZoneShape.Sector, wind: Vector3, parent: Instance)
 	local rng = Random.new(1717)
 	local sky = Instance.new("Model")
 	sky.Name = "StormSky"
@@ -1003,100 +1009,191 @@ function SetPieces.stormSky(center: Vector3, radius: number, wind: Vector3, pare
 	if shift.Magnitude > 45 then
 		shift = shift.Unit * 45
 	end
-	local bank = center + shift + Vector3.new(0, CLOUD_HEIGHT, 0)
-	-- A flat, dark base with billows heaped on top (matte, so it doesn't shine like plastic)
+	-- `along` 0..1 across the sector's arc, `depth` 0..1 from its inner wall out
+	-- (a little past either end overhangs the walls), `y` above the cloud base
+	local function at(along: number, depth: number, y: number): Vector3
+		return ZoneShape.point(sector, along, depth, CLOUD_HEIGHT + y) + shift
+	end
 	local puffs: { BasePart } = {}
-	for i = 1, 30 do
-		local base = i <= 9
-		local angle = rng:NextNumber() * 2 * math.pi
-		local distance = math.sqrt(rng:NextNumber()) * radius * (if base then 0.9 else 0.75)
-		local width = if base then rng:NextNumber(26, 36) else rng:NextNumber(13, 24)
-		local height = if base then width * 0.2 else width * rng:NextNumber(0.55, 0.8)
-		local offset = Vector3.new(
-			math.cos(angle) * distance,
-			if base then 0 else rng:NextNumber(2, 8),
-			math.sin(angle) * distance
+	local function puff(position: Vector3, width: number, height: number, color: Color3)
+		table.insert(
+			puffs,
+			blob({
+				Name = "Cloud",
+				Size = Vector3.new(width, height, width * rng:NextNumber(0.75, 1)),
+				CFrame = CFrame.new(position) * CFrame.Angles(0, rng:NextNumber() * math.pi, 0),
+				-- Matte, so it doesn't shine like plastic
+				Material = Enum.Material.Fabric,
+				Color = color,
+				CanCollide = false,
+				Parent = sky,
+			})
 		)
-		local puff = blob({
-			Name = "Cloud",
-			Size = Vector3.new(width, height, width * rng:NextNumber(0.75, 1)),
-			CFrame = CFrame.new(bank + offset) * CFrame.Angles(0, rng:NextNumber() * math.pi, 0),
-			Material = Enum.Material.Fabric,
-			Color = if base then CLOUD_COLOR else CLOUD_COLOR:Lerp(CLOUD_TOP, rng:NextNumber()),
-			CanCollide = false,
-			Parent = sky,
-		})
-		table.insert(puffs, puff)
+	end
+	-- The base: flat dark slabs over the whole sector, on a jittered grid
+	local across, deep = 10, 4
+	for i = 0, across - 1 do
+		for j = 0, deep - 1 do
+			local width = rng:NextNumber(30, 44)
+			puff(
+				at(
+					(i + 0.5 + rng:NextNumber(-0.3, 0.3)) / across,
+					(j + 0.5 + rng:NextNumber(-0.3, 0.3)) / deep * 1.1 - 0.05,
+					rng:NextNumber(-1.5, 1.5)
+				),
+				width,
+				width * rng:NextNumber(0.17, 0.25),
+				CLOUD_COLOR:Lerp(CLOUD_DARK, rng:NextNumber())
+			)
+		end
+	end
+	-- Billows heaped on top, thickest over the middle of the arc
+	for _ = 1, 56 do
+		local width = rng:NextNumber(13, 28)
+		puff(
+			at(
+				0.5 + (rng:NextNumber() - 0.5) * rng:NextNumber(0.55, 1),
+				rng:NextNumber(0.06, 0.94),
+				rng:NextNumber(3, 11)
+			),
+			width,
+			width * rng:NextNumber(0.55, 0.85),
+			CLOUD_COLOR:Lerp(CLOUD_TOP, rng:NextNumber(0.2, 0.9))
+		)
+	end
+	-- Thunderheads: clusters of billows swelling out of the bank, wide at the foot
+	-- and narrowing as they rise, paler where the light catches their tops
+	for k = 1, 6 do
+		local base = at((k - 0.5) / 6 + rng:NextNumber(-0.05, 0.05), rng:NextNumber(0.25, 0.75), 6)
+		local height = rng:NextNumber(22, 34)
+		for n = 1, 9 do
+			local up = (n - 1) / 8 -- 0 at the foot, 1 at the crown
+			local spread = 15 * (1 - up * 0.7)
+			local width = rng:NextNumber(16, 26) * (1 - up * 0.45)
+			puff(
+				base
+					+ Vector3.new(
+						rng:NextNumber(-spread, spread),
+						up * height,
+						rng:NextNumber(-spread, spread)
+					),
+				width,
+				width * rng:NextNumber(0.65, 0.85),
+				CLOUD_TOP:Lerp(CLOUD_RIM, up * rng:NextNumber(0.6, 1))
+			)
+		end
+	end
+	-- Ragged scud: lumps sagging out of the base's underside
+	for _ = 1, 14 do
+		local width = rng:NextNumber(10, 18)
+		puff(
+			at(rng:NextNumber(0.04, 0.96), rng:NextNumber(0.08, 0.92), rng:NextNumber(-3.5, -1.5)),
+			width,
+			width * rng:NextNumber(0.5, 0.7),
+			CLOUD_DARK
+		)
+	end
+	-- A soft fringe round the edges, so the bank doesn't end in a hard line
+	for _ = 1, 26 do
+		local side = rng:NextInteger(1, 4)
+		local along = if side == 1
+			then rng:NextNumber(-0.04, 0.05)
+			elseif side == 2 then rng:NextNumber(0.95, 1.04)
+			else rng:NextNumber(0, 1)
+		local depth = if side == 3
+			then rng:NextNumber(-0.08, 0.03)
+			elseif side == 4 then rng:NextNumber(0.97, 1.08)
+			else rng:NextNumber(0, 1)
+		local width = rng:NextNumber(8, 15)
+		puff(
+			at(along, depth, rng:NextNumber(-1, 4)),
+			width,
+			width * rng:NextNumber(0.4, 0.6),
+			CLOUD_COLOR:Lerp(CLOUD_TOP, rng:NextNumber())
+		)
 	end
 
-	-- Rain over the whole zone (the client adds heavier rain around the player
-	-- inside it, see ZoneMoodController)
-	local rain = anchor(
-		sky,
-		CFrame.new(center + Vector3.new(0, CLOUD_HEIGHT - 8, 0)),
-		Vector3.new(radius * 2, 1, radius * 2)
-	)
-	emitter(rain, {
-		Texture = SPARKLE,
-		Color = ColorSequence.new(Color3.fromRGB(205, 215, 235)),
-		LightEmission = 0.2,
-		EmissionDirection = Enum.NormalId.Bottom,
-		Rate = 450,
-		Lifetime = NumberRange.new(0.5, 0.6),
-		Speed = NumberRange.new(55, 65),
-		Acceleration = wind * 12,
-		Size = NumberSequence.new(0.55),
-		Squash = NumberSequence.new(2.5),
-		Transparency = NumberSequence.new(0.3),
-	})
+	-- Rain and mist under it, in stretches along the arc (the client adds heavier
+	-- rain around the player inside the zone, see ZoneMoodController)
+	local stretches = 4
+	local arc = (sector.to - sector.from) * (sector.inner + sector.outer) / 2
+	local depth = sector.outer - sector.inner
+	for k = 1, stretches do
+		local along = (k - 0.5) / stretches
+		local middle = ZoneShape.point(sector, along, 0.5, 0)
+		local ahead = ZoneShape.point(sector, along + 0.01, 0.5, 0)
+		local frame = CFrame.lookAt(middle, middle + (ahead - middle) * Vector3.new(1, 0, 1))
+		local rain =
+			anchor(sky, frame + Vector3.new(0, CLOUD_HEIGHT - 8, 0), Vector3.new(depth, 1, arc / stretches))
+		emitter(rain, {
+			Texture = SPARKLE,
+			Color = ColorSequence.new(Color3.fromRGB(205, 215, 235)),
+			LightEmission = 0.2,
+			EmissionDirection = Enum.NormalId.Bottom,
+			Rate = 260,
+			Lifetime = NumberRange.new(0.5, 0.6),
+			Speed = NumberRange.new(55, 65),
+			Acceleration = wind * 12,
+			Size = NumberSequence.new(0.55),
+			Squash = NumberSequence.new(2.5),
+			Transparency = NumberSequence.new(0.3),
+		})
+		local mist =
+			anchor(sky, frame + Vector3.new(0, 2.5, 0), Vector3.new(depth * 0.85, 2, arc / stretches))
+		emitter(mist, {
+			Texture = SMOKE,
+			Color = ColorSequence.new(Color3.fromRGB(165, 172, 186)),
+			LightEmission = 0,
+			Rate = 2,
+			Lifetime = NumberRange.new(7, 10),
+			Speed = NumberRange.new(0.5, 1.5),
+			Acceleration = wind * 1.5,
+			RotSpeed = NumberRange.new(-8, 8),
+			Size = NumberSequence.new(7, 13),
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(0.3, 0.8),
+				NumberSequenceKeypoint.new(0.75, 0.85),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+		})
+	end
 
-	-- Low mist drifting through on the wind
-	local mist =
-		anchor(sky, CFrame.new(center + Vector3.new(0, 2.5, 0)), Vector3.new(radius * 1.7, 2, radius * 1.7))
-	emitter(mist, {
-		Texture = SMOKE,
-		Color = ColorSequence.new(Color3.fromRGB(165, 172, 186)),
-		LightEmission = 0,
-		Rate = 4,
-		Lifetime = NumberRange.new(7, 10),
-		Speed = NumberRange.new(0.5, 1.5),
-		Acceleration = wind * 1.5,
-		RotSpeed = NumberRange.new(-8, 8),
-		Size = NumberSequence.new(7, 13),
-		Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.3, 0.8),
-			NumberSequenceKeypoint.new(0.75, 0.85),
-			NumberSequenceKeypoint.new(1, 1),
-		}),
-	})
-
-	-- Sheet lightning: the cloud lights up from inside and the zone flickers
-	local glow = light(
-		anchor(sky, CFrame.new(center + Vector3.new(0, CLOUD_HEIGHT - 10, 0)), Vector3.new(1, 1, 1)),
-		FLASH_COLOR,
-		0,
-		60
-	)
+	-- Sheet lightning: the cloud lights up from inside, here and there along it
+	local glows: { PointLight } = {}
+	for _, along in { 0.25, 0.75 } do
+		table.insert(
+			glows,
+			light(anchor(sky, CFrame.new(at(along, 0.5, -10)), Vector3.new(1, 1, 1)), FLASH_COLOR, 0, 60)
+		)
+	end
 	sky.Parent = parent
 	task.spawn(function()
 		local beat = Random.new()
 		while sky.Parent do
 			task.wait(beat:NextNumber(4, 11))
-			local lit = { puffs[beat:NextInteger(1, #puffs)], puffs[beat:NextInteger(1, #puffs)] }
-			local colors = { lit[1].Color, lit[2].Color }
-			for _, puff in lit do
-				puff.Material = Enum.Material.Neon
-				puff.Color = FLASH_COLOR
+			local glow = glows[beat:NextInteger(1, #glows)]
+			local lit: { BasePart } = {}
+			while #lit < 3 do
+				local p = puffs[beat:NextInteger(1, #puffs)]
+				if not table.find(lit, p) then
+					table.insert(lit, p)
+				end
+			end
+			local colors = {}
+			for i, p in lit do
+				colors[i] = p.Color
+				p.Material = Enum.Material.Neon
+				p.Color = FLASH_COLOR
 			end
 			for _, step in { { 3, 0.07 }, { 0.3, 0.08 }, { 5, 0.12 } } do
 				glow.Brightness = step[1]
 				task.wait(step[2])
 			end
 			glow.Brightness = 0
-			for i, puff in lit do
-				puff.Material = Enum.Material.Fabric
-				puff.Color = colors[i]
+			for i, p in lit do
+				p.Material = Enum.Material.Fabric
+				p.Color = colors[i]
 			end
 		end
 	end)
