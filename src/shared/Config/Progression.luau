@@ -240,13 +240,14 @@ export type BaseTheme = {
 	cost: number,
 	floorMaterial: Enum.Material,
 	floorColor: Color3,
+	floorVariant: string?, -- a custom material (Config.Materials) over floorMaterial
 	trimColor: Color3,
 	laserColor: Color3,
 	decor: { string }, -- WorldProps names scattered around the plot edge
 	-- The fortress's stone walls and towers from the Keep up (wooden tiers stay wood);
 	-- without one they're gray cobblestone. Roofs take trimColor, flags laserColor,
 	-- unless the Castle Designer (Config.CastleDesigns) sets them below.
-	wall: { material: Enum.Material, color: Color3, reflectance: number? }?,
+	wall: { material: Enum.Material, color: Color3, reflectance: number?, variant: string? }?,
 	roofColor: Color3?,
 	roofMaterial: Enum.Material?,
 	bannerColor: Color3?,

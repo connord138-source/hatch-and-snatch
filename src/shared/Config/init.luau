@@ -49,4 +49,5 @@ return {
 	Codes = require(script.Codes),
 	Daily = require(script.Daily),
 	Debug = require(script.Debug),
+	Materials = require(script.Materials),
 }

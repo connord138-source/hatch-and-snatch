@@ -43,7 +43,8 @@ export type Option = {
 	material: Enum.Material?,
 	rainbow: boolean?, -- the client cycles it through the colors
 	sparkle: Color3?, -- stone: twinkles on the towers (the rebirth stones)
-	reflectance: number?, -- stone: a shine on every wall, tower and keep piece (Diamond)
+	reflectance: number?, -- stone: a shine on every wall, tower and keep piece
+	variant: string?, -- stone: a custom material painted on it (Config.Materials)
 	decor: { string }?, -- grounds: WorldProps scattered round the walls
 	kit: string?, -- theme: the CastleKits kit built onto the castle
 }
@@ -288,11 +289,16 @@ local slots: { Slot } = {
 				cost = 10_000_000_000_000,
 				unlock = { rebirths = 5 },
 				-- The whole castle made of diamond (owner, 2026-10-02: "fully diamond
-				-- structure, walls and all"): white crystalline stone. Glass with a
-				-- shine was too glary day and night (PC pass), and pale blue foil read
-				-- as the Ice Castle; the clear crystals on top carry the sparkle.
+				-- structure, walls and all"), as a texture rather than real diamond:
+				-- cut-diamond bricks with the iridescence baked in (Config.Materials
+				-- DiamondStone), so no glass or shine to glare. Glass with a shine was
+				-- too glary day and night (PC pass), and pale blue foil read as the Ice
+				-- Castle; the clear crystals on top carry the sparkle.
 				material = Enum.Material.Salt,
-				-- A touch below pure white: near-white glared under the low afternoon sun
+				variant = "DiamondStone",
+				-- The texture carries the color (white leaves it untinted); without the
+				-- variant uploaded this is the plain Salt stone, a touch below white
+				-- (near-white glared under the low afternoon sun)
 				color = Color3.fromRGB(226, 231, 240),
 				sparkle = Color3.fromRGB(255, 252, 245),
 			},
@@ -470,8 +476,12 @@ local slots: { Slot } = {
 				name = "Diamond",
 				cost = 6_000_000_000_000,
 				unlock = { rebirths = 5 },
-				material = Enum.Material.Foil,
-				color = Color3.fromRGB(210, 242, 255),
+				-- Cut-diamond tiles, the Diamond stone's texture: the foil floor mirrored
+				-- the sky and hazed the keep white (owner, 2026-10-02: "a diamond texture
+				-- rather than actual diamond for the base itself")
+				material = Enum.Material.Salt,
+				variant = "DiamondStone",
+				color = Color3.fromRGB(226, 231, 240),
 			},
 		},
 	},
@@ -956,11 +966,17 @@ function CastleDesigns.resolve(picks: { [string]: string }): Progression.BaseThe
 		cost = 0,
 		floorMaterial = floor.material or Enum.Material.WoodPlanks,
 		floorColor = floor.color or Color3.fromRGB(150, 120, 85),
+		floorVariant = floor.variant,
 		trimColor = roof.color or Color3.fromRGB(60, 85, 170),
 		laserColor = glow.color or Color3.fromRGB(255, 40, 40),
 		decor = grounds.decor or {},
 		wall = if stone.material and stone.color
-			then { material = stone.material, color = stone.color, reflectance = stone.reflectance }
+			then {
+				material = stone.material,
+				color = stone.color,
+				reflectance = stone.reflectance,
+				variant = stone.variant,
+			}
 			else nil,
 		roofColor = roof.color,
 		roofMaterial = roof.material,
