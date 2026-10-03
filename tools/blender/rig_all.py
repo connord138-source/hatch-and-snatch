@@ -23,7 +23,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 # Bump when rig_creature.py's output changes, so every model is rigged again.
 # 2: weights smoothed along the surface (no more stringing at legs and tails).
-RIG_VERSION = 2
+# 3: feet found as ground patches, leg/body hand-over up by the hip, smarter 4-bone cap (no leg strings).
+RIG_VERSION = 3
 RIG_SCRIPT = ROOT / "tools/blender/rig_creature.py"
 args = [a for a in sys.argv[1:] if a != "--all"]
 BLENDER = args[0] if args else "blender"

@@ -13,20 +13,28 @@ What it does
   2. Squares the body up (Tripo keeps the concept's three-quarter turn, so bodies often
      come in 20-35 degrees off-axis), guesses which end is the head (override with
      FRONT), then rotates so the head points -Y (becomes -Z / "front" in Roblox).
-  3. Finds the four feet from the lowest vertices and builds a quadruped skeleton:
-     Root > Hips > Spine > Chest > Neck > Head, Tail1-3, and a 2-bone leg per foot
-     (LegFL/FR/BL/BR _Upper/_Lower). Bone names are what CreatureAnimator drives.
-  4. Skins every vertex to its nearest bones (inverse-distance, max 4 influences),
-     which is more reliable on AI-generated meshes than Blender's bone-heat weights.
+  3. Finds the feet (patches of the mesh touching the ground, a front and a hind foot
+     per side) and builds a quadruped skeleton: Root > Hips > Spine > Chest > Neck >
+     Head, Tail1-3, and a 2-bone leg per foot (LegFL/FR/BL/BR _Upper/_Lower). Bone
+     names are what CreatureAnimator drives.
+  4. Skins the mesh. A smooth field along the surface decides how far each vertex
+     follows a leg or the body, handing over up by the hip joints where a leg swing
+     barely moves anything; within that, vertices go to their nearest bones (inverse
+     distance), smoothed along the surface, and the front and hind legs (which swing
+     opposite ways) never share a vertex. Max 4 influences: a dropped bone's weight goes
+     to the kept bone next to it in the skeleton. More reliable on AI-generated meshes
+     than Blender's bone-heat weights.
   5. Exports an FBX with embedded textures, ready for Studio's 3D Importer.
 
 Batch: see rig_all.py. Results vary per model — always check a model in Studio.
 """
 
+import heapq
 import math
 import sys
 
 import bpy
+import numpy as np  # ships with Blender
 from mathutils import Matrix, Vector
 
 # ---------- args ----------
@@ -154,32 +162,152 @@ mn, mx = bounds(vs)
 W, L, H = mx.x - mn.x, mx.y - mn.y, mx.z - mn.z
 print(f"[rig] size W={W:.2f} L={L:.2f} H={H:.2f}")
 
+# ---------- mesh graph ----------
+# glTF splits vertices along UV seams, so vertices at the same spot count as one
+# node; otherwise the seams would tear open when the weights are smoothed.
+verts = body.data.vertices
+weld = {}
+node_of = []
+for v in verts:
+    key = (round(v.co.x, 5), round(v.co.y, 5), round(v.co.z, 5))
+    node_of.append(weld.setdefault(key, len(weld)))
+nodes = len(weld)
+members = [[] for _ in range(nodes)]
+for i, n in enumerate(node_of):
+    members[n].append(i)
+node_pos = [body.matrix_world @ verts[m[0]].co for m in members]
+links = [set() for _ in range(nodes)]
+for e in body.data.edges:
+    a, b = node_of[e.vertices[0]], node_of[e.vertices[1]]
+    if a != b:
+        links[a].add(b)
+        links[b].add(a)
+
 # ---------- find feet ----------
-# Feet = vertices touching the ground. A low belly or hanging fur sits a little
-# higher, so start with a thin slice and only widen it if a quadrant comes up empty.
-quadrants = {"FL": [], "FR": [], "BL": [], "BR": []}
+# Feet = patches of the mesh touching the ground. A low belly or hanging fur sits a
+# little higher, so start with a thin slice and only widen it if a foot is missing.
+# Each side (left/right of the body's middle) is split into a front and a hind foot
+# by whole patches, never through one: the old quadrants cut at the bounding box's
+# middle, which a long tail or neck moves, so a hind foot straddling it gave its toes
+# to the front foot (whose column then swallowed the hind leg) and the run tore it in
+# two. Toes a little apart count as one foot. A side with one foot keeps it for the
+# hind leg when the other side has one too (a creature standing on two legs: the
+# front legs are left empty), else for whichever end it lines up with; a leg missing
+# on one side only (lifted off the ground) is mirrored from the other side.
+LEG_KEYS = ("FL", "FR", "BL", "BR")
+mid_x = sorted(p.x for p in node_pos)[nodes // 2]  # the body's middle, whatever the tail does
+TOE_GAP = 0.05 * max(W, L)
+
+
+def side_feet(low):
+    """Group one side's ground nodes into feet (lists of nodes), sorted front to back."""
+    low_set = set(low)
+    patches, seen = [], set()
+    for start in low:
+        if start in seen:
+            continue
+        patch, stack = [], [start]
+        seen.add(start)
+        while stack:
+            n = stack.pop()
+            patch.append(n)
+            for m in links[n]:
+                if m in low_set and m not in seen:
+                    seen.add(m)
+                    stack.append(m)
+        patches.append(patch)
+
+    def gap(p, q):
+        step_p, step_q = max(1, len(p) // 60), max(1, len(q) // 60)
+        return min(
+            ((node_pos[a].x - node_pos[b].x) ** 2 + (node_pos[a].y - node_pos[b].y) ** 2) ** 0.5
+            for a in p[::step_p]
+            for b in q[::step_q]
+        )
+
+    merged = True
+    while merged and len(patches) > 1:
+        merged = False
+        for i in range(len(patches)):
+            for j in range(i + 1, len(patches)):
+                if gap(patches[i], patches[j]) < TOE_GAP:
+                    patches[i] += patches.pop(j)
+                    merged = True
+                    break
+            if merged:
+                break
+    # Specks (a fur tip, a claw) aren't feet
+    biggest = max((len(p) for p in patches), default=0)
+    patches = [p for p in patches if len(p) >= max(5, 0.15 * biggest)]
+
+    def mean_y(patch):
+        return sum(node_pos[n].y for n in patch) / len(patch)
+
+    patches.sort(key=mean_y)
+    if len(patches) <= 2:
+        return patches
+    # More than two: split front from back at the widest gap along the body
+    ys = [mean_y(p) for p in patches]
+    cut = max(range(1, len(patches)), key=lambda i: ys[i] - ys[i - 1])
+    return [sum(patches[:cut], []), sum(patches[cut:], [])]
+
+
+def find_feet(band):
+    sides = {"L": [], "R": []}
+    for n in range(nodes):
+        if node_pos[n].z < band * H:
+            sides["L" if node_pos[n].x > mid_x else "R"].append(n)
+    found = {}
+    per_side = {s: side_feet(low) for s, low in sides.items()}
+    for s, fs in per_side.items():
+        if len(fs) == 2:
+            found["F" + s], found["B" + s] = fs
+    for s, fs in per_side.items():
+        if len(fs) != 1:
+            continue
+        other = "R" if s == "L" else "L"
+        y = sum(node_pos[n].y for n in fs[0]) / len(fs[0])
+        if "F" + other in found:
+            fy = sum(node_pos[n].y for n in found["F" + other]) / len(found["F" + other])
+            by = sum(node_pos[n].y for n in found["B" + other]) / len(found["B" + other])
+            found[("F" if abs(y - fy) < abs(y - by) else "B") + s] = fs[0]
+        else:
+            found["B" + s] = fs[0]
+    return found
+
+
+best = {}
 for band in (0.05, 0.1, 0.18):
-    quadrants = {"FL": [], "FR": [], "BL": [], "BR": []}
-    low = [v for v in vs if v.z < band * H]
-    for v in low:
-        # Facing -Y, +X is the creature's left
-        quadrants[("F" if v.y < 0 else "B") + ("L" if v.x > 0 else "R")].append(v)
-    if all(len(pts) >= 5 for pts in quadrants.values()):
+    found = find_feet(band)
+    if len(found) > len(best):
+        best = found
+    if len(best) == 4:
         break
 feet = {}
 leg_radius = {}
-for key, pts in quadrants.items():
-    if len(pts) >= 5:
-        feet[key] = Vector((sum(p.x for p in pts) / len(pts), sum(p.y for p in pts) / len(pts), 0))
-        # How thick this leg is at the bottom: 80th percentile distance from its center
-        dists = sorted(((p.x - feet[key].x) ** 2 + (p.y - feet[key].y) ** 2) ** 0.5 for p in pts)
-        leg_radius[key] = max(dists[int(len(dists) * 0.8)], 0.04 * min(W, L))
+for key, pts in best.items():
+    ps = [node_pos[n] for n in pts]
+    feet[key] = Vector((sum(p.x for p in ps) / len(ps), sum(p.y for p in ps) / len(ps), 0))
+    # How thick this leg is at the bottom: 80th percentile distance from its center
+    dists = sorted(((p.x - feet[key].x) ** 2 + (p.y - feet[key].y) ** 2) ** 0.5 for p in ps)
+    leg_radius[key] = max(dists[int(len(dists) * 0.8)], 0.04 * min(W, L))
+empty_legs = set()
+for key in LEG_KEYS:
+    if key in feet:
+        continue
+    twin = key[0] + ("R" if key[1] == "L" else "L")
+    if twin in best:
+        # Lifted off the ground: mirror the other side's leg
+        feet[key] = Vector((2 * mid_x - feet[twin].x, feet[twin].y, 0))
+        leg_radius[key] = leg_radius[twin]
     else:
-        fx = 0.25 * W * (1 if key[1] == "L" else -1)
-        fy = 0.25 * L * (-1 if key[0] == "F" else 1)
-        feet[key] = Vector((fx, fy, 0))
+        # Not a leg at all (front legs of a creature standing on two): the bones still
+        # exist for the animator, but no vertex follows them
+        feet[key] = Vector((0.25 * W * (1 if key[1] == "L" else -1), 0.25 * L * (-1 if key[0] == "F" else 1), 0))
         leg_radius[key] = 0.08 * min(W, L)
-print("[rig] feet", {k: tuple(round(c, 2) for c in v) for k, v in feet.items()})
+        empty_legs.add(key)
+feet = {key: feet[key] for key in LEG_KEYS}
+print("[rig] feet", {k: tuple(round(c, 2) for c in v) for k, v in feet.items()}, "empty", sorted(empty_legs))
 
 # ---------- armature ----------
 arm_data = bpy.data.armatures.new("Rig")
@@ -222,7 +350,7 @@ for key, foot in feet.items():
 bone_segments = {b.name: (b.head.copy(), b.tail.copy()) for b in eb if b.name != "Root"}
 bpy.ops.object.mode_set(mode="OBJECT")
 
-# ---------- skinning (nearest bones, inverse distance) ----------
+# ---------- skinning ----------
 
 
 def seg_dist(p, a, b):
@@ -231,63 +359,156 @@ def seg_dist(p, a, b):
     return (a + ab * t - p).length
 
 
-def allowed(name, p):
-    """Legs only skin their own column of vertices: below the belly line and within
-    the leg's thickness of its foot. Anything else (a low belly, fur or armor
-    hanging between the legs) stays on the body, so a leg swing can't stretch it
-    into strings or drag the head or the opposite leg along."""
-    if not name.startswith("Leg"):
-        return True
-    key = name[3:5]
-    fb, lr = key[0], key[1]
-    if (p.y < 0) != (fb == "F") or (p.x > 0) != (lr == "L"):
-        return False
-    if p.z >= hipZ * 0.85:
+def in_leg(key, p):
+    """A leg's own column of vertices: below the belly line, within the leg's thickness
+    of its foot and nearer its foot than any other's."""
+    if key in empty_legs or p.z >= hipZ * 0.85:
         return False
     foot = feet[key]
+    d = ((p.x - foot.x) ** 2 + (p.y - foot.y) ** 2) ** 0.5
+    for other in LEG_KEYS:
+        if other != key and other not in empty_legs:
+            if ((p.x - feet[other].x) ** 2 + (p.y - feet[other].y) ** 2) ** 0.5 < d:
+                return False
     # The column widens a little toward the hip, where the leg meets the body
-    reach = leg_radius[key] * (1.6 + 0.8 * (p.z / max(hipZ, 1e-6)))
-    return ((p.x - foot.x) ** 2 + (p.y - foot.y) ** 2) ** 0.5 <= reach
+    return d <= leg_radius[key] * (1.6 + 0.8 * (p.z / max(hipZ, 1e-6)))
 
 
-# Raw weights: each vertex's nearest bones, by inverse distance
-verts = body.data.vertices
-weights = []
-for v in verts:
-    p = body.matrix_world @ v.co
-    candidates = [(seg_dist(p, a, b), name) for name, (a, b) in bone_segments.items() if allowed(name, p)]
-    ws = {name: 1.0 / max(d, 1e-4) ** 4 for d, name in sorted(candidates)[:4]}
+def nearest(p, names):
+    """Inverse-distance weights over the (up to) 4 nearest of these bones."""
+    ds = sorted((seg_dist(p, *bone_segments[name]), name) for name in names)[:4]
+    ws = {name: 1.0 / max(d, 1e-4) ** 4 for d, name in ds}
     total = sum(ws.values())
-    weights.append({name: w / total for name, w in ws.items()})
+    return {name: w / total for name, w in ws.items()}
 
-# Smooth the weights along the surface. Nearest-bone weights flip from one bone to
-# the next within a single edge, so a leg swing or tail sway stretched those edges
-# into strings where the leg met the belly and where the tail hung by the hind legs
-# (Mossmunk, owner 2026-10-01). Averaging with neighbors spreads each switch over a
-# few rings of the mesh. glTF splits vertices along UV seams, so vertices at the same
-# spot count as one; otherwise the seams would tear open.
-weld = {}
-node_of = []
-for v in verts:
-    key = (round(v.co.x, 5), round(v.co.y, 5), round(v.co.z, 5))
-    node_of.append(weld.setdefault(key, len(weld)))
-nodes = len(weld)
-members = [[] for _ in range(nodes)]
-for i, n in enumerate(node_of):
-    members[n].append(i)
-links = [set() for _ in range(nodes)]
-for e in body.data.edges:
-    a, b = node_of[e.vertices[0]], node_of[e.vertices[1]]
-    if a != b:
-        links[a].add(b)
-        links[b].add(a)
+
+real_legs = [k for k in LEG_KEYS if k not in empty_legs]
+column = [next((k for k in real_legs if in_leg(k, node_pos[n])), None) for n in range(nodes)]
+body_bones = [name for name in bone_segments if not name.startswith("Leg")]
+
+# How far each vertex follows the legs: u = +1 the front legs, -1 the hind legs, 0 the
+# body. The feet are pinned to their legs; everything above the hip joints, and the
+# head and tail, to the body; u is filled in between as smoothly as it can be (a
+# harmonic fill along the surface) with every edge counted by its distance from the
+# swinging hip, which is how far a unit of u moves it. So the hand-over from leg to
+# body happens up by the joint, where a swing barely moves anything, not down along
+# the belly and between the legs: nearest-bone weights put it there, and the bounding
+# run pulled that skin into strings on short-legged, deep-bellied and baby bodies.
+# The front and hind legs swing opposite ways, and u runs smoothly from one to the
+# other through the body in between.
+FOOT_PIN = 0.05 * hipZ  # this much of a leg's column, from its lowest point up, follows the leg fully
+HEAD_TAIL_FREE = 1.0 * hipZ  # head and tail are left free this close to a foot (along the surface)
+pivot_z = hipZ * 0.95  # where the upper leg bones swing from
+P = np.array([tuple(p) for p in node_pos])
+E = np.array(sorted({(a, b) for a in range(nodes) for b in links[a] if a < b}), dtype=np.int64).reshape(-1, 2)
+pinned = np.zeros(nodes, dtype=bool)
+pin = np.zeros(nodes)
+sole = {k: min((node_pos[n].z for n in range(nodes) if column[n] == k), default=0.0) for k in real_legs}
+for n in range(nodes):
+    key = column[n]
+    if key is not None and node_pos[n].z < sole[key] + FOOT_PIN:
+        pinned[n], pin[n] = True, 1.0 if key[0] == "F" else -1.0
+# A tail hanging by the hind legs (or a head bent down to the front feet) isn't pinned
+# near the feet, or it would tear away from them instead of following a little
+near_feet = {int(n): 0.0 for n in np.nonzero(pinned)[0]}
+heap = [(0.0, n) for n in near_feet]
+heapq.heapify(heap)
+while heap:
+    d, n = heapq.heappop(heap)
+    if d > near_feet.get(n, math.inf) or d > HEAD_TAIL_FREE:
+        continue
+    for m in links[n]:
+        nd = d + (node_pos[n] - node_pos[m]).length
+        if nd < near_feet.get(m, math.inf):
+            near_feet[m] = nd
+            heapq.heappush(heap, (nd, m))
+for n in range(nodes):
+    p = node_pos[n]
+    if pinned[n] or n in near_feet:
+        continue
+    if p.z >= pivot_z or min((seg_dist(p, *seg), name) for name, seg in bone_segments.items())[1] in (
+        "Neck",
+        "Head",
+        "Tail1",
+        "Tail2",
+        "Tail3",
+    ):
+        pinned[n] = True
+# A piece with nothing pinned (a floating halo, a loose plate) stays with the body
+part = np.full(nodes, -1)
+for start in range(nodes):
+    if part[start] >= 0:
+        continue
+    part[start] = start
+    piece, stack = [start], [start]
+    while stack:
+        n = stack.pop()
+        for m in links[n]:
+            if part[m] < 0:
+                part[m] = start
+                piece.append(m)
+                stack.append(m)
+    if not pinned[piece].any():
+        pinned[piece] = True
+u = pin.copy()
+if len(E) and real_legs and not pinned.all():
+    mid = (P[E[:, 0]] + P[E[:, 1]]) / 2
+    length = np.maximum(np.linalg.norm(P[E[:, 0]] - P[E[:, 1]], axis=1), 1e-6 * max(W, L, H))
+    reach = np.full(len(E), np.inf)  # distance from the nearest hip joint, side view
+    for key in real_legs:
+        reach = np.minimum(reach, np.hypot(mid[:, 1] - feet[key].y, mid[:, 2] - pivot_z))
+    cond = np.maximum(reach, 0.1 * hipZ) ** 2 / length
+    deg = np.bincount(E[:, 0], cond, nodes) + np.bincount(E[:, 1], cond, nodes)
+    free = ~pinned
+
+    def laplacian(x):
+        return deg * x - np.bincount(E[:, 0], cond * x[E[:, 1]], nodes) - np.bincount(E[:, 1], cond * x[E[:, 0]], nodes)
+
+    # Conjugate gradients on the free vertices (Jacobi preconditioned)
+    x = np.zeros(nodes)
+    r = np.where(free, -laplacian(np.where(pinned, pin, 0.0)), 0.0)
+    inv = np.where(free & (deg > 0), 1.0 / np.maximum(deg, 1e-30), 0.0)
+    z = inv * r
+    step = z.copy()
+    rz = r @ z
+    tolerance = 1e-9 * deg.max()
+    for _ in range(5000):
+        if rz <= 0 or np.abs(r).max() < tolerance:
+            break
+        a_step = np.where(free, laplacian(step), 0.0)
+        curvature = step @ a_step
+        if curvature <= 0:
+            break
+        alpha = rz / curvature
+        x += alpha * step
+        r -= alpha * a_step
+        z = inv * r
+        rz, previous = r @ z, rz
+        step = z + (rz / previous) * step
+    u = np.where(pinned, pin, np.clip(x, -1.0, 1.0))
+
 node_w = []
 for n in range(nodes):
-    merged = {}
-    for i in members[n]:
-        for name, w in weights[i].items():
-            merged[name] = merged.get(name, 0.0) + w / len(members[n])
-    node_w.append(merged)
+    p = node_pos[n]
+    pull = abs(float(u[n]))
+    pair = [k for k in real_legs if k[0] == ("F" if u[n] > 0 else "B")] if pull > 0 else []
+    if not pair:
+        node_w.append(nearest(p, body_bones))
+        continue
+    w = {name: v * (1 - pull) for name, v in nearest(p, body_bones).items()} if pull < 1 else {}
+    # Left and right swing together, so the pair's pull goes to the leg whose foot is nearer
+    if column[n] in pair:
+        key = column[n]
+    else:
+        key = min(pair, key=lambda k: (p.x - feet[k].x) ** 2 + (p.y - feet[k].y) ** 2)
+    for name, v in nearest(p, (f"Leg{key}_Upper", f"Leg{key}_Lower")).items():
+        w[name] = w.get(name, 0.0) + v * pull
+    node_w.append(w)
+
+# Smooth the weights along the surface. Nearest-bone weights flip from one bone to
+# the next within a single edge (at the knee, along the spine and tail), and an edge
+# whose two ends follow different bones stretched like a string when they moved.
+# Averaging with neighbors spreads each switch over a few rings of the mesh.
 SMOOTH_PASSES, SMOOTH_FACTOR = 16, 0.5
 for _ in range(SMOOTH_PASSES):
     smoothed = []
@@ -304,6 +525,27 @@ for _ in range(SMOOTH_PASSES):
             mixed[name] = mixed.get(name, 0.0) + w * SMOOTH_FACTOR
         smoothed.append(mixed)
     node_w = smoothed
+
+# Front legs or hind legs, never both: they swing opposite ways, so a vertex following
+# both is torn between them, and smoothing can leave a little of each where u crosses
+# zero. The weaker pair's weight and as much of the stronger's go to the body, so the
+# hand-over still passes smoothly through body-only vertices.
+for n in range(nodes):
+    w = node_w[n]
+    front = sum(v for k, v in w.items() if k.startswith("LegF"))
+    hind = sum(v for k, v in w.items() if k.startswith("LegB"))
+    if front <= 0 or hind <= 0:
+        continue
+    keep = "LegF" if front >= hind else "LegB"
+    strong, weak = max(front, hind), min(front, hind)
+    out = {k: v * (strong - weak) / strong for k, v in w.items() if k.startswith(keep)}
+    body_w = {k: v for k, v in w.items() if not k.startswith("Leg")}
+    body_total = sum(body_w.values())
+    if body_total > 0:
+        out.update({k: v * (1 + 2 * weak / body_total) for k, v in body_w.items()})
+    else:
+        out["Spine"] = 2 * weak
+    node_w[n] = out
 
 # Loose bits (fur tufts, mushrooms, spikes that aren't joined to the body) move as one
 # piece: a tuft split between a leg and the belly would stretch just like a seam.
@@ -328,14 +570,43 @@ for start in range(nodes):
         for n in island:
             node_w[n] = avg
 
+# Roblox takes 4 influences. A bone that doesn't make the cut hands its weight to the
+# kept bone nearest it in the skeleton (Tail3 to Tail2, Chest to Spine, a knee to its
+# hip), which moves most like it. Spreading it over all four instead took a share
+# from a leg on one vertex and not the next, and that edge stretched.
+tree = {b.name: (b.parent.name if b.parent and b.parent.name != "Root" else None) for b in arm.data.bones}
+tree.pop("Root", None)
+
+
+def chain(name):
+    out = []
+    while name:
+        out.append(name)
+        name = tree[name]
+    return out
+
+
+def hops(a, b):
+    ca, cb = chain(a), chain(b)
+    common = next((x for x in ca if x in cb), None)
+    return ca.index(common) + cb.index(common) if common else len(ca) + len(cb)
+
+
+hop = {(a, b): hops(a, b) for a in tree for b in tree}
+
+
 groups = {name: body.vertex_groups.new(name=name) for name in bone_segments}
 for n in range(nodes):
-    top = sorted(node_w[n].items(), key=lambda kv: -kv[1])[:4]  # Roblox: 4 influences
-    top = [(name, w) for name, w in top if w > 0.02]
-    total = sum(w for _, w in top)
+    w = dict(node_w[n])
+    while len(w) > 1 and (len(w) > 4 or min(w.values()) < 0.02):
+        name = min(w, key=w.get)
+        v = w.pop(name)
+        heir = min(w, key=lambda k: (hop[name, k], -w[k]))
+        w[heir] += v
+    total = sum(w.values())
     for i in members[n]:
-        for name, w in top:
-            groups[name].add([i], w / total, "REPLACE")
+        for name, v in w.items():
+            groups[name].add([i], v / total, "REPLACE")
 
 mod = body.modifiers.new("Armature", "ARMATURE")
 mod.object = arm
