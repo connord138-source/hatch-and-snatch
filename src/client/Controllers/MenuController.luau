@@ -33,6 +33,13 @@ local MENUS: { { id: string, title: string, menu: Menu, station: boolean? } } = 
 }
 
 local BUTTON_W, BUTTON_GAP = 96, 8
+local BAR_HEIGHT, BAR_BOTTOM = 38, 12
+-- The window fills the room between the top of the screen and the bar (up to its
+-- MaxSize): sized as a share of the screen, its bottom slid under the bar on a
+-- short phone (playtest 2026-10-03: Daily, Shop and Creatures)
+local WINDOW_TOP = 10
+local WINDOW_BOTTOM = BAR_BOTTOM + BAR_HEIGHT + 10
+local GUIDE_DONE = 6 -- the first-session guide's last step (GuideController's DONE)
 
 local MenuController = {}
 
@@ -46,8 +53,8 @@ function MenuController.start()
 
 	local window = Ui.panel(gui, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.52),
-		Size = UDim2.fromScale(0.9, 0.78),
+		Position = UDim2.new(0.5, 0, 0.5, (WINDOW_TOP - WINDOW_BOTTOM) / 2),
+		Size = UDim2.new(0.9, 0, 1, -(WINDOW_TOP + WINDOW_BOTTOM)),
 		BackgroundTransparency = 0.05,
 		Visible = false,
 	})
@@ -119,8 +126,8 @@ function MenuController.start()
 		local barWidth = onBar * BUTTON_W + (onBar - 1) * BUTTON_GAP
 		local button = Ui.button(gui, {
 			AnchorPoint = Vector2.new(0, 1),
-			Position = UDim2.new(0.5, -barWidth / 2 + (slot - 1) * (BUTTON_W + BUTTON_GAP), 1, -12),
-			Size = UDim2.fromOffset(BUTTON_W, 38),
+			Position = UDim2.new(0.5, -barWidth / 2 + (slot - 1) * (BUTTON_W + BUTTON_GAP), 1, -BAR_BOTTOM),
+			Size = UDim2.fromOffset(BUTTON_W, BAR_HEIGHT),
 			Text = entry.id,
 		})
 		if entry.id == "Shop" then
@@ -138,7 +145,8 @@ function MenuController.start()
 	ClientState.changed:connect(refreshOpen)
 
 	-- Daily: a red dot while today's login reward is waiting, and the menu opens by
-	-- itself once per session (after the first-session guide's early steps)
+	-- itself once per session, once the first-session guide is over (it popped up
+	-- in the middle of the guide, playtest 2026-10-03; the dot shows meanwhile)
 	local dailyButton = buttons.Daily
 	local badge = Instance.new("Frame")
 	badge.Name = "Badge"
@@ -155,7 +163,7 @@ function MenuController.start()
 	ClientState.changed:connect(function(state: { [string]: any })
 		local claimable = state.daily ~= nil and state.daily.claimable == true
 		badge.Visible = claimable
-		if claimable and not autoOpened and (state.onboarding or 0) >= 5 and open == nil then
+		if claimable and not autoOpened and (state.onboarding or 0) >= GUIDE_DONE and open == nil then
 			autoOpened = true
 			show("Daily")
 		end

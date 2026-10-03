@@ -48,9 +48,12 @@ admin.Parent = folder
 folder.Parent = ReplicatedStorage
 
 local REQUEST_INTERVAL = 0.15 -- minimum seconds between one player's requests of one kind
+local NOTIFY_REPEAT = 1 -- the same toast goes to a player at most this often (a prompt pressed over and over)
 local lastRequest: { [Player]: { [string]: number } } = {}
+local lastNotify: { [Player]: { text: string, at: number } } = {}
 Players.PlayerRemoving:Connect(function(player)
 	lastRequest[player] = nil
+	lastNotify[player] = nil
 end)
 
 export type NotifyKind = "info" | "good" | "bad" | "rare"
@@ -64,6 +67,12 @@ function Net.sendState(player: Player, changes: { [string]: any }, cleared: { st
 end
 
 function Net.notify(player: Player, text: string, kind: NotifyKind?)
+	local now = os.clock()
+	local last = lastNotify[player]
+	if last and last.text == text and now - last.at < NOTIFY_REPEAT then
+		return -- the client still shows it (and merges repeats into one toast)
+	end
+	lastNotify[player] = { text = text, at = now }
 	notify:FireClient(player, text, kind or "info")
 end
 

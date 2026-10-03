@@ -26,6 +26,8 @@ local TOAST_COLORS: { [string]: Color3 } = {
 	rare = Color3.fromRGB(150, 90, 10),
 }
 
+local TOAST_SECONDS = 4
+
 local ESSENCE_ORDER = { "Mossvale", "CoralCoast", "MagmaRift", "FrostShelf", "StormPeaks", "Moonfall" }
 
 local HudController = {}
@@ -206,7 +208,19 @@ function HudController.start()
 	layout.Padding = UDim.new(0, 6)
 	layout.Parent = toastHolder
 
+	-- One toast per message: the same one again (E pressed over and over on a
+	-- locked egg stacked copies, playtest 2026-10-03) pulses the toast already up
+	-- and keeps it there longer
+	local toasts: { [string]: { frame: Frame, expires: number } } = {}
 	local function toast(text: string, kind: string)
+		local key = `{kind}|{text}`
+		local shown = toasts[key]
+		if shown then
+			shown.expires = os.clock() + TOAST_SECONDS
+			shown.frame.BackgroundTransparency = 0
+			TweenService:Create(shown.frame, TweenInfo.new(0.3), { BackgroundTransparency = 0.25 }):Play()
+			return
+		end
 		local toastFrame = panel(toastHolder, {
 			Size = UDim2.new(1, 0, 0, 34),
 			BackgroundColor3 = TOAST_COLORS[kind] or TOAST_COLORS.info,
@@ -215,7 +229,13 @@ function HudController.start()
 			toastFrame,
 			{ Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4), Text = Ui.hint(text) }
 		)
-		task.delay(4, function()
+		local entry = { frame = toastFrame, expires = os.clock() + TOAST_SECONDS }
+		toasts[key] = entry
+		task.spawn(function()
+			while os.clock() < entry.expires do
+				task.wait(entry.expires - os.clock())
+			end
+			toasts[key] = nil
 			toastFrame:Destroy()
 		end)
 	end

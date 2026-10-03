@@ -50,6 +50,12 @@ local PAD_COUNT = 8
 local PAD_SIZE = 5
 local PAD_Z = -3 -- the band between the front row and the pedestals
 local PAD_GAP = 7
+-- Pad labels are sized in studs, narrower than the gap between pads, and every
+-- other one floats higher, so neighbours don't cover each other. Pixel-sized ones
+-- overlapped from a few steps back and on phones (playtest 2026-10-03).
+local PAD_LABEL_SIZE = UDim2.fromScale(PAD_GAP - 0.6, 2.4)
+local PAD_LABEL_HEIGHTS = { 4, 6.8 }
+local PAD_LABEL_DISTANCE = 40
 local HIDE_INSET = 3.5
 local HIDE_Z = { 12, 12, 28, 28 }
 local HIDE_SIDE = { -1, 1, -1, 1 }
@@ -168,7 +174,14 @@ function BaseKit.terminal(model: Model, origin: CFrame): (BasePart, ProximityPro
 	text.TextColor3 = Color3.fromRGB(140, 220, 255)
 	text.Text = "BASE TERMINAL"
 	text.Parent = gui
-	local open = prompt(desk, "Terminal", "Open Terminal", "Command Terminal", 0, "owner")
+	-- The prompt floats over the monitor: on the low desk it showed near the bottom
+	-- of the screen, under the menu bar (playtest 2026-10-03)
+	local promptAt = Instance.new("Attachment")
+	promptAt.Name = "TerminalPrompt"
+	promptAt.Position = Vector3.new(0, 5, 0) -- the desk's middle is 1.5 up: 6.5 over the floor
+	promptAt.Parent = desk
+	local open = prompt(promptAt, "Terminal", "Open Terminal", "Command Terminal", 0, "owner")
+	open.MaxActivationDistance = 10 -- measured from up there now
 	open:SetAttribute("OpensMenu", "Base")
 	return desk, open, text
 end
@@ -204,7 +217,8 @@ function BaseKit.pads(model: Model, origin: CFrame): { Pad }
 			CanQuery = false,
 			Transparency = 1,
 		})
-		local label = billboard(pad, Vector3.new(0, 3.6, 0), UDim2.fromOffset(170, 64), 45)
+		local height = PAD_LABEL_HEIGHTS[(i - 1) % #PAD_LABEL_HEIGHTS + 1]
+		local label = billboard(pad, Vector3.new(0, height, 0), PAD_LABEL_SIZE, PAD_LABEL_DISTANCE)
 		label.RichText = true
 		local gui = label.Parent :: BillboardGui
 		gui.Enabled = false

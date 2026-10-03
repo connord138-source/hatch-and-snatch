@@ -372,11 +372,7 @@ function BaseService.buyVault(player: Player)
 	data.vaults = index
 	apply(player, data)
 	Analytics.progress(player, "Vault", index)
-	Net.notify(
-		player,
-		`Vault {index} built! Put a rare creature inside and lock the door (hold E at the door).`,
-		"rare"
-	)
+	Net.notify(player, `Vault {index} built! Put a rare creature inside and lock it at the door (E).`, "rare")
 	ProgressionService.addXp(player, Config.Progression.xp.baseUpgradePerLevel * (index + 2))
 	DataService.markDirty(player)
 end

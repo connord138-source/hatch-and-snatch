@@ -179,7 +179,7 @@ local items: { Item } = {
 		cost = 6_000_000_000,
 		baseLevel = 3,
 		floors = 2,
-		description = "Hold E at the gate lever to bar both ramps for 45 s, so nobody gets up or down (90 s recharge)",
+		description = "Pull the gate lever (E) to bar both ramps for 45 s, so nobody gets up or down (90 s recharge)",
 		active = 45,
 		recharge = 90,
 	},
@@ -189,7 +189,7 @@ local items: { Item } = {
 		kind = "Security",
 		cost = 40_000_000_000,
 		baseLevel = 4,
-		description = "Hold E at the ballista to net the nearest thief carrying your creature within 80 studs: they drop it (2 min recharge)",
+		description = "Fire the ballista (E) to net the nearest thief carrying your creature within 80 studs: they drop it (2 min recharge)",
 		recharge = 120,
 	},
 }

@@ -7,7 +7,11 @@ local Ui = {}
 
 -- The screen size the HUD and menus are laid out for, in pixels. Smaller screens
 -- (phones, small windows) scale the whole UI down to fit; bigger ones keep 1:1.
+-- Touch screens use a smaller one, so phones scale down less and text and
+-- buttons come out about 15% bigger (playtest 2026-10-03: too small on a phone).
+-- The menu window and the HUD's left column still fit a short phone at that size.
 local DESIGN_SIZE = Vector2.new(1100, 620)
+local TOUCH_DESIGN_SIZE = Vector2.new(960, 540)
 local MIN_SCALE = 0.5
 
 Ui.colors = {
@@ -96,6 +100,11 @@ function Ui.scrollList(parent: Instance, props: { [string]: any }): ScrollingFra
 	return scroll
 end
 
+-- A touch screen with no keyboard (phones and tablets).
+function Ui.isTouch(): boolean
+	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+end
+
 -- Scales a ScreenGui to the screen: everything laid out in pixels shrinks on
 -- phones and small windows, and elements anchored to an edge stay on that edge.
 function Ui.autoScale(gui: ScreenGui)
@@ -107,7 +116,8 @@ function Ui.autoScale(gui: ScreenGui)
 			return
 		end
 		local size = camera.ViewportSize
-		scale.Scale = math.clamp(math.min(size.X / DESIGN_SIZE.X, size.Y / DESIGN_SIZE.Y), MIN_SCALE, 1)
+		local design = if Ui.isTouch() then TOUCH_DESIGN_SIZE else DESIGN_SIZE
+		scale.Scale = math.clamp(math.min(size.X / design.X, size.Y / design.Y), MIN_SCALE, 1)
 	end
 	update()
 	local camera = Workspace.CurrentCamera

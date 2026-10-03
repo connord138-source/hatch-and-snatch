@@ -18,8 +18,19 @@ local Ui = require(script.Parent.Parent.Ui)
 local REFRESH_SECONDS = 0.5
 
 local OddsController = {
-	open = false, -- the panel is on screen (the guide hides its goal card meanwhile)
+	open = false, -- an egg's prompt has the panel up (the guide hides its goal card meanwhile)
 }
+
+-- The hatch reveal plays over everything (RevealController), and the panel stayed
+-- on screen under it (playtest 2026-10-03): it steps aside meanwhile and comes
+-- back if the egg's prompt is still up.
+local revealing = false
+local applyVisible: () -> () = function() end
+
+function OddsController.setRevealing(value: boolean)
+	revealing = value
+	applyVisible()
+end
 
 local function text(parent: Instance, props: { [string]: any }): TextLabel
 	props.TextScaled = false
@@ -69,9 +80,11 @@ function OddsController.start()
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	Ui.autoScale(gui)
 
+	-- Top-right, under a desktop's player list; phones hide the list, and the panel
+	-- needs the height there
 	local panel = Ui.panel(gui, {
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -12, 0, 70),
+		Position = UDim2.new(1, -12, 0, if Ui.isTouch() then 12 else 70),
 		Size = UDim2.fromOffset(330, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 0.12,
@@ -175,7 +188,7 @@ function OddsController.start()
 		local eventId = Workspace:GetAttribute("MoonEvent")
 		local event = if typeof(eventId) == "string" then eventId else nil
 		local key = `{biomeId}|{luck}|{event}`
-		if key == lastKey and panel.Visible then
+		if key == lastKey then
 			return
 		end
 		lastKey = key
@@ -212,18 +225,21 @@ function OddsController.start()
 		note("Everything is rolled the moment you buy, with exactly these odds.")
 	end
 
+	applyVisible = function()
+		panel.Visible = shownBiome ~= nil and not revealing
+	end
 	local function show(prompt: ProximityPrompt, biomeId: string)
 		shownPrompt = prompt
 		shownBiome = biomeId
 		lastKey = ""
 		render(biomeId)
-		panel.Visible = true
+		applyVisible()
 		OddsController.open = true
 	end
 	local function hide()
 		shownPrompt = nil
 		shownBiome = nil
-		panel.Visible = false
+		applyVisible()
 		OddsController.open = false
 	end
 

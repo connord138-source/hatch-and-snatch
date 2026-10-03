@@ -24,6 +24,7 @@ local OddsController = require(script.Parent.OddsController)
 local player = Players.LocalPlayer
 local DONE = 6
 local BEAM_COLOR = Color3.fromRGB(255, 225, 90)
+local WALL_GAP = 2 -- the fortress walls stand this far outside the plot's floor (Fortress.luau GAP)
 
 local GuideController = {}
 
@@ -63,6 +64,36 @@ local function nearestEgg(state: { [string]: any }, from: Vector3): BasePart?
 		end
 	end
 	return best
+end
+
+-- Where the beam should point on the way to `goal`: the way in and out of a base
+-- is its gate, in the middle of the front wall, so a goal on the other side of
+-- the walls from the player gets a stop there first (the beam pointed straight
+-- through the starting fence, playtest 2026-10-03). From beside or behind the
+-- walls it rounds the nearer front corner first. The plot's floor (its
+-- PrimaryPart) gives the walls: its -Z faces the hub, as the plot's does.
+local function waypoint(plot: Model, from: Vector3, goal: Vector3): Vector3?
+	local floor = plot.PrimaryPart
+	if floor == nil then
+		return nil
+	end
+	local frame = floor.CFrame
+	local half = floor.Size / 2
+	local function inside(position: Vector3): boolean
+		local p = frame:PointToObjectSpace(position)
+		return math.abs(p.X) < half.X + WALL_GAP and math.abs(p.Z) < half.Z + WALL_GAP
+	end
+	local fromInside = inside(from)
+	if fromInside == inside(goal) then
+		return nil
+	end
+	local front = -half.Z - WALL_GAP
+	local here = frame:PointToObjectSpace(from)
+	if not fromInside and here.Z > front - 3 then
+		local side = if here.X < 0 then -1 else 1
+		return frame * Vector3.new(side * (half.X + WALL_GAP + 6), half.Y + 2, front - 6) -- clear of a corner tower
+	end
+	return frame * Vector3.new(0, half.Y + 2, front)
 end
 
 -- An owned incubator: with an egg in it (`occupied`) or empty.
@@ -136,14 +167,19 @@ function GuideController.start()
 		LayoutOrder = 2,
 	})
 
-	-- The beam: from the character to the current target. The target end lives on
-	-- Terrain and follows the target's position (a bought egg is destroyed, and a
-	-- destroyed part would take the attachment with it).
+	-- The beam: from the character to the current target, by way of the base's
+	-- gate when the walls are in between (waypoint). The ends live on Terrain and
+	-- follow the target's position (a bought egg is destroyed, and a destroyed part
+	-- would take the attachment with it).
 	local toAttachment = Instance.new("Attachment")
 	toAttachment.Name = "GuideTarget"
 	toAttachment.Parent = Workspace.Terrain
+	local markAttachment = Instance.new("Attachment") -- the arrow stays over the target itself
+	markAttachment.Name = "GuideMark"
+	markAttachment.Parent = Workspace.Terrain
 	local fromAttachment: Attachment? = nil
 	local currentTarget: BasePart? = nil
+	local currentPlot: Model? = nil
 	local beam = Instance.new("Beam")
 	beam.Name = "GuideBeam"
 	beam.Color = ColorSequence.new(BEAM_COLOR)
@@ -168,13 +204,21 @@ function GuideController.start()
 	marker.Size = UDim2.fromOffset(60, 60)
 	marker.StudsOffset = Vector3.new(0, 4, 0)
 	marker.Enabled = false
-	marker.Adornee = toAttachment
+	marker.Adornee = markAttachment
 	local arrow = Ui.label(marker, {
 		Size = UDim2.fromScale(1, 1),
 		Text = "⬇",
 		TextColor3 = BEAM_COLOR,
 	})
 	marker.Parent = gui
+
+	-- Moves the beam's end and the arrow to the target (or the gate on the way).
+	local function aim(target: BasePart, root: BasePart)
+		local goal = target.Position
+		markAttachment.WorldPosition = goal
+		local plot = currentPlot
+		toAttachment.WorldPosition = (if plot then waypoint(plot, root.Position, goal) else nil) or goal
+	end
 
 	local function point(target: BasePart?)
 		currentTarget = target
@@ -192,7 +236,7 @@ function GuideController.start()
 			fromAttachment = attachment
 			beam.Attachment0 = attachment
 		end
-		toAttachment.WorldPosition = target.Position
+		aim(target, root)
 		beam.Enabled = true
 		marker.Enabled = true
 	end
@@ -201,8 +245,9 @@ function GuideController.start()
 	RunService.RenderStepped:Connect(function(dt)
 		arrow.Position = UDim2.fromOffset(0, math.sin(os.clock() * 4) * 6)
 		local following = currentTarget
-		if following and following.Parent then
-			toAttachment.WorldPosition = following.Position -- belt eggs keep moving
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if following and following.Parent and root and root:IsA("BasePart") then
+			aim(following, root) -- belt eggs keep moving, and so does the player
 		end
 		accumulator += dt
 		if accumulator < 0.2 then
@@ -212,13 +257,13 @@ function GuideController.start()
 
 		local state = ClientState.current
 		local plot = myPlot(world)
+		currentPlot = plot
 		local step: number = if state then state.onboarding or DONE else DONE
 		if state == nil or plot == nil or step >= DONE then
 			banner.Visible = false
 			point(nil)
 			return
 		end
-		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		local from = if root and root:IsA("BasePart") then root.Position else Vector3.zero
 
 		local message: string? = nil

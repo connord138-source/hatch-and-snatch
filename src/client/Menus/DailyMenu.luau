@@ -35,7 +35,20 @@ local function setButton(button: TextButton, label: string, enabled: boolean, co
 	button.BackgroundColor3 = if enabled then color else Ui.colors.disabled
 end
 
-function DailyMenu.build(content: Frame)
+function DailyMenu.build(window: Frame)
+	-- The layout is in fixed rows; on a short phone the menu window is shorter than
+	-- them, so they scroll instead of running off its bottom (playtest 2026-10-03)
+	local content = Instance.new("ScrollingFrame")
+	content.BackgroundTransparency = 1
+	content.BorderSizePixel = 0
+	content.Size = UDim2.fromScale(1, 1)
+	content.CanvasSize = UDim2.new()
+	content.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	content.ScrollBarThickness = 6
+	content.ScrollingDirection = Enum.ScrollingDirection.Y
+	content.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar -- buttons stay clear of the scroll bar
+	content.Parent = window
+
 	streakLabel = text(content, {
 		Size = UDim2.new(1, -170, 0, 28),
 		TextSize = 20,

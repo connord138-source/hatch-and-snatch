@@ -51,11 +51,14 @@ local function build(gui: ScreenGui)
 	local window = Ui.panel(gui, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(700, 540),
+		Size = UDim2.new(0, 700, 1, -24), -- the list scrolls, so it fits a short phone
 		BackgroundTransparency = 0.05,
 		Visible = false,
 		ZIndex = 20,
 	})
+	local windowLimit = Instance.new("UISizeConstraint")
+	windowLimit.MaxSize = Vector2.new(700, 540)
+	windowLimit.Parent = window
 	Ui.label(window, {
 		Position = UDim2.fromOffset(16, 10),
 		Size = UDim2.new(1, -80, 0, 30),
@@ -208,7 +211,7 @@ local function build(gui: ScreenGui)
 			local scale = window.AbsoluteSize.X / 700
 			overlay.Position = UDim2.fromOffset(
 				math.min(at.X / scale, 700 - 266),
-				math.min(at.Y / scale + ROW_HEIGHT, 540 - 306)
+				math.min(at.Y / scale + ROW_HEIGHT, window.AbsoluteSize.Y / scale - 306)
 			)
 			overlay.Visible = true
 		end)

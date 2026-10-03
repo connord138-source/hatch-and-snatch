@@ -18,6 +18,7 @@ local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local CreatureViewport = require(script.Parent.Parent.CreatureViewport)
 local Genetics = require(ReplicatedStorage.Shared.Genetics)
 local Ui = require(script.Parent.Parent.Ui)
+local OddsController = require(script.Parent.OddsController)
 
 local TICK_SOUND = "rbxasset://sounds/electronicpingshort.wav"
 local CARD_W, CARD_H, CARD_GAP = 118, 150, 10
@@ -70,10 +71,25 @@ local function enqueue(job: () -> ())
 	end
 	busy = true
 	task.spawn(function()
+		-- The egg odds panel steps aside while reveals play. A failed reveal mustn't
+		-- leave it hidden (eggs show their odds before buying) or stall the queue.
+		OddsController.setRevealing(true)
 		while #queue > 0 do
 			local next = table.remove(queue, 1) :: () -> ()
-			next()
+			local ok, problem = pcall(function(): any
+				next()
+				return nil
+			end)
+			if not ok then
+				warn(`[RevealController] reveal failed: {problem}`)
+				for _, child in gui:GetChildren() do
+					if child:IsA("GuiObject") then
+						child:Destroy() -- its half-built overlay
+					end
+				end
+			end
 		end
+		OddsController.setRevealing(false)
 		busy = false
 	end)
 end

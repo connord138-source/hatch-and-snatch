@@ -147,7 +147,7 @@ function BaseMenu.build(content: Frame)
 					"ToggleBuild"
 				)
 				row.title.Text = item.name
-				row.info.Text = item.description
+				row.info.Text = Ui.hint(item.description) -- " (E)" key hints go on touch and console
 				row.button.Activated:Connect(function()
 					if row.ready then
 						ClientState.request("ToggleBuild", item.id)
@@ -290,7 +290,7 @@ function BaseMenu.refresh(state: { [string]: any })
 		then `Security: {securityLevels[security].name} ({security} / {#securityLevels})`
 		else `Security: none (0 / {#securityLevels})`
 	if nextSecurity then
-		securityRow.info.Text = `Next: {nextSecurity.name}. {nextSecurity.description}.`
+		securityRow.info.Text = Ui.hint(`Next: {nextSecurity.name}. {nextSecurity.description}.`)
 		offer(securityRow, cash, nextSecurity.name, nextSecurity.cost)
 	else
 		securityRow.info.Text = "Fully secured: alarm, tripwire and auto-lock (it locks your vaults too)."
@@ -320,8 +320,9 @@ function BaseMenu.refresh(state: { [string]: any })
 	local vaults: number = state.vaults or 0
 	local nextVault = tunables.vaults[vaults + 1]
 	vaultRow.title.Text = `Vaults: {vaults} / {#tunables.vaults}`
-	local how =
-		`One creature each, behind a door you lock for {Format.duration(tunables.vaultLockSeconds)} (hold E at the door). Nothing in a locked vault can be stolen.`
+	local how = Ui.hint(
+		`One creature each, behind a door you lock for {Format.duration(tunables.vaultLockSeconds)} at the door (E). Nothing in a locked vault can be stolen.`
+	)
 	if nextVault then
 		vaultRow.info.Text = `Next: Vault {vaults + 1} on the {floorName(nextVault.floor)}. {how}`
 		offer(
