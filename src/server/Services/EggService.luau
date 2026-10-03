@@ -135,6 +135,11 @@ local function spawnEgg()
 	part.Material = if biomeId == "Moonfall" or biomeId == "Junk"
 		then Enum.Material.Neon
 		else Enum.Material.SmoothPlastic
+	-- On the belt before the mesh is welded on: a WeldConstraint takes its offset
+	-- when the parts reach the Workspace, so an anchor moved after welding left
+	-- every egg's mesh at the world origin, inside the hatchery (eggs invisible on
+	-- the belt, 2026-10-02)
+	part.CFrame = Belt.cframe(WorldService.conveyorCenter, Belt.angle(0))
 	-- Imported egg mesh (Props.egg): the anchor part goes invisible and the mesh is welded to it
 	local eggModel = Props.egg(biomeId, EGG_HEIGHT)
 	if eggModel then
@@ -171,7 +176,6 @@ local function spawnEgg()
 		sold = false,
 	}
 	part:SetAttribute("SpawnedAt", now) -- BeltController animates it from this
-	part.CFrame = Belt.cframe(WorldService.conveyorCenter, Belt.angle(0))
 	prompt.Enabled = false -- starts inside the tunnel
 	prompt.Triggered:Connect(function(player)
 		tryBuy(egg, player)
