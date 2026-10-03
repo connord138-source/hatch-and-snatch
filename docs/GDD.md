@@ -237,17 +237,18 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 
 | Rarity | Base cash/sec | Hatch time | Growth factor |
 |---|---|---|---|
-| Common | 1 | 30 s | ×1 |
-| Uncommon | 3 | 90 s | ×1.25 |
-| Rare | 8 | 5 min | ×1.5 |
-| Epic | 25 | 15 min | ×2 |
-| Legendary | 80 | 45 min | ×3 |
-| Mythic | 400 | 3 h | ×4 |
-| Celestial | 1200 | 4 h | ×5 |
-| Cosmic | 3000 | 6 h | ×6 |
-| Secret | 6000 | 8 h | ×8 |
-| Junk | 30 | 20 min | ×1.5 |
+| Common | 1 | 10 s | ×1 |
+| Uncommon | 3 | 20 s | ×1.25 |
+| Rare | 8 | 45 s | ×1.5 |
+| Epic | 25 | 2 min | ×2 |
+| Legendary | 80 | 4 min | ×3 |
+| Mythic | 400 | 8 min | ×4 |
+| Celestial | 1200 | 10 min | ×5 |
+| Cosmic | 3000 | 12 min | ×6 |
+| Secret | 6000 | 15 min | ×8 |
+| Junk | 30 | 1 min | ×1.5 |
 
+- **Hatch times** (owner, 2026-10-03: "shouldn't be long at all"; were 30 s to 8 h) are for a Basic incubator; better tiers divide them by up to 4 (Cosmic). Skip Hatch now mostly matters for ultra-rares.
 - **Growth times:** Baby → Juvenile takes 30 min × the growth factor; Juvenile → Adult takes 3 h × the growth factor.
 - **Egg prices:** $150 × the biome's price multiplier (×16 per biome): Mossvale 150, Coral 2.4K, Magma 38.4K, Frost 614K, Storm 9.8M, Moonfall 157M (Junk 38.4K). New players start with $300 (two eggs).
 - **Biome earnings multiplier:** creatures earn base cash/sec × their biome's earnings multiplier (Mossvale 1, Coral 4, Magma 16, Frost 60, Storm 220, Moonfall 300, Junk 1). It grows much slower than egg prices, so each biome is a bigger investment than the last.
@@ -262,19 +263,19 @@ All of this is checked on the server: grab range, carry state, drop-off at the t
 
 | Milestone | 1 h/day | 3 h/day | 8 h/day | 12 h/day |
 |---|---|---|---|---|
-| Coral Coast (Lv 4) | 22 min | 22 min | 22 min | 22 min |
+| Coral Coast (Lv 4) | 10 min | 10 min | 10 min | 10 min |
 | Base level 2 | day 1 | day 1 | day 1 | day 1 |
-| Magma Rift | day 2 | day 2 | day 1 | day 1 |
-| Second Floor | day 4 | day 3 | day 2 | day 2 |
-| Vault 2 | day 7 | day 4 | day 2 | day 2 |
-| Frost Shelf | day 8 | day 4 | day 2 | day 2 |
-| Top Floor | day 17 | day 9 | day 6 | day 4 |
-| Vault 4 | — | day 16 | day 9 | day 7 |
-| Storm Peaks | day 27 | day 11 | day 5 | day 3 |
-| Base level 5 (max) | — | day 22 | day 11 | day 8 |
-| Moonfall | — | day 22 | day 11 | day 8 |
-| Everything bought (6 Cosmic incubators) | — | — | day 20 | day 15 |
-| First rebirth | — | — | day 22 | day 17 |
+| Magma Rift | day 2 | day 1 | day 1 | day 1 |
+| Second Floor | day 3 | day 3 | day 2 | day 2 |
+| Vault 2 | day 6 | day 4 | day 2 | day 2 |
+| Frost Shelf | day 7 | day 3 | day 2 | day 1 |
+| Top Floor | day 16 | day 9 | day 5 | day 4 |
+| Vault 4 | day 30 | day 15 | day 8 | day 6 |
+| Storm Peaks | day 26 | day 10 | day 4 | day 3 |
+| Base level 5 (max) | — | day 19 | day 10 | day 8 |
+| Moonfall | — | day 22 | day 10 | day 8 |
+| Everything bought (6 Cosmic incubators) | — | — | day 18 | day 13 |
+| First rebirth | — | — | day 20 | day 14 |
 
 Before the retune, a 3 h/day player had bought everything in about 3 hours of play. Rerun the sim after any economy change. Paid boosts, events and stealing make real players somewhat faster than this baseline.
 

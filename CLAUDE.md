@@ -55,6 +55,7 @@ unrelated to the Polymarket worker.
   - Players start with 1 incubator and can buy up to 6.
   - Incubator tiers (Basic → Cosmic) hatch faster and accept later biomes.
   - The rarity color fades in from 40% incubation.
+  - **Hatch times** (owner, 2026-10-03: "shouldn't be long at all"): 10 s Common, 20 s Uncommon, 45 s Rare, 2 min Epic, 4 min Legendary, 8–15 min for the ultra-rares, 1 min Junk (`Config/Rarities.luau` `hatchSeconds`), divided by the incubator tier's speed (up to ×4).
   - There is a physical Luck Wheel at the North Commons (charges the next egg's luck) and a case-opening hatch reveal. See GDD §3.1.
 - **Belt:** eggs roll out of and back into the hatchery tunnel; they never vanish in view.
 - **Creatures:** they sit when idle and only run (hop) while following. Walking a creature makes it follow you, prevents stealing and doubles growth speed; it keeps earning, and AFK walking is fine (owner, 2026-10-03).
@@ -83,7 +84,7 @@ unrelated to the Polymarket worker.
   - **Paid random items (2026-10-01):** eggs count, because Robux buys cash and Server Luck. Eggs roll species, finish and mutation at purchase, and the odds panel (`Shared/Odds.luau`, `OddsController`) shows exact odds summing to 100% before buying. `paidRandom` products are hidden for `ArePaidRandomItemsRestricted` players. The questionnaire answer is Yes / Yes.
   - Free rewards (`RewardsService`): codes (`Config/Codes.luau`), a Roblox group perk (id 0 until the group exists), a Premium perk, and a rewarded ad giving ×2 cash (ad rewards can't be random, so it isn't a free egg).
 - **Launch (owner, 2026-09-30):** v1 ships with every biome. Players unlock them through Hatcher Level and base level. Later updates add creatures, maps and features, not gated biomes.
-- **Economy pacing (owner, 2026-09-30):** players must not max their base on day 1. The economy was retuned so a 3 h/day player reaches Frost around day 4, Storm around day 11 and base 5 plus Moonfall around days 19–22; rebirth is the endgame sink after that. See GDD §7 "Pacing".
+- **Economy pacing (owner, 2026-09-30):** players must not max their base on day 1. The economy was retuned so a 3 h/day player reaches Frost around day 3–4, Storm around day 10 and base 5 plus Moonfall around days 19–22; rebirth is the endgame sink after that. See GDD §7 "Pacing".
   - Rerun `bash tools/sim/run_economy_sim.sh` after any change to prices, earnings, costs or XP.
 - **Daily rewards** (built 2026-09-30): a 7-day login streak and 3 daily quests (GDD §7.4, `Config/Daily.luau`).
 - **Store page** (built 2026-09-30): the files to upload are in `marketing/`, and the copy is in `docs/STORE_PAGE.md`. Rebuild with `python3 tools/marketing/compose.py`. Store art must be attention-grabbing (owner).
