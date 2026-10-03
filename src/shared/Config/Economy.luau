@@ -52,9 +52,9 @@ local Tunables = {
 	moonEventIntervalSeconds = 60 * 60,
 
 	-- Base upgrades: each level widens and deepens the plot (longer escape run for
-	-- thieves) and lengthens the laser lock. Levels 2-3 add a row of 5 ground
-	-- pedestals (`pedestals` = ground pedestals, up to 20); levels 3 and 4 open the
-	-- floors above (`floors`).
+	-- thieves) and lengthens the laser lock. Levels 2-3 add 5 ground pedestals each
+	-- (`pedestals` = ground pedestals, up to 20, in two wings either side of an open
+	-- hall); levels 3 and 4 open the floors above (`floors`).
 	baseLevels = {
 		{ cost = 0, pedestals = 10, lockBonusSeconds = 0 },
 		{ cost = 60_000, pedestals = 15, lockBonusSeconds = 15 },
@@ -63,14 +63,16 @@ local Tunables = {
 		{ cost = 500_000_000_000, pedestals = 20, lockBonusSeconds = 60 },
 	},
 
-	-- Floors (owner, 2026-10-01), bought in order in the Base menu. Each adds a row of
-	-- 5 pedestals one story up: harder to steal from, since thieves must climb the
-	-- ramps, the Steal hold gets longer each floor up (`floorStealHold`), and the
-	-- creature has to be carried all the way back down. Each floor also has room
-	-- for two vaults. Floor 1 is the ground.
+	-- Floors (owner, 2026-10-01), bought in order in the Base menu. Each adds 9
+	-- pedestals one story up (owner, 2026-10-02: "more spots on second and third
+	-- floors": a row of 5 behind the front arches and 2 along each side wall):
+	-- harder to steal from, since thieves must climb the ramps, the Steal hold gets
+	-- longer each floor up (`floorStealHold`), and the creature has to be carried all
+	-- the way back down. Each floor also has room for two vaults. Floor 1 is the
+	-- ground.
 	floors = {
-		{ name = "Second Floor", cost = 800_000_000, baseLevel = 3, pedestals = 5 },
-		{ name = "Top Floor", cost = 60_000_000_000, baseLevel = 4, pedestals = 5 },
+		{ name = "Second Floor", cost = 800_000_000, baseLevel = 3, pedestals = 9 },
+		{ name = "Top Floor", cost = 60_000_000_000, baseLevel = 4, pedestals = 9 },
 	},
 	floorStealHold = 0.5, -- each floor up adds 50% to the Steal hold
 
@@ -272,9 +274,10 @@ local function baseLevel(level: number): { cost: number, pedestals: number, lock
 	return levels[math.clamp(level, 1, #levels)]
 end
 
--- Pedestal slots: 1-20 on the ground, 21-25 on the Second Floor, 26-30 on the
+-- Pedestal slots: 1-20 on the ground, 21-29 on the Second Floor, 30-38 on the
 -- Top Floor, the vaults at 41-44 (`VAULT_SLOT_BASE` + vault number) and the
 -- hiding spots at 51-54 (`HIDE_SLOT_BASE` + spot number, Config.BaseBuilds).
+-- The floors' pedestals must stay under VAULT_SLOT_BASE (20 at most).
 local GROUND_SLOTS = 20
 local VAULT_SLOT_BASE = 40
 local HIDE_SLOT_BASE = 50

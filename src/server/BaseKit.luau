@@ -482,6 +482,10 @@ end
 
 -- Where the security fixtures stand for a plot's size, and which are owned.
 -- `raised` pops the spikes up (StealService, while the strip holds someone).
+-- `gates` says where the keep's ramps start (WorldService's layout, plot-local):
+-- the lever by the first one's foot and a bar across each ramp's foot.
+export type Gates = { lever: Vector3, bars: { Vector3 } }
+
 function BaseKit.placeSecurity(
 	model: Model,
 	security: Security,
@@ -491,7 +495,8 @@ function BaseKit.placeSecurity(
 	plotFront: number,
 	owned: { [string]: boolean },
 	alarm: boolean,
-	floors: number
+	floors: number,
+	gates: Gates
 )
 	local function set(p: BasePart, visible: boolean, cframe: CFrame, solid: boolean?)
 		p.CFrame = cframe
@@ -527,10 +532,14 @@ function BaseKit.placeSecurity(
 
 	-- Ramp gates: the lever by the foot of the ramp, bars at each ramp's foot
 	local hasGates = owned.RampGates == true and floors >= 2
-	set(security.lever, hasGates, origin * CFrame.new(24.5, TOP + 1.7, plotFront + 2.5), true)
+	set(security.lever, hasGates, origin * CFrame.new(gates.lever), true)
 	security.leverPrompt:SetAttribute("Active", hasGates)
-	security.bars[1].CFrame = origin * CFrame.new(31, TOP + 4.5, -19.6)
-	security.bars[2].CFrame = origin * CFrame.new(-31, 19 + 4.5, 7.6)
+	for i, bar in security.bars do
+		local at = gates.bars[i]
+		if at then
+			bar.CFrame = origin * CFrame.new(at)
+		end
+	end
 
 	-- Net ballista in the front-left corner, looking out over the gate
 	local hasBallista = owned.NetBallista == true

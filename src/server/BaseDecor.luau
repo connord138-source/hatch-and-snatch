@@ -49,7 +49,8 @@ local function column(
 end
 
 -- A torch flame, in the theme kit's colors when the castle has one (teal for the
--- Coral Fort, violet for the Moon Palace, ...)
+-- Coral Fort, violet for the Moon Palace, ...), its light scaled and culled like the
+-- kit's own (full-strength torches glared white on the Diamond walls by day)
 local function flame(parent: BasePart, size: number, lit: boolean, kit: CastleKits.Kit?)
 	local fire = Instance.new("Fire")
 	fire.Size = size
@@ -61,8 +62,11 @@ local function flame(parent: BasePart, size: number, lit: boolean, kit: CastleKi
 		local light = Instance.new("PointLight")
 		light.Color = if kit then kit.light else FIRE
 		light.Range = 14
-		light.Brightness = 1.2
+		light.Brightness = 1.2 * (if kit then kit.lightScale or 1 else 1)
 		light.Parent = parent
+		if kit then
+			CollectionService:AddTag(light, "KitLight")
+		end
 	end
 end
 
@@ -118,6 +122,9 @@ function BaseDecor.build(
 	local folder = Instance.new("Folder")
 	folder.Name = "Builds"
 	local x, f, b, g = layout.halfW, layout.front, layout.back, layout.gateHalf
+	-- What stands by the gate moves out with a wide gatehouse model (the Citadel's
+	-- end towers reach 20 studs out; the part-built gatehouse 11.5, which gives g)
+	local gx = if layout.gatehouse then layout.gateOuter - 4.5 else g
 	local kit = CastleKits.get(theme.kit)
 	local face = layout.thickness / 2 -- from the wall's middle to its outer face
 	local low = layout.height < 6 -- the Camp's fence: hang things on poles instead
@@ -126,11 +133,15 @@ function BaseDecor.build(
 	end
 
 	if shown.WallTorches then
+		-- Clear of the gatehouse beside the gate and of the front corner towers (a
+		-- torch 4 studs from the corner stood inside a level-5 tower's base)
+		local byGate = if layout.gatehouse then gx + 7 else g + 5
+		local byCorner = if layout.frontTowers > 0 then layout.frontTowers + 4.5 else 4
 		local spots = {
-			Vector3.new(-g - 5, 0, f - face - 0.7),
-			Vector3.new(g + 5, 0, f - face - 0.7),
-			Vector3.new(-x + 4, 0, f - face - 0.7),
-			Vector3.new(x - 4, 0, f - face - 0.7),
+			Vector3.new(-byGate, 0, f - face - 0.7),
+			Vector3.new(byGate, 0, f - face - 0.7),
+			Vector3.new(-x + byCorner, 0, f - face - 0.7),
+			Vector3.new(x - byCorner, 0, f - face - 0.7),
 			Vector3.new(-x - face - 0.7, 0, (f + b) / 2),
 			Vector3.new(x + face + 0.7, 0, (f + b) / 2),
 		}
@@ -171,7 +182,7 @@ function BaseDecor.build(
 	end
 
 	if shown.CampSupplies then
-		prop(folder, "CampSupplies", at(-g - 13, f - 6, 200), 4, function(base)
+		prop(folder, "CampSupplies", at(-gx - 13, f - 6, 200), 4, function(base)
 			for i, offset in { Vector3.new(-1.5, 0, 0), Vector3.new(1.5, 0, 0.4), Vector3.new(0, 0, -2) } do
 				local size = if i == 3 then Vector3.new(2.6, 2.6, 2.6) else Vector3.new(2.2, 2.2, 2.2)
 				part(folder, {
@@ -194,7 +205,7 @@ function BaseDecor.build(
 	end
 
 	if shown.Campfire then
-		prop(folder, "Campfire", at(-g - 24, f - 14), 3.2, function(base)
+		prop(folder, "Campfire", at(-gx - 24, f - 14), 3.2, function(base)
 			for i = 0, 7 do
 				local angle = i / 8 * 2 * math.pi
 				part(folder, {
@@ -217,7 +228,7 @@ function BaseDecor.build(
 	end
 
 	if shown.FlowerPlanters then
-		for _, px in { -g - 9, -g - 19, g + 9, g + 19 } do
+		for _, px in { -gx - 9, -gx - 19, gx + 9, gx + 19 } do
 			prop(folder, "FlowerPlanter", at(px, f - face - 1), 2.2, function(base)
 				part(folder, {
 					Name = "Planter",
@@ -247,7 +258,7 @@ function BaseDecor.build(
 	if shown.Banners then
 		local banner = theme.bannerColor or theme.laserColor
 		local stripe = theme.roofColor or theme.trimColor
-		for _, px in { -g - 7.5, g + 7.5, -x + 8, x - 8 } do
+		for _, px in { -gx - 7.5, gx + 7.5, -x + 8, x - 8 } do
 			local top = if low then 8 else layout.height - 0.5
 			local base = at(px, f - face - 0.3)
 			if low then
@@ -284,7 +295,7 @@ function BaseDecor.build(
 	end
 
 	if shown.TrainingYard then
-		prop(folder, "TrainingDummy", at(g + 20, f - 13, 160), 5, function(base)
+		prop(folder, "TrainingDummy", at(gx + 20, f - 13, 160), 5, function(base)
 			column(
 				folder,
 				base,
@@ -311,7 +322,7 @@ function BaseDecor.build(
 	end
 
 	if shown.StoneWell then
-		prop(folder, "StoneWell", at(g + 22, f - 28, 200), 6, function(base)
+		prop(folder, "StoneWell", at(gx + 22, f - 28, 200), 6, function(base)
 			column(folder, base, 4.4, 2.4, {
 				Name = "Well",
 				Material = Enum.Material.Cobblestone,
@@ -371,7 +382,7 @@ function BaseDecor.build(
 	end
 
 	if shown.Fountain then
-		prop(folder, "Fountain", at(-g - 22, f - 30), 7, function(base)
+		prop(folder, "Fountain", at(-gx - 22, f - 30), 7, function(base)
 			column(folder, base, 9, 1.4, {
 				Name = "FountainBasin",
 				Material = Enum.Material.Marble,
@@ -441,9 +452,11 @@ function BaseDecor.build(
 		end
 		local mid = inner + width / 2
 		local outerX = x + inner + width
+		-- The back and front strips take the corners, the sides run between them (strips
+		-- overlapping in the corners flickered)
 		strip(0, b + mid, outerX * 2, width) -- back
-		strip(-x - mid, (f + b) / 2, width, b - f + (inner + width) * 2) -- left
-		strip(x + mid, (f + b) / 2, width, b - f + (inner + width) * 2) -- right
+		strip(-x - mid, (f + b) / 2, width, b - f + inner * 2) -- left
+		strip(x + mid, (f + b) / 2, width, b - f + inner * 2) -- right
 		local gapHalf = 6
 		strip(-(outerX + gapHalf) / 2, f - mid, outerX - gapHalf, width) -- front, either side of the bridge
 		strip((outerX + gapHalf) / 2, f - mid, outerX - gapHalf, width)

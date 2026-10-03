@@ -8,6 +8,7 @@
 -- prop is imported (ReplicatedStorage.WorldProps, see Props.luau) the prop is
 -- fitted over it. Gameplay only depends on the parts/CFrames exposed here.
 local Lighting = game:GetService("Lighting")
+local MaterialService = game:GetService("MaterialService")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -89,12 +90,18 @@ export type VaultRoom = {
 	locked: boolean,
 }
 
-local PLOT_RADIUS = 128 -- room between neighbours for the fortress walls and towers
+-- The bigger castles (owner, 2026-10-02: "needs to be larger and open up more on
+-- the bottom") pushed the plot ring and everything outside it out: the fortresses'
+-- front towers keep ~27 studs between neighbours, and the open land past the zones
+-- keeps its width. Their back towers stand ~48 studs from the biome ring (owner,
+-- 2026-10-02: "more space between the bases and the biomes ... so players can see
+-- biomes behind built castle bases").
+local PLOT_RADIUS = 140 -- room between neighbours for the fortress walls and towers
 local PLOT_FRONT = -22 -- local Z of a plot's front edge (the side facing the hub)
 local GROUND_Y = 0.2
-local ISLAND_RADIUS = 410 -- roomy (owner, 2026-10-01): open land and landmarks past the zones
-local ZONE_INNER = 205 -- the biome ring's inner wall radius (buildZones)
-local ZONE_OUTER = 295 -- and its outer wall radius
+local ISLAND_RADIUS = 465 -- roomy (owner, 2026-10-01): open land and landmarks past the zones
+local ZONE_INNER = 260 -- the biome ring's inner wall radius (buildZones)
+local ZONE_OUTER = 350 -- and its outer wall radius
 local INCUBATOR_GLASS = 0.45 -- transparency of the imported incubator model
 local TOP = 1 -- plot floor top, relative to the plot origin
 
@@ -166,44 +173,64 @@ local function plotAngle(index: number): number
 	return (index - 1) / Config.Economy.tunables.basePlotsPerServer * 2 * math.pi
 end
 
--- Plot footprint for a base level: it widens and deepens (away from the hub).
--- Levels 4-5 keep the depth: the floors above (setFloors) give the room instead.
-local PLOT_WIDTHS = { 60, 64, 68, 72, 76 }
-local PLOT_DEPTHS = { 48, 56, 68, 68, 68 }
+-- Plot footprint for a base level: it widens and deepens (away from the hub) as
+-- the ground's rows of pedestals come in (level 1 reaches the third row, level 2
+-- the fourth, level 3 the fifth). Levels 4-5 keep the depth: the floors above
+-- (setFloors) give the room instead.
+local PLOT_WIDTHS = { 64, 72, 84, 86, 88 }
+local PLOT_DEPTHS = { 56, 68, 80, 80, 80 }
 local function plotSize(level: number): (number, number)
 	local i = math.clamp(level, 1, #PLOT_WIDTHS)
 	return PLOT_WIDTHS[i], PLOT_DEPTHS[i]
 end
 
 -- Floors above the ground (Config.Economy.tunables.floors): stacked slabs over the
--- back of the plot, FLOOR_HEIGHT apart (beyond a Steal prompt's reach), with glass
--- walls too tall to jump and ramps up the sides, so thieves have to walk up and
--- carry the creature back down. The Second Floor's ramp climbs the right side from
--- the front; the Top Floor's climbs the left side from the Second Floor. Each floor
--- has a vault room in each back corner.
+-- back of the plot, FLOOR_HEIGHT apart (beyond a Steal prompt's reach), with
+-- stone walls too tall to jump and ramps up the sides, so thieves have to walk up
+-- and carry the creature back down. The Second Floor's ramp climbs the right side
+-- from the front; the Top Floor's leaves the Second Floor at its back left (so a
+-- thief crosses the whole floor) and climbs forward to the Top Floor's front left.
+-- Each floor has a vault room in each back corner.
 local FLOOR_HEIGHT = 18
-local FLOOR_X = 28 -- half width
-local FLOOR_Z0: { [number]: number } = { [2] = 2, [3] = 14 } -- front edges (the top floor is set back)
-local FLOOR_Z1 = 46
--- The pedestal row on each floor: just inside the arches, so the creatures show
--- from outside like the concepts' alcoves (a walkway in front, niches behind)
-local FLOOR_ROW_Z: { [number]: number } = { [2] = 8, [3] = 20 }
+local FLOOR_X = 34 -- half width
+local FLOOR_Z0: { [number]: number } = { [2] = 2, [3] = 8 } -- front edges (the top floor is set back)
+local FLOOR_Z1 = 58
+-- Each floor's spots (owner, 2026-10-02: "more spots on second and third floors"):
+-- a row of 5 just inside the front arches, so the creatures show from outside like
+-- the concepts' alcoves, and two along each side wall facing in, clear of the
+-- vault doors behind them
+local FLOOR_ROW_Z: { [number]: number } = { [2] = 8, [3] = 14 }
+local FLOOR_FRONT_X = { -24, -12, 0, 12, 24 }
+local FLOOR_SIDE_X = 29 -- side spots' centers, plot-local |x| (niches against the wall)
+local FLOOR_SIDE_Z: { [number]: { number } } = { [2] = { 22, 32 }, [3] = { 26, 35 } }
+-- Where the Top Floor's ramp leaves the Second Floor (left wall, back) and arrives
+-- on the Top Floor (left wall, front): z spans of the wall openings
+local RAMP2_EXIT = { 40, 46 }
+local RAMP2_ENTRY = { 11, 17 }
 local FLOOR_WALL = 9 -- taller than a jump
 local VAULT_SIZE = 11 -- inside width and depth of a vault room
 local VAULT_Z0 = FLOOR_Z1 - 1 - VAULT_SIZE -- vault front walls
 local DOOR_WIDTH = 6
-local PEDESTAL_SPACING = 11
-local GROUND_SLOTS = Config.Economy.groundSlots
+-- The ground's spots (owner, 2026-10-02: "creatures are far too cramped together
+-- on the bottom floor ... spots on the left and right of the center"): two wings of
+-- two columns, 13 studs apart, either side of an open hall down the middle, in
+-- rows 12 apart. Slots fill front to back; the third row's inner pair comes before
+-- its outer pair so a level-1 base (10 spots) stays symmetric.
+local GROUND_COLUMNS = { -26, -13, 13, 26 }
+local GROUND_ROWS = { 5, 17, 29, 41, 53 }
+local GROUND_ORDER: { { number } } = {} -- slot -> { row, column }
+for row = 1, #GROUND_ROWS do
+	local columns: { number } = if row == 3 then { 2, 3, 1, 4 } else { 1, 2, 3, 4 }
+	for _, column in columns do
+		table.insert(GROUND_ORDER, { row, column })
+	end
+end
 local NICHE_BACK = 4 -- from a pedestal's center back to its niche's face
 local NICHE_WIDTH = 6.2
 local NICHE_HEIGHT = 5.6 -- up to where the arch starts (it adds half the width)
 -- An empty niche's panel: a dim warm stone, not neon (empty neon niches bloomed
 -- into white blobs at night), and a faint light
 local NICHE_IDLE = Color3.fromRGB(150, 122, 98)
--- The floors' pedestals sit a little closer together than the ground's, so the
--- end alcoves leave room to walk past along the side walls (2.4+ studs)
-local FLOOR_COLUMN_X0 = -21.6
-local FLOOR_COLUMN_SPACING = 10.8
 
 local function floorTop(floor: number): number
 	return TOP + (floor - 1) * FLOOR_HEIGHT
@@ -217,27 +244,42 @@ local function vaultLayout(vault: number): (number, number, Vector3)
 	return floor, side, Vector3.new(centerX, floorTop(floor), VAULT_Z0 + VAULT_SIZE / 2)
 end
 
+-- A floor's first slot (Config.Economy.slots: the ground's, then each floor's in turn).
+local function floorFirstSlot(floor: number): number
+	local first = Config.Economy.groundSlots + 1
+	for i = 1, floor - 2 do
+		first += Config.Economy.tunables.floors[i].pedestals
+	end
+	return first
+end
+
 -- Where pedestal slot `i` stands, relative to the plot origin (center of its top
--- face minus 0.7): 1-20 on the ground in rows of 5, then a row of 5 on each floor
--- above, and the vaults (Config.Economy.slots).
-local function pedestalPosition(i: number): Vector3
+-- face minus 0.7), and which way its niche lies behind it (radians about Y: 0 puts
+-- the niche at +Z, toward the back; side spots turn to face into the floor): the
+-- ground's two wings (GROUND_ORDER), then on each floor the front row of 5 and the
+-- side spots (left, right, left, right), and the vaults (Config.Economy.slots).
+local function pedestalSpot(i: number): (Vector3, number)
 	local vault = Config.Economy.vaultOfSlot(i)
 	if vault then
 		local _, _, center = vaultLayout(vault)
-		return center + Vector3.new(0, 0.7, 0)
+		return center + Vector3.new(0, 0.7, 0), 0
 	end
-	local column = (i - 1) % 5
-	local x = -22 + column * PEDESTAL_SPACING
-	if i <= GROUND_SLOTS then
-		local row = (i - 1) // 5
-		return Vector3.new(x, TOP + 0.7, 6 + row * PEDESTAL_SPACING)
+	if i <= Config.Economy.groundSlots then
+		local cell = GROUND_ORDER[i]
+		return Vector3.new(GROUND_COLUMNS[cell[2]], TOP + 0.7, GROUND_ROWS[cell[1]]), 0
 	end
 	local floor = Config.Economy.slotFloor(i)
-	return Vector3.new(
-		FLOOR_COLUMN_X0 + column * FLOOR_COLUMN_SPACING,
-		floorTop(floor) + 0.7,
-		FLOOR_ROW_Z[floor] or 20
-	)
+	local k = i - floorFirstSlot(floor) + 1 -- 1-based spot on its floor
+	local y = floorTop(floor) + 0.7
+	if k <= #FLOOR_FRONT_X then
+		return Vector3.new(FLOOR_FRONT_X[k], y, FLOOR_ROW_Z[floor] or 14), 0
+	end
+	local side = k - #FLOOR_FRONT_X -- 1-4: left, right, left, right
+	local sign = if side % 2 == 1 then -1 else 1
+	local zs = FLOOR_SIDE_Z[floor] or FLOOR_SIDE_Z[2]
+	local z = zs[math.clamp((side + 1) // 2, 1, #zs)]
+	-- The niche against the side wall: at -X on the left (turned -90°), +X on the right
+	return Vector3.new(sign * FLOOR_SIDE_X, y, z), sign * math.pi / 2
 end
 
 ---------------------------------------------------------------------------
@@ -259,6 +301,39 @@ end
 -- and ZoneMood); anything else in Lighting came with the place template
 local OWN_EFFECTS =
 	{ IslandAtmosphere = true, IslandBloom = true, IslandSunRays = true, IslandGrade = true, MoonTint = true }
+
+-- The custom materials (Config.Materials) live in the place's MaterialService: a
+-- game script can't set a MaterialVariant's maps ("lacking capability Plugin"), so
+-- tools/studio/make_materials.luau makes them from Studio's Command Bar. Warns about
+-- any that's uploaded but missing there (its stone shows the plain material).
+local function checkMaterials()
+	for name, material in Config.Materials do
+		local variant = MaterialService:FindFirstChild(name)
+		if material.colorMap ~= "" and (variant == nil or not variant:IsA("MaterialVariant")) then
+			warn(
+				`[WorldService] the {name} material isn't in MaterialService: run tools/studio/make_materials.luau in Studio and save the place`
+			)
+		end
+	end
+end
+
+-- Paints a stone (or floor) part with its theme's custom material (Config.Materials),
+-- when the material is ready, or takes it off. Returns whether it's painted (the
+-- texture then carries the color, so the part goes near-white, with a faint pastel
+-- sheen rolling over it: the "Iridescent" tag, RainbowController).
+local function paintStone(stone: BasePart, wall: { variant: string? }?): boolean
+	local variant = wall and wall.variant
+	local painted = variant ~= nil and MaterialService:FindFirstChild(variant) ~= nil
+	stone.MaterialVariant = if painted then variant :: string else ""
+	if painted then
+		local value = Config.Materials[variant :: string].brightness
+		stone.Color = Color3.new(value, value, value) -- the texture carries the color
+		CollectionService:AddTag(stone, "Iridescent")
+	else
+		CollectionService:RemoveTag(stone, "Iridescent")
+	end
+	return painted
+end
 
 -- The daytime look; DayNightController moves the sun and fades to night on each client.
 local function setupLighting()
@@ -715,8 +790,8 @@ local function buildPlot(index: number): PlotLayout
 		})
 	end
 
-	-- Pedestals: rows of 5 from the front of the back area, one row per base level,
-	-- then the floors' rows and the vaults (shown by setFloors)
+	-- Pedestals: the ground's two wings (more rows with each base level), then the
+	-- floors' spots and the vaults (shown by setFloors)
 	local allSlots = Config.Economy.slots(
 		#Config.Economy.tunables.baseLevels,
 		#Config.Economy.tunables.floors + 1,
@@ -726,7 +801,7 @@ local function buildPlot(index: number): PlotLayout
 	local pedestalParts: { [number]: BasePart } = {}
 	local pedestalProps: { [number]: Model? } = {}
 	for _, i in allSlots do
-		local localPos = pedestalPosition(i)
+		local localPos, yaw = pedestalSpot(i)
 		local isNursery = i <= Config.Economy.tunables.nurserySlotsBase
 		local pedestal = part({
 			Name = if isNursery then `Nursery{i}` else `Pedestal{i}`,
@@ -751,7 +826,8 @@ local function buildPlot(index: number): PlotLayout
 			stretch = true, -- the models are taller than a pedestal slot; fill the width instead
 		})
 		pedestalParts[i] = pedestal
-		pedestals[i] = origin * CFrame.new(localPos + Vector3.new(0, 0.7, 0))
+		-- Facing out of its niche (side spots face into the floor)
+		pedestals[i] = origin * CFrame.new(localPos + Vector3.new(0, 0.7, 0)) * CFrame.Angles(0, yaw, 0)
 	end
 
 	-- A display niche behind every pedestal but the vaults' (rooms of their own)
@@ -761,9 +837,13 @@ local function buildPlot(index: number): PlotLayout
 		if Config.Economy.vaultOfSlot(i) or Config.Economy.hideOfSlot(i) then
 			continue
 		end
-		local localPos = pedestalPosition(i)
-		-- Plot-local: the floor under the pedestal, at the niche's face; -Z faces out
-		local face = origin * CFrame.new(localPos.X, localPos.Y - 0.7, localPos.Z + NICHE_BACK)
+		local localPos, yaw = pedestalSpot(i)
+		-- The floor under the pedestal, turned with the spot, at the niche's face;
+		-- -Z faces out toward the pedestal
+		local face = origin
+			* CFrame.new(localPos.X, localPos.Y - 0.7, localPos.Z)
+			* CFrame.Angles(0, yaw, 0)
+			* CFrame.new(0, 0, NICHE_BACK)
 		local stone: { BasePart } = {}
 		local function block(name: string, size: Vector3, offset: CFrame, round: boolean?)
 			local p = part({
@@ -1174,19 +1254,25 @@ local function buildPlot(index: number): PlotLayout
 		if story == #Config.Economy.tunables.floors + 1 then
 			merlons(story, Vector3.new(-FLOOR_X, 0, FLOOR_Z1), Vector3.new(FLOOR_X, 0, FLOOR_Z1), top)
 			merlons(story, Vector3.new(FLOOR_X, 0, z0 + 2), Vector3.new(FLOOR_X, 0, FLOOR_Z1 - 2), top)
-			merlons(story, Vector3.new(-FLOOR_X, 0, 36), Vector3.new(-FLOOR_X, 0, FLOOR_Z1 - 2), top)
+			merlons(
+				story,
+				Vector3.new(-FLOOR_X, 0, RAMP2_ENTRY[2] + 2),
+				Vector3.new(-FLOOR_X, 0, FLOOR_Z1 - 2),
+				top
+			)
 		end
 		if story == 2 then
 			-- Right: the ramp from the ground lands at z 6-12. Left: the way up to the
-			-- Top Floor leaves at z 2-8 (walled off until it's bought).
+			-- Top Floor leaves at the back (RAMP2_EXIT, walled off until it's bought).
 			wallZ(2, nil, z0, 6, FLOOR_X, top)
 			wallZ(2, nil, 12, FLOOR_Z1, FLOOR_X, top)
-			wallZ(2, nil, 8, FLOOR_Z1, -FLOOR_X, top)
-			wallZ(2, 2, z0, 8, -FLOOR_X, top)
+			wallZ(2, nil, z0, RAMP2_EXIT[1], -FLOOR_X, top)
+			wallZ(2, nil, RAMP2_EXIT[2], FLOOR_Z1, -FLOOR_X, top)
+			wallZ(2, 2, RAMP2_EXIT[1], RAMP2_EXIT[2], -FLOOR_X, top)
 		else
-			-- Left: the ramp from the Second Floor lands at z 28-34
-			wallZ(story, nil, z0, 28, -FLOOR_X, top)
-			wallZ(story, nil, 34, FLOOR_Z1, -FLOOR_X, top)
+			-- Left: the ramp from the Second Floor arrives at the front (RAMP2_ENTRY)
+			wallZ(story, nil, z0, RAMP2_ENTRY[1], -FLOOR_X, top)
+			wallZ(story, nil, RAMP2_ENTRY[2], FLOOR_Z1, -FLOOR_X, top)
 			wallZ(story, nil, z0, FLOOR_Z1, FLOOR_X, top)
 		end
 	end
@@ -1196,16 +1282,19 @@ local function buildPlot(index: number): PlotLayout
 	piece(2, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(FLOOR_X + 3, secondTop - 0.5, 9))
 	wallZ(2, nil, 6, 12, FLOOR_X + 6, secondTop)
 	wallX(2, nil, FLOOR_X, FLOOR_X + 6, 12, secondTop)
-	-- Second Floor → Top Floor: up the left side, from a landing at its front-left
+	-- Second Floor → Top Floor: from a landing off the Second Floor's back left, up
+	-- the left side toward the front, to a landing at the Top Floor's front left
 	if #Config.Economy.tunables.floors >= 2 then
 		local thirdTop = floorTop(3)
-		piece(3, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(-FLOOR_X - 3, secondTop - 0.5, 5))
-		wallX(3, nil, -FLOOR_X - 6, -FLOOR_X, 2, secondTop)
-		wallZ(3, nil, 2, 8, -FLOOR_X - 6, secondTop)
-		ramp(3, Vector3.new(-FLOOR_X - 3, secondTop, 8), Vector3.new(-FLOOR_X - 3, thirdTop, 28))
-		piece(3, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(-FLOOR_X - 3, thirdTop - 0.5, 31))
-		wallZ(3, nil, 28, 34, -FLOOR_X - 6, thirdTop)
-		wallX(3, nil, -FLOOR_X - 6, -FLOOR_X, 34, thirdTop)
+		local rampX = -FLOOR_X - 3
+		local foot, head = RAMP2_EXIT[1], RAMP2_ENTRY[2]
+		piece(3, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(rampX, secondTop - 0.5, foot + 3))
+		wallX(3, nil, -FLOOR_X - 6, -FLOOR_X, RAMP2_EXIT[2], secondTop)
+		wallZ(3, nil, RAMP2_EXIT[1], RAMP2_EXIT[2], -FLOOR_X - 6, secondTop)
+		ramp(3, Vector3.new(rampX, secondTop, foot), Vector3.new(rampX, thirdTop, head))
+		piece(3, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(rampX, thirdTop - 0.5, head - 3))
+		wallZ(3, nil, RAMP2_ENTRY[1], RAMP2_ENTRY[2], -FLOOR_X - 6, thirdTop)
+		wallX(3, nil, -FLOOR_X - 6, -FLOOR_X, RAMP2_ENTRY[1], thirdTop)
 	end
 
 	-- Vault rooms: glass walls on the inner side and the front, a door in the front
@@ -1504,16 +1593,20 @@ function WorldService.setLevel(plot: PlotLayout, level: number)
 end
 
 -- A niche's panel and light: neon in its creature's rarity color, or dim warm
--- stone when empty; nothing while the niche is hidden.
-local function lightNiche(niche: Niche, shown: boolean)
+-- stone when empty; nothing while the niche is hidden. The light dims with the
+-- theme kit's own (a white Diamond keep fogged over with bloom at night).
+local function lightNiche(plot: PlotLayout, niche: Niche, shown: boolean)
 	local color = niche.color
 	for _, p in niche.glows do
 		p.Material = if color then Enum.Material.Neon else Enum.Material.SmoothPlastic
 		p.Color = color or NICHE_IDLE
 		p.Transparency = if shown then 0 else 1
 	end
+	local kitId = plot.model:GetAttribute("Kit")
+	local kit = CastleKits.get(if typeof(kitId) == "string" then kitId else nil)
+	local scale = if kit then kit.lightScale or 1 else 1
 	niche.light.Color = color or Color3.fromRGB(255, 196, 140)
-	niche.light.Brightness = if shown then (if color then 1.6 else 0.2) else 0
+	niche.light.Brightness = if shown then (if color then 1.6 * scale else 0.2) else 0
 end
 
 -- Shows the floors, vault rooms and pedestals a base has: `floors` counts the
@@ -1544,6 +1637,9 @@ local function dressKeep(plot: PlotLayout)
 	local folder = Instance.new("Folder")
 	folder.Name = "KeepKit"
 	CastleKits.dressKeep(folder, kit, shown)
+	-- The centerpiece at the far end of the ground floor's open hall
+	local hallEnd = math.min(GROUND_ROWS[#GROUND_ROWS], PLOT_FRONT + plot.depth - 6)
+	CastleKits.dressHall(folder, kit, plot.origin * CFrame.new(0, TOP, hallEnd))
 	folder.Parent = plot.model
 end
 
@@ -1592,7 +1688,7 @@ function WorldService.setFloors(plot: PlotLayout, floors: number, vaults: number
 			p.Transparency = if shown then 0 else 1
 			p.CanCollide = shown and p.Name ~= "NicheArch"
 		end
-		lightNiche(niche, shown)
+		lightNiche(plot, niche, shown)
 	end
 	dressKeep(plot) -- after the niches, which it dresses too
 	placeLasers(plot)
@@ -1606,7 +1702,7 @@ function WorldService.setNicheGlow(plot: PlotLayout, slot: number, color: Color3
 		return
 	end
 	niche.color = color
-	lightNiche(niche, niche.stone[1].Transparency < 1)
+	lightNiche(plot, niche, niche.stone[1].Transparency < 1)
 end
 
 -- A vault door: locked (solid, glowing, blocks the way) or open, and its sign.
@@ -1720,7 +1816,17 @@ function WorldService.setSecurity(plot: PlotLayout, owned: { [string]: boolean }
 		PLOT_FRONT,
 		owned,
 		alarm,
-		plot.floors
+		plot.floors,
+		{
+			-- The lever beside the first ramp's foot; each bar just off its ramp's foot,
+			-- on the landing side (the first ramp climbs +Z from the yard, the second
+			-- -Z from the Second Floor's back left)
+			lever = Vector3.new(FLOOR_X - 3.5, TOP + 1.7, PLOT_FRONT + 2.5),
+			bars = {
+				Vector3.new(FLOOR_X + 3, TOP + 4.5, -19.6),
+				Vector3.new(-FLOOR_X - 3, floorTop(2) + 4.5, RAMP2_EXIT[1] + 0.4),
+			},
+		}
 	)
 end
 
@@ -1749,6 +1855,8 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 	plot.model:SetAttribute("Kit", theme.kit)
 	plot.floor.Material = theme.floorMaterial
 	plot.floor.Color = theme.floorColor
+	local floorPaint = { variant = theme.floorVariant } -- Diamond's tiles
+	paintStone(plot.floor, floorPaint)
 	for _, trim in plot.trim do
 		trim.Color = theme.trimColor
 	end
@@ -1774,13 +1882,16 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 			entry.part.Material = stoneMaterial
 			entry.part.Color = stoneColor
 			entry.part.Reflectance = shine
+			paintStone(entry.part, theme.wall)
 		elseif entry.part:GetAttribute("Keep") then
 			entry.part.Material = stoneMaterial
 			entry.part.Color = stoneColor:Lerp(Color3.new(1, 1, 1), 0.12)
 			entry.part.Reflectance = shine
+			paintStone(entry.part, theme.wall)
 		else
 			entry.part.Material = theme.floorMaterial
 			entry.part.Color = theme.floorColor:Lerp(Color3.new(0, 0, 0), 0.12)
+			paintStone(entry.part, floorPaint)
 		end
 	end
 	for _, room in plot.vaults do
@@ -1791,7 +1902,9 @@ function WorldService.applyTheme(plot: PlotLayout, theme: Config.BaseTheme)
 			p.Material = stoneMaterial
 			p.Color = if p.Name == "NicheBack" then stoneColor else stoneColor:Lerp(Color3.new(1, 1, 1), 0.12)
 			p.Reflectance = shine
+			paintStone(p, theme.wall)
 		end
+		lightNiche(plot, niche, niche.stone[1].Transparency < 1) -- the new kit's light scale
 	end
 	dressKeep(plot)
 
@@ -2356,7 +2469,7 @@ local function buildZones(folder: Folder)
 		-- The weather blows along the ring; ZoneMoodController reads these attributes
 		local wind = tangent
 		if zone.storm then
-			SetPieces.stormSky(center, halfDepth + 20, wind, zoneFolder)
+			SetPieces.stormSky(sector, wind, zoneFolder)
 			zoneFolder:SetAttribute("Mood", "storm")
 		end
 		zoneFolder:SetAttribute("Center", center)
@@ -2565,6 +2678,7 @@ function WorldService.start()
 	worldFolder.Parent = Workspace
 
 	setupLighting()
+	checkMaterials()
 	buildSeaAndIsland()
 	buildHub()
 	buildLuckWheel()

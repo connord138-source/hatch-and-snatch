@@ -1663,7 +1663,8 @@ function CastleKits.banner(
 	part(folder, {
 		Name = "TowerBanner",
 		Size = Vector3.new(tip, tip, 0.11),
-		CFrame = face * CFrame.new(0, -long / 2, 0) * CFrame.Angles(0, 0, math.rad(45)),
+		-- a hair behind the cloth, so their faces don't fight where they overlap
+		CFrame = face * CFrame.new(0, -long / 2, 0.03) * CFrame.Angles(0, 0, math.rad(45)),
 		Material = Enum.Material.Fabric,
 		Color = color,
 	})
@@ -3046,26 +3047,33 @@ local function dressNiche(folder: Instance, kit: Kit, back: BasePart, rng: Rando
 	end
 end
 
+-- The theme's centerpiece standing at `at` (its base), turned a little at random.
+local function centerpiece(folder: Instance, kit: Kit, at: CFrame, rng: Random)
+	local center = kit.centerpiece
+	if center == nil then
+		return
+	end
+	local model = piece(folder, center.name, at * CFrame.Angles(0, rng:NextNumber(-0.3, 0.3), 0), center.size)
+	if model and center.glow then
+		glow(folder, model, kit, 16)
+	end
+	if model and center.flame then
+		CastleKits.flame(anchor(folder, topOf(model), "CenterFlame"), kit, 3, 16)
+	end
+end
+
+-- The ground floor's open hall (owner, 2026-10-02): the theme's centerpiece at its
+-- far end, between the two wings of creatures.
+function CastleKits.dressHall(folder: Instance, kit: Kit, at: CFrame)
+	centerpiece(folder, kit, at, Random.new(11))
+end
+
 -- A floor of the keep (its slab): the theme's centerpiece at the back middle,
 -- between the vault rooms, and lights hung on chains underneath, over the floor
 -- below.
 local function dressFloor(folder: Instance, kit: Kit, slab: BasePart, rng: Random)
 	local cf, size = slab.CFrame, slab.Size
-	local center = kit.centerpiece
-	if center then
-		local model = piece(
-			folder,
-			center.name,
-			cf * CFrame.new(0, size.Y / 2, size.Z / 2 - 5) * CFrame.Angles(0, rng:NextNumber(-0.3, 0.3), 0),
-			center.size
-		)
-		if model and center.glow then
-			glow(folder, model, kit, 16)
-		end
-		if model and center.flame then
-			CastleKits.flame(anchor(folder, topOf(model), "CenterFlame"), kit, 3, 16)
-		end
-	end
+	centerpiece(folder, kit, cf * CFrame.new(0, size.Y / 2, size.Z / 2 - 5), rng)
 	local hang = kit.chandelier
 	if hang then
 		for _, x in { -11, 11 } do

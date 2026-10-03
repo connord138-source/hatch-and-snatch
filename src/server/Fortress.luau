@@ -12,6 +12,7 @@
 -- the walls are too tall to jump, so the gate (where the laser lock is) is the way
 -- in. Everything is plot-local: -Z faces the hub, y 0 is the ground.
 local CollectionService = game:GetService("CollectionService")
+local MaterialService = game:GetService("MaterialService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -26,6 +27,9 @@ export type Layout = {
 	height: number, -- wall height
 	thickness: number,
 	level: number,
+	frontTowers: number, -- the front corner towers' radius (0 without any)
+	gatehouse: boolean, -- a gatehouse stands over the gate
+	gateOuter: number, -- half the gate structure's width along the wall (decor keeps clear)
 }
 
 type Style = {
@@ -41,6 +45,11 @@ type Style = {
 	pale: boolean, -- the Citadel's cream stone and gold
 	towerProp: string?,
 	gateProp: string?,
+	gateWidth: number?, -- the gatehouse model's width, fitted
+	-- Where the front walls end inside the model (plot-local |x|): in its end towers,
+	-- as the Citadel model's wings are lower than the walls (owner, 2026-10-02: the
+	-- walls' merlons and caps cut through its turrets)
+	gateJoin: number?,
 }
 
 local GAP = 2 -- walls stand this far outside the plot edge
@@ -86,6 +95,8 @@ local STYLES: { Style } = {
 		pale = false,
 		towerProp = "TowerStone",
 		gateProp = "GatehouseStone",
+		gateWidth = 26,
+		gateJoin = GATE_HALF + 4.5, -- inside its full-height end blocks (4.9 to 13)
 	},
 	{
 		wall = "stone",
@@ -100,6 +111,8 @@ local STYLES: { Style } = {
 		pale = false,
 		towerProp = "TowerRoofed",
 		gateProp = "GatehouseStone",
+		gateWidth = 26,
+		gateJoin = GATE_HALF + 4.5,
 	},
 	{
 		wall = "stone",
@@ -114,6 +127,10 @@ local STYLES: { Style } = {
 		pale = true,
 		towerProp = "TowerCitadel",
 		gateProp = "GatehouseCitadel",
+		gateWidth = 40,
+		-- At its end towers' middles (they stand 12.5 to 20 out, peaking at 16; its
+		-- wings are only 10 high), so the walls' end merlons hide inside them
+		gateJoin = 16,
 	},
 }
 
@@ -217,6 +234,10 @@ function Fortress.layout(level: number, width: number, depth: number, plotFront:
 		height = style.height,
 		thickness = style.thickness,
 		level = level,
+		frontTowers = if style.towers == "all" then style.towerRadius else 0,
+		gatehouse = style.gatehouse,
+		-- the part-built gatehouse's; build widens it for an imported model
+		gateOuter = if style.gatehouse then GATE_HALF + 4.5 else GATE_HALF,
 	}
 end
 
@@ -579,7 +600,7 @@ local function gatehouse(
 		-- Fitted by width: the model's arch is the way in (a 9-stud opening between
 		-- invisible colliders that run out to the wall ends). The Citadel's gate is
 		-- the wide one, with a tower at each end.
-		local gateWidth = if style.pale then 40 else 26
+		local gateWidth = style.gateWidth or 26
 		local model = template:Clone()
 		model.Name = style.gateProp
 		for _, descendant in model:GetDescendants() do
@@ -601,7 +622,7 @@ local function gatehouse(
 		Props.place(model, frame * CFrame.new(0, size.Y / 2, 0), size)
 		model.Parent = folder
 		local opening = 4.5
-		local reach = GATE_HALF + 4.5
+		local reach = style.gateJoin or GATE_HALF + 4.5
 		for _, side in { -1, 1 } do
 			part(folder, {
 				Name = "GateCollider",
@@ -723,6 +744,8 @@ local function gatehouse(
 		glow.Range = 16
 		glow.Brightness = 1.6
 		glow.Parent = bar
+		-- A kit light, so the kit's lightScale dims it too (it glared on the Diamond gate)
+		CollectionService:AddTag(glow, "KitLight")
 	end
 	return top
 end
@@ -799,12 +822,22 @@ function Fortress.build(
 	local kit = CastleKits.get(theme.kit)
 
 	local x, f, b, g = layout.halfW, layout.front, layout.back, layout.gateHalf
+	-- The front walls stop at the gatehouse: inside an imported model's end towers,
+	-- or tucked into the part-built one's pillars
+	local gateModel = style.gatehouse
+		and models
+		and style.gateProp ~= nil
+		and Props.template("WorldProps", style.gateProp) ~= nil
+	local join = if gateModel then style.gateJoin or g + 4.5 elseif style.gatehouse then g + 4.5 else g
+	if gateModel then
+		layout.gateOuter = (style.gateWidth or 26) / 2
+	end
 	local runs = {
 		{ Vector3.new(-x, 0, b), Vector3.new(x, 0, b) },
 		{ Vector3.new(-x, 0, f), Vector3.new(-x, 0, b) },
 		{ Vector3.new(x, 0, f), Vector3.new(x, 0, b) },
-		{ Vector3.new(-x, 0, f), Vector3.new(-g - (if style.gatehouse then 4.5 else 0), 0, f) },
-		{ Vector3.new(g + (if style.gatehouse then 4.5 else 0), 0, f), Vector3.new(x, 0, f) },
+		{ Vector3.new(-x, 0, f), Vector3.new(-join, 0, f) },
+		{ Vector3.new(join, 0, f), Vector3.new(x, 0, f) },
 	}
 	for _, run in runs do
 		wallRun(folder, origin, run[1], run[2], style, look)
@@ -865,13 +898,24 @@ function Fortress.build(
 	end
 	local rainbow = theme.rainbow
 	local shine = wall and wall.reflectance
+	-- A stone with a custom material (Config.Materials, when it's made): every wall,
+	-- tower and gatehouse piece of it, the texture carrying the color
+	local variant = wall and wall.variant
+	local painted = variant ~= nil and MaterialService:FindFirstChild(variant) ~= nil
+	local value = if painted then Config.Materials[variant :: string].brightness else 1
 	for _, descendant in folder:GetDescendants() do
 		if descendant:IsA("BasePart") and descendant.Name == "Tower" and theme.sparkle then
 			twinkle(descendant, theme.sparkle)
 		end
 		if shine and wall and descendant:IsA("BasePart") and descendant.Material == wall.material then
-			-- A shining stone (Diamond): every wall, tower and gatehouse piece of it
+			-- A shining stone: every wall, tower and gatehouse piece of it
 			descendant.Reflectance = math.max(descendant.Reflectance, shine)
+		end
+		if painted and wall and descendant:IsA("BasePart") and descendant.Material == wall.material then
+			descendant.MaterialVariant = variant :: string
+			descendant.Color = Color3.new(value, value, value)
+			-- and a faint pastel sheen rolling over it (RainbowController)
+			CollectionService:AddTag(descendant, "Iridescent")
 		end
 		if kit and descendant:IsA("BasePart") and descendant.Name == "WindowSlit" then
 			-- A themed castle's windows glow in its light
