@@ -24,6 +24,9 @@ local Zones = {
 	nodeYield = { 1, 2 }, -- min, max Essence per harvest
 	blessingCost = 8,
 	eggCost = 15,
+	-- Feeding (owner, 2026-10-03): a creature eats Essence of its own biome to grow
+	-- `minutes` at once per feed, from its details card in the Creatures menu
+	feed = { essence = 10, minutes = 15 },
 	-- Essence for releasing a creature, by rarity order (Common = 1 … Secret = 9),
 	-- times the stage multiplier. Legendary and up also pay Luck Wheel spins.
 	releaseEssence = { 1, 2, 3, 5, 8, 12, 18, 25, 40 },

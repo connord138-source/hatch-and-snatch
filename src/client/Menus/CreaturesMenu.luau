@@ -46,6 +46,9 @@ type Card = {
 	lines: { [string]: TextLabel },
 	growthBar: Frame,
 	growthFill: Frame,
+	feedRow: Frame,
+	feedOne: TextButton,
+	feedNext: TextButton,
 	uid: string?,
 	opened: number, -- bumps on every open, so an old countdown loop stops
 }
@@ -241,6 +244,28 @@ local function growthText(creature: Creature): (string, number)
 	return `{nextStage} in {Format.duration(left)} · {speedUp}`, math.clamp(1 - left / duration, 0, 1)
 end
 
+-- The Feed buttons: one feed, or as many as it takes to reach the next stage
+-- (the server feeds as many of those as the player can afford)
+local function updateFeed(creature: Creature)
+	local species = Config.CreaturesById[creature.species]
+	local zone = Config.Zones.byBiome[species.biome]
+	local nextStage = NEXT_STAGE[creature.stage]
+	card.feedRow.Visible = zone ~= nil and nextStage ~= nil and creature.nextStageAt ~= nil
+	if not card.feedRow.Visible then
+		return
+	end
+	local tuning = Config.Zones.feed
+	local state = ClientState.current
+	local have: number = if state and state.essence then state.essence[species.biome] or 0 else 0
+	local step = Timing.scaled(tuning.minutes * 60)
+	local left = math.max(0, creature.nextStageAt - Workspace:GetServerTimeNow())
+	local need = math.max(1, math.ceil(left / step)) * tuning.essence
+	card.feedOne.Text = `Feed {tuning.essence}✨ (+{tuning.minutes}m)`
+	setButton(card.feedOne, have >= tuning.essence and not creature.carried, Ui.colors.good)
+	card.feedNext.Text = `To {nextStage}: {need}✨ (have {have})`
+	setButton(card.feedNext, have >= tuning.essence and not creature.carried, Ui.colors.blue)
+end
+
 local function fillCard(creature: Creature)
 	local species = Config.CreaturesById[creature.species]
 	local rarity = Config.Rarities[species.rarity]
@@ -320,6 +345,7 @@ local function fillCard(creature: Creature)
 	lines.growth.Text = text
 	card.growthFill.Size = UDim2.fromScale(progress, 1)
 	card.growthFill.BackgroundColor3 = rarity.color
+	updateFeed(creature)
 end
 
 local function setListVisible(visible: boolean)
@@ -363,6 +389,7 @@ local function openCard(uid: string)
 				local text, progress = growthText(current)
 				card.lines.growth.Text = text
 				card.growthFill.Size = UDim2.fromScale(progress, 1)
+				updateFeed(current)
 			end
 			task.wait(0.5)
 		end
@@ -691,6 +718,42 @@ function CreaturesMenu.build(content: Frame)
 	local fillCorner = Instance.new("UICorner")
 	fillCorner.CornerRadius = UDim.new(0, 5)
 	fillCorner.Parent = fill
+	-- Feed it its biome's Essence to grow it at once (InventoryService)
+	order += 1
+	local feedRow = Instance.new("Frame")
+	feedRow.LayoutOrder = order
+	feedRow.Size = UDim2.new(1, -10, 0, 34)
+	feedRow.BackgroundTransparency = 1
+	feedRow.Visible = false
+	feedRow.Parent = info
+	local feedLayout = Instance.new("UIListLayout")
+	feedLayout.FillDirection = Enum.FillDirection.Horizontal
+	feedLayout.Padding = UDim.new(0, 6)
+	feedLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	feedLayout.Parent = feedRow
+	local feedOne = Ui.button(feedRow, {
+		LayoutOrder = 1,
+		Size = UDim2.new(0.42, -3, 1, 0),
+		ZIndex = 7,
+	})
+	local feedNext = Ui.button(feedRow, {
+		LayoutOrder = 2,
+		Size = UDim2.new(0.58, -3, 1, 0),
+		ZIndex = 7,
+	})
+	local function feed(how: string)
+		local uid = card.uid
+		local creature = uid and latest[uid]
+		if uid and creature and not creature.carried then
+			ClientState.request("CreatureAction", "feed", uid, how)
+		end
+	end
+	feedOne.Activated:Connect(function()
+		feed("one")
+	end)
+	feedNext.Activated:Connect(function()
+		feed("next")
+	end)
 	header("ABOUT")
 	lines.about = line({ TextColor3 = Ui.colors.muted })
 	lines.where = line({})
@@ -704,6 +767,9 @@ function CreaturesMenu.build(content: Frame)
 		lines = lines,
 		growthBar = bar,
 		growthFill = fill,
+		feedRow = feedRow,
+		feedOne = feedOne,
+		feedNext = feedNext,
 		uid = nil,
 		opened = 0,
 	}

@@ -1,12 +1,14 @@
 --!strict
 -- The Creatures menu's actions: store a creature, put it back on a pedestal, move
--- it in or out of the nursery, sell it, or release it for biome Essence. Requests
+-- it in or out of the nursery, sell it, release it for biome Essence, or feed it
+-- Essence to grow it at once. Requests
 -- come from the client, so every argument is checked here and nothing about the
 -- creature is taken from the client.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Timing = require(ReplicatedStorage.Shared.Timing)
 local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
@@ -45,6 +47,51 @@ local function release(player: Player, uid: string, record: DataService.Creature
 		table.insert(rewards, `{spins} Luck Wheel spin{if spins == 1 then "" else "s"}`)
 	end
 	Net.notify(player, `Released your {species.displayName}: +{table.concat(rewards, ", ")}.`, "good")
+end
+
+-- Feeds a creature Essence of its own biome: each feed grows it Zones.feed.minutes
+-- at once. `how` is "one" (a single feed) or "next" (as many as it takes to reach
+-- its next stage, or as many as the player can afford).
+local function feed(player: Player, record: DataService.CreatureRecord, how: any)
+	local data = DataService.get(player)
+	if data == nil then
+		return
+	end
+	local species = Config.CreaturesById[record.species]
+	local zone = Config.Zones.byBiome[species.biome]
+	if zone == nil then
+		Net.notify(player, `{species.displayName} runs on spare parts, not Essence.`, "bad")
+		return
+	end
+	local nextAt = CreatureService.nextStageAt(record)
+	if nextAt == nil then
+		Net.notify(player, `{species.displayName} is fully grown.`, "bad")
+		return
+	end
+	local tuning = Config.Zones.feed
+	local step = Timing.scaled(tuning.minutes * 60)
+	local wanted = if how == "next" then math.max(1, math.ceil((nextAt - Timing.now()) / step)) else 1
+	local have = ZoneService.essence(data, species.biome)
+	local feeds = math.min(wanted, have // tuning.essence)
+	if feeds <= 0 then
+		Net.notify(
+			player,
+			`Feeding costs {tuning.essence} {zone.essence} (you have {have}). Harvest the glowing nodes in {Config.Biomes[species.biome].displayName}.`,
+			"bad"
+		)
+		return
+	end
+	local cost = feeds * tuning.essence
+	data.essence[species.biome] = have - cost
+	-- Growth runs from stageStartedAt, so moving it back grows the creature; the
+	-- growth tick spawns the next stage within a second
+	record.stageStartedAt -= feeds * step
+	DataService.markDirty(player)
+	Net.notify(
+		player,
+		`Fed your {species.displayName} {cost} {zone.essence}: {Format.duration(feeds * tuning.minutes * 60)} of growth.`,
+		"good"
+	)
 end
 
 local function onCreatureAction(player: Player, action: any, uid: any, target: any)
@@ -99,6 +146,8 @@ local function onCreatureAction(player: Player, action: any, uid: any, target: a
 			CreatureService.stopWalking(player)
 		end
 		release(player, uid, record)
+	elseif action == "feed" then
+		feed(player, record, target)
 	elseif action == "walk" then
 		if CreatureService.walkingUid(player) == uid then
 			CreatureService.stopWalking(player)
