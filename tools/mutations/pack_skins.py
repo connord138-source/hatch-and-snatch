@@ -83,6 +83,9 @@ for index, mutation in enumerate(MUTATIONS):
 if made == 0:
     raise SystemExit(f"no skins in {SKINS}")
 OUT.parent.mkdir(parents=True, exist_ok=True)
+# Studio names the imported model after the glTF scene: "Scene" for every file
+# unless it's named, and organize_skins.luau matches models by "<Model>_Skins"
+bpy.context.scene.name = OUT.stem
 bpy.ops.export_scene.gltf(
     filepath=str(OUT), export_format="GLB", export_image_format="JPEG", export_jpeg_quality=92
 )
