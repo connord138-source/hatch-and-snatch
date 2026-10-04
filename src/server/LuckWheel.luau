@@ -891,6 +891,9 @@ function LuckWheel.build(
 	spinAll.HoldDuration = 0.6
 	spinAll.MaxActivationDistance = 10
 	spinAll.RequiresLineOfSight = false
+	-- Below the Spin prompt: both sit on the button, and at the same offset Spin all
+	-- covered it (playtest 2026-10-04)
+	spinAll.UIOffset = Vector2.new(0, 76)
 	spinAll.Parent = button
 
 	local disc = buildDisc(model, base, segments)
