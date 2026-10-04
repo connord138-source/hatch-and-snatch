@@ -17,6 +17,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local LuckWheel = require(script.Parent.Parent.LuckWheel)
 local Net = require(script.Parent.Parent.Net)
 local Reach = require(script.Parent.Parent.Reach)
 local DataService = require(script.Parent.DataService)
@@ -57,6 +58,26 @@ local function pickSegment(): number
 		end
 	end
 	return 1
+end
+
+-- Where the wheel stops for slice `index`, in degrees: slice i sits (i - 1) × slice
+-- round from the top, so turning by that angle brings it under the flapper. It
+-- stops in a gap between two pegs, where the flapper hangs straight (playtest
+-- 2026-10-04: stopped against a peg, it rested tilted ~30°). Between 0.70 and 0.85
+-- of a gap past a peg no peg touches the flapper (LuckWheelController `pushed`);
+-- the gaps used stay well inside the slice, clear of its edges.
+local function landingAngle(index: number): number
+	local slice = 360 / #tunables.luckWheel
+	local spacing = 360 / LuckWheel.PEGS
+	local offsets: { number } = {}
+	for k = -LuckWheel.PEGS, LuckWheel.PEGS do
+		local offset = (k + rng:NextNumber(0.7, 0.85)) * spacing
+		if math.abs(offset) <= slice * 0.35 then
+			table.insert(offsets, offset)
+		end
+	end
+	local offset = if #offsets > 0 then offsets[rng:NextInteger(1, #offsets)] else 0
+	return (index - 1) * slice + offset
 end
 
 local function setStatus(text: string)
@@ -189,12 +210,9 @@ local function begin(entry: Entry): boolean
 
 	local index = pickSegment()
 	local prize = prepare(player, data, index)
-	local slice = 360 / #tunables.luckWheel
 	local from = (state:GetAttribute("Angle") :: number) % 360
-	-- Slice i sits (i - 1) × slice round from the top; turning by that angle brings
-	-- it under the flapper. Five to six full turns, plus a little jitter inside it.
-	local landing = (index - 1) * slice + (rng:NextNumber() - 0.5) * slice * 0.6
-	local to = 6 * 360 + landing
+	-- Five to six full turns, ending on the prize
+	local to = 6 * 360 + landingAngle(index)
 	spinCount += 1
 	local id = spinCount
 	state:SetAttribute("SpinFrom", from)

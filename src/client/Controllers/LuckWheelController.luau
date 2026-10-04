@@ -209,6 +209,7 @@ end
 -- How far the peg nearest the flapper pushes it, from `u`, the degrees the disc
 -- has turned past the last peg: a peg touches it a little before the top, drags
 -- it to FLAPPER_MAX two-thirds of the way to the next peg, then slips past.
+-- WheelService stops the wheel in the free stretch between (landingAngle).
 local function pushed(u: number, spacing: number): number
 	local release = spacing * 0.667
 	local contact = spacing * 0.88
