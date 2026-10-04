@@ -122,26 +122,75 @@ local Tunables = {
 	walkGrowthMultiplier = 2,
 	homeWalkGrowthMultiplier = 4,
 
-	-- Luck Wheel: a physical wheel by the hub. Spending a spin lands on a prize.
-	-- "luck" charges the player's NEXT egg (Epic+ weights × value; the best unspent
-	-- charge is kept); "cash" pays `value` minutes of the player's current income
-	-- (at least $500); "spin" gives spins back. Slices are drawn equal, so the real
-	-- odds are printed on the wheel's sign.
+	-- Luck Wheel: a game-show wheel at the North Commons (LuckWheel.luau). Spending a
+	-- spin lands on a prize. "luck" charges the player's NEXT egg (Epic+ weights ×
+	-- value; the best unspent charge is kept); "cash" pays `value` minutes of the
+	-- player's current income (at least $500); "spin" gives spins back. Slices are
+	-- drawn equal, so the real odds are printed on the board beside it. `icon`, `big`
+	-- and `sub` are what the slice shows.
 	freeSpinSeconds = 20 * 60, -- one free spin per 20 minutes played
 	startingSpins = 3,
 	maxBankedSpins = 10,
 	luckWheel = {
-		{ label = "×2 LUCK", kind = "luck", value = 2, weight = 30, color = Color3.fromRGB(80, 160, 255) },
-		{ label = "CASH", kind = "cash", value = 5, weight = 24, color = Color3.fromRGB(80, 200, 110) },
-		{ label = "×3 LUCK", kind = "luck", value = 3, weight = 18, color = Color3.fromRGB(170, 90, 255) },
-		{ label = "+2 SPINS", kind = "spin", value = 2, weight = 12, color = Color3.fromRGB(255, 170, 40) },
-		{ label = "×10 LUCK", kind = "luck", value = 10, weight = 12, color = Color3.fromRGB(255, 70, 100) },
+		{
+			label = "×2 LUCK",
+			kind = "luck",
+			value = 2,
+			weight = 30,
+			color = Color3.fromRGB(70, 150, 255),
+			icon = "🍀",
+			big = "×2",
+			sub = "LUCK",
+		},
+		{
+			label = "CASH",
+			kind = "cash",
+			value = 5,
+			weight = 24,
+			color = Color3.fromRGB(60, 190, 100),
+			icon = "💰",
+			big = "CASH",
+			sub = "5 MIN PAY",
+		},
+		{
+			label = "×3 LUCK",
+			kind = "luck",
+			value = 3,
+			weight = 18,
+			color = Color3.fromRGB(160, 80, 250),
+			icon = "⭐",
+			big = "×3",
+			sub = "LUCK",
+		},
+		{
+			label = "+2 SPINS",
+			kind = "spin",
+			value = 2,
+			weight = 12,
+			color = Color3.fromRGB(255, 150, 30),
+			icon = "🎡",
+			big = "+2",
+			sub = "SPINS",
+		},
+		{
+			label = "×10 LUCK",
+			kind = "luck",
+			value = 10,
+			weight = 12,
+			color = Color3.fromRGB(240, 50, 90),
+			icon = "🔥",
+			big = "×10",
+			sub = "LUCK",
+		},
 		{
 			label = "×25 JACKPOT",
 			kind = "luck",
 			value = 25,
 			weight = 4,
-			color = Color3.fromRGB(255, 235, 120),
+			color = Color3.fromRGB(255, 212, 60),
+			icon = "👑",
+			big = "×25",
+			sub = "JACKPOT",
 		},
 	},
 }

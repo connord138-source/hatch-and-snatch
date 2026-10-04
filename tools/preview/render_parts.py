@@ -62,7 +62,12 @@ def base_meshes():
     made[1].data.transform(mathutils.Matrix.Rotation(math.pi / 2, 4, "Y"))  # axis along X like Roblox
     bpy.ops.mesh.primitive_uv_sphere_add(radius=1, segments=16, ring_count=8)
     made.append(bpy.context.active_object)
-    meshes = {"Block": made[0].data, "Cylinder": made[1].data, "Ball": made[2].data}
+    # Roblox's WedgePart: full bottom (-Y) and back (+Z) faces, sloping down to the front
+    wedge = bpy.data.meshes.new("Wedge")
+    verts = [(x, y, z) for x in (-1, 1) for (y, z) in ((-1, -1), (-1, 1), (1, 1))]
+    wedge.from_pydata(verts, [], [(0, 2, 1), (3, 4, 5), (0, 1, 4, 3), (1, 2, 5, 4), (0, 3, 5, 2)])
+    wedge.update()
+    meshes = {"Block": made[0].data, "Cylinder": made[1].data, "Ball": made[2].data, "Wedge": wedge}
     placeholder = bpy.data.materials.new("slot")
     for mesh in meshes.values():
         mesh.materials.append(placeholder)
@@ -456,7 +461,10 @@ def setup_scene():
     scene.camera = cam
     cam.data.lens = 35
     target = mathutils.Vector((0, -14, 12))
-    if VIEW == "front":  # the theme concepts' camera: high, square on to the gate
+    if VIEW in ("wheel", "wheel34"):  # the Luck Wheel (run_wheel.sh): its face toward Roblox -Z
+        target = mathutils.Vector((0, 0, 15))
+        cam.location = (0, 52, 15) if VIEW == "wheel" else (-34, 40, 12)
+    elif VIEW == "front":  # the theme concepts' camera: high, square on to the gate
         target = mathutils.Vector((0, -6, 17))
         cam.location = (0, 131, 112)
     else:

@@ -11,6 +11,9 @@ end
 
 local Col = {}
 Col.__index = function(c, k)
+	if k == "ToHex" then
+		return function(me) return string.format("%02X%02X%02X", me.R * 255 + 0.5, me.G * 255 + 0.5, me.B * 255 + 0.5) end
+	end
 	if k == "Lerp" then
 		return function(a, b, t)
 			return Color3.new(a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t)
@@ -135,11 +138,17 @@ function dumpParts(root)
 		if d.IsPart and (d.Transparency or 0) < 1 then
 			local cf, s, c = d.CFrame, d.Size, d.Color
 			local light = ""
+			local shape = d.Shape and d.Shape.Name or "Block"
 			for _, child in rawget(d, "_children") do
 				if child.ClassName == "PointLight" or child.ClassName == "Fire" then light = "1" end
+				-- A sphere SpecialMesh (the Luck Wheel's hub dome) fills the part's box
+				if child.ClassName == "SpecialMesh" and child.MeshType and child.MeshType.Name == "Sphere" then
+					shape = "Ball"
+					s = s * (child.Scale or Vector3.new(1, 1, 1))
+				end
 			end
 			print(string.format("P|%s|%s|%.3f,%.3f,%.3f|%.3f,%.3f,%.3f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.4f,%.4f,%.4f|%.3f,%.3f,%.3f|%s|%.2f|%s",
-				d.Name, d.Shape and d.Shape.Name or "Block", s.X, s.Y, s.Z, cf.p.X, cf.p.Y, cf.p.Z,
+				d.Name, shape, s.X, s.Y, s.Z, cf.p.X, cf.p.Y, cf.p.Z,
 				cf.r.x.X, cf.r.x.Y, cf.r.x.Z, cf.r.y.X, cf.r.y.Y, cf.r.y.Z, cf.r.z.X, cf.r.z.Y, cf.r.z.Z,
 				c.R, c.G, c.B, d.Material and d.Material.Name or "Plastic", d.Transparency or 0, light))
 		end
