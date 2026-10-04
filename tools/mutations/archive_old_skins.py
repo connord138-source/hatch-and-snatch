@@ -2,6 +2,7 @@
 (POST /assets/v1/assets/{id}:archive; undo with :restore). Creator Hub has no
 Archive for Images, so this is the only way.
 
+    python tools/mutations/archive_old_skins.py --steps --clipboard   # key from the clipboard
     python tools/mutations/archive_old_skins.py --steps    # all three below, one key prompt
     python tools/mutations/archive_old_skins.py --check    # read-only: what would be archived
     python tools/mutations/archive_old_skins.py --test     # archives 84739040638074 only, then checks it
@@ -28,9 +29,11 @@ import argparse
 import csv
 import datetime
 import getpass
+import http.client
 import json
 import os
 import pathlib
+import subprocess
 import sys
 import time
 import urllib.error
@@ -81,6 +84,12 @@ def request(method: str, url: str, key: str) -> tuple[int, dict]:
                 time.sleep(wait)
                 continue
             return err.code, data
+        except (OSError, http.client.HTTPException) as err:  # dropped connection, timeout, DNS
+            if attempt < 3:
+                print(f"  network error ({type(err).__name__}), retrying", flush=True)
+                time.sleep(2 * (attempt + 1))
+                continue
+            return 0, {"error": f"{type(err).__name__}: {err}"[:200]}
     return 429, {}
 
 
@@ -123,6 +132,8 @@ def run(ids: list[str], key: str, check: bool, log_writer, counts: dict[str, int
         status, asset = request("GET", API + asset_id, key)
         if status != 200:
             record(asset_id, f"get {status}", json.dumps(asset)[:200])
+            if status == 0:
+                raise Stop("network error; check the connection and run again")
             if 400 <= status < 500 and status != 404:
                 raise Stop(f"GET refused with {status}")
             continue
@@ -139,8 +150,8 @@ def run(ids: list[str], key: str, check: bool, log_writer, counts: dict[str, int
         status, result = request("POST", API + asset_id + ":archive", key)
         if status != 200:
             record(asset_id, f"archive {status}", json.dumps(result)[:200])
-            if 400 <= status < 500:
-                raise Stop(f"archive refused with {status}")
+            if status == 0 or 400 <= status < 500:
+                raise Stop(f"archive refused with {status}" if status else "network error; run again")
             continue
         state = str(result.get("state", ""))
         if state.lower() != "archived":
@@ -160,9 +171,20 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="read-only: report what would be archived")
     ap.add_argument("--test", action="store_true", help=f"archive only {TEST_ID}, then confirm it")
     ap.add_argument("--steps", action="store_true", help="--check, --test, then the rest after a typed yes")
+    ap.add_argument(
+        "--clipboard",
+        action="store_true",
+        help="read the key from the clipboard (Creator Hub's Copy Key button), then clear the clipboard",
+    )
     args = ap.parse_args()
 
     key = os.environ.get("ROBLOX_API_KEY", "").strip()
+    if not key and args.clipboard:
+        key = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", "Get-Clipboard -Raw"], capture_output=True, text=True
+        ).stdout.strip()
+        subprocess.run(["powershell", "-NoProfile", "-Command", "Set-Clipboard -Value ' '"], capture_output=True)
+        print("Key read from the clipboard (clipboard cleared).")
     if not key:
         if not sys.stdin.isatty():
             print("Run this in an interactive terminal (the key is asked for in a hidden prompt).")
@@ -170,6 +192,14 @@ def main() -> int:
         key = getpass.getpass("Open Cloud API key (paste, then Enter; nothing is shown): ").strip()
     if not key:
         print("No key given.")
+        return 2
+    # A paste that went wrong (Ctrl+V into the hidden prompt in Windows PowerShell can
+    # arrive as control characters) makes Roblox drop the connection. Say so, without
+    # showing any of the key.
+    odd = sum(1 for ch in key if not (33 <= ord(ch) <= 126))
+    print(f"Key: {len(key)} characters, {'all printable' if odd == 0 else f'{odd} NOT printable'}.")
+    if odd:
+        print("That isn't a clean key. Copy it again and use --clipboard (or paste with right-click).")
         return 2
     ids = [row["asset_id"] for row in csv.DictReader(open(IDS, newline=""))]
     if TEST_ID in ids:
