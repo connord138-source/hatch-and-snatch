@@ -2,14 +2,16 @@
 (POST /assets/v1/assets/{id}:archive; undo with :restore). Creator Hub has no
 Archive for Images, so this is the only way.
 
-    $env:ROBLOX_API_KEY = Read-Host -MaskInput "Open Cloud key"   # PowerShell 7
+    python tools/mutations/archive_old_skins.py --steps    # all three below, one key prompt
     python tools/mutations/archive_old_skins.py --check    # read-only: what would be archived
     python tools/mutations/archive_old_skins.py --test     # archives 84739040638074 only, then checks it
     python tools/mutations/archive_old_skins.py            # the rest, about 2 a second
 
-The key needs the Assets API with Read and Write (asset:read, asset:write) and is
-read from ROBLOX_API_KEY only: it is never printed or written anywhere. Delete it in
-Creator Hub (Open Cloud > API Keys) when done.
+--steps runs --check, then --test, and asks for "yes" before archiving the rest.
+The key needs the Assets API with Read and Write (asset:read, asset:write). It comes
+from ROBLOX_API_KEY, or else a hidden prompt (paste it, press Enter: nothing is
+shown), and it is never printed or written anywhere. Delete it in Creator Hub
+(Open Cloud > API Keys) when done.
 
 Only ids listed in old_skin_images_2026-10-03.csv are touched (the 462 images the
 morning's cut-off import uploaded, 2026-10-03 07:37-07:44 EDT), and each one is
@@ -25,6 +27,7 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime
+import getpass
 import json
 import os
 import pathlib
@@ -106,75 +109,115 @@ def why_not(asset_id: str, asset: dict) -> str | None:
     return None
 
 
+def run(ids: list[str], key: str, check: bool, log_writer, counts: dict[str, int]) -> None:
+    """Checks (and unless `check`, archives) each id in turn; raises Stop on a refusal."""
+
+    def record(asset_id: str, result: str, detail: str = "") -> None:
+        counts[result] = counts.get(result, 0) + 1
+        log_writer(asset_id, result, detail)
+        print(f"{asset_id}: {result}{' - ' + detail if detail else ''}", flush=True)
+
+    for index, asset_id in enumerate(ids):
+        if index:
+            time.sleep(PAUSE)
+        status, asset = request("GET", API + asset_id, key)
+        if status != 200:
+            record(asset_id, f"get {status}", json.dumps(asset)[:200])
+            if 400 <= status < 500 and status != 404:
+                raise Stop(f"GET refused with {status}")
+            continue
+        reason = why_not(asset_id, asset)
+        if reason:
+            record(asset_id, "skipped", reason)
+            continue
+        if str(asset.get("state", "")).lower() == "archived":
+            record(asset_id, "already archived")
+            continue
+        if check:
+            record(asset_id, "would archive", f"{asset.get('displayName')} {asset.get('revisionCreateTime')}")
+            continue
+        status, result = request("POST", API + asset_id + ":archive", key)
+        if status != 200:
+            record(asset_id, f"archive {status}", json.dumps(result)[:200])
+            if 400 <= status < 500:
+                raise Stop(f"archive refused with {status}")
+            continue
+        state = str(result.get("state", ""))
+        if state.lower() != "archived":
+            _, again = request("GET", API + asset_id, key)
+            state = str(again.get("state", ""))
+        record(asset_id, "archived" if state.lower() == "archived" else f"state {state or '?'}")
+        if asset_id == TEST_ID and state.lower() != "archived":
+            raise Stop("the test asset did not come back archived")
+
+
+def summary(label: str, counts: dict[str, int]) -> None:
+    print(f"{label}:", ", ".join(f"{k} {v}" for k, v in sorted(counts.items())) or "nothing", flush=True)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--check", action="store_true", help="read-only: report what would be archived")
     ap.add_argument("--test", action="store_true", help=f"archive only {TEST_ID}, then confirm it")
+    ap.add_argument("--steps", action="store_true", help="--check, --test, then the rest after a typed yes")
     args = ap.parse_args()
 
     key = os.environ.get("ROBLOX_API_KEY", "").strip()
     if not key:
-        print("Set ROBLOX_API_KEY first (see the top of this file).")
+        if not sys.stdin.isatty():
+            print("Run this in an interactive terminal (the key is asked for in a hidden prompt).")
+            return 2
+        key = getpass.getpass("Open Cloud API key (paste, then Enter; nothing is shown): ").strip()
+    if not key:
+        print("No key given.")
         return 2
     ids = [row["asset_id"] for row in csv.DictReader(open(IDS, newline=""))]
-    if args.test:
-        ids = [TEST_ID]
-    elif TEST_ID in ids:
+    if TEST_ID in ids:
         ids.remove(TEST_ID)
-        ids.insert(0, TEST_ID)  # already archived by --test: it just logs "already"
+        ids.insert(0, TEST_ID)  # first: --test archives it alone, and a later run logs "already"
 
     new_log = not LOG.exists()
     log = open(LOG, "a", newline="")
     writer = csv.writer(log)
     if new_log:
         writer.writerow(["time", "asset_id", "result", "detail"])
-    counts: dict[str, int] = {}
 
-    def record(asset_id: str, result: str, detail: str = "") -> None:
-        counts[result] = counts.get(result, 0) + 1
+    def log_writer(asset_id: str, result: str, detail: str) -> None:
         writer.writerow([datetime.datetime.now().isoformat(timespec="seconds"), asset_id, result, detail])
         log.flush()
-        print(f"{asset_id}: {result}{' - ' + detail if detail else ''}", flush=True)
 
     try:
-        for index, asset_id in enumerate(ids):
-            if index:
-                time.sleep(PAUSE)
-            status, asset = request("GET", API + asset_id, key)
-            if status != 200:
-                record(asset_id, f"get {status}", json.dumps(asset)[:200])
-                if 400 <= status < 500 and status != 404:
-                    raise Stop(f"GET refused with {status}")
-                continue
-            reason = why_not(asset_id, asset)
-            if reason:
-                record(asset_id, "skipped", reason)
-                continue
-            if str(asset.get("state", "")).lower() == "archived":
-                record(asset_id, "already archived")
-                continue
-            if args.check:
-                record(asset_id, "would archive", f"{asset.get('displayName')} {asset.get('revisionCreateTime')}")
-                continue
-            status, result = request("POST", API + asset_id + ":archive", key)
-            if status != 200:
-                record(asset_id, f"archive {status}", json.dumps(result)[:200])
-                if 400 <= status < 500:
-                    raise Stop(f"archive refused with {status}")
-                continue
-            state = str(result.get("state", ""))
-            if state.lower() != "archived":
-                _, again = request("GET", API + asset_id, key)
-                state = str(again.get("state", ""))
-            record(asset_id, "archived" if state.lower() == "archived" else f"state {state or '?'}")
-            if asset_id == TEST_ID and state.lower() != "archived":
-                raise Stop("the test asset did not come back archived")
+        if args.steps:
+            counts: dict[str, int] = {}
+            print(f"1/3 check: {len(ids)} ids, read-only", flush=True)
+            run(ids, key, True, log_writer, counts)
+            summary("check", counts)
+            ready = counts.get("would archive", 0) + counts.get("already archived", 0)
+            if ready == 0:
+                print("Nothing to archive.")
+                return 0
+            counts = {}
+            print(f"2/3 test: archiving {TEST_ID} alone", flush=True)
+            run([TEST_ID], key, False, log_writer, counts)
+            summary("test", counts)
+            rest = ids[1:]
+            answer = input(f"3/3 archive the other {len(rest)} old images now? Type yes: ").strip().lower()
+            if answer != "yes":
+                print("Stopped before the full run.")
+                return 0
+            counts = {}
+            run(rest, key, False, log_writer, counts)
+            summary("full run", counts)
+        else:
+            counts = {}
+            run([TEST_ID] if args.test else ids, key, args.check, log_writer, counts)
+            summary("summary", counts)
     except Stop as stop:
+        summary("so far", counts)
         print(f"STOPPED: {stop}")
         return 1
     finally:
         log.close()
-        print("summary:", ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
     return 0
 
 
