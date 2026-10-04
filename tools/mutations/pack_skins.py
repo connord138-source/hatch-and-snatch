@@ -18,7 +18,10 @@ import sys
 import bpy
 
 argv = sys.argv[sys.argv.index("--") + 1 :]
-SRC, SKINS, OUT = argv[0], pathlib.Path(argv[1]), pathlib.Path(argv[2])
+# Absolute paths: Blender's image loader doesn't find a path relative to the
+# working directory, and screen_skins.py prints its re-pack commands with them
+SRC = str(pathlib.Path(argv[0]).resolve())
+SKINS, OUT = pathlib.Path(argv[1]).resolve(), pathlib.Path(argv[2]).resolve()
 SIZE = int(argv[3]) if len(argv) > 3 else 1024
 MUTATIONS = ["Albino", "Melanistic", "Piebald", "Chimera", "Iridescent"]
 

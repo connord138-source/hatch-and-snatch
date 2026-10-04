@@ -392,7 +392,7 @@ def move_flagged(flagged: list[dict], dest: pathlib.Path):
                 print(f"  (no skins left for {model}: delete {packed})")
                 continue
             print(
-                f"  blender -b --python tools/mutations/pack_skins.py -- assets/glb/{model}.glb {skins / model} {packed}"
+                f"  blender -b --python-exit-code 1 --python tools/mutations/pack_skins.py -- assets/glb/{model}.glb {skins / model} {packed}"
             )
 
 
