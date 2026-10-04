@@ -26,3 +26,4 @@ __pycache__/
 
 # tools/textures/make_diamond_tex.py previews
 assets/textures/preview_*.png
+tools/mutations/archive_log.csv
