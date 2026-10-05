@@ -480,6 +480,9 @@ function AdminController.start()
 	gui.Name = "HatchAdmin"
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 20 -- over the menus
+	-- Children draw over their parent: under Global layering the window (ZIndex 20)
+	-- covered its own rows (ZIndex 1), so the whole panel read dim (PC, 2026-10-05)
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = player:WaitForChild("PlayerGui")
 	Ui.autoScale(gui)
 	build(gui)
