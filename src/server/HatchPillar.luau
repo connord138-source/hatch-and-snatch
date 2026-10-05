@@ -4,7 +4,9 @@
 -- reveal hits (RevealTiming), a beam in the rarity's color shoots up from their
 -- incubator with a shockwave ring, rising sparkles and the rarity's sound, so the
 -- whole server sees someone pulled something big. Everything is anchored,
--- non-colliding and gone after a few seconds.
+-- non-colliding and gone after a few seconds. The sound is played by each client
+-- (RevealController) except the hatcher's, whose reveal already played it (PC
+-- playtest 2026-10-05: the hatcher heard the stinger twice, 19 ms apart).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
@@ -31,7 +33,8 @@ local function part(parent: Instance, props: { [string]: any }): Part
 	return p
 end
 
--- The rarity's stinger from the sound pack, heard around the pillar.
+-- The rarity's stinger from the sound pack, heard around the pillar (not played
+-- here: each client but the hatcher's plays it).
 local function sound(parent: BasePart, name: string)
 	local id = Config.Sounds.id
 	local region = Config.Sounds.regions[name]
@@ -44,20 +47,29 @@ local function sound(parent: BasePart, name: string)
 		s.SoundId = "rbxasset://sounds/electronicpingshort.wav"
 		s.PlaybackSpeed = 0.5
 	end
+	s.Name = "PillarSound"
 	s.Volume = 1
 	s.RollOffMode = Enum.RollOffMode.InverseTapered
 	s.RollOffMinDistance = 30
 	s.RollOffMaxDistance = 320
 	s.Parent = parent
-	s:Play()
 end
 
--- `base`: where the pillar stands (the incubator); `ultra`: Mythic and up (taller, wider).
-function HatchPillar.spawn(base: Vector3, color: Color3, rarityId: string, ultra: boolean)
+-- `base`: where the pillar stands (the incubator); `ultra`: Mythic and up (taller,
+-- wider); `hatcherUserId`: whose hatch it is (their client doesn't replay the sound).
+function HatchPillar.spawn(
+	base: Vector3,
+	color: Color3,
+	rarityId: string,
+	ultra: boolean,
+	hatcherUserId: number
+)
 	local height = if ultra then 420 else 260
 	local width = if ultra then 6 else 4
 	local model = Instance.new("Model")
 	model.Name = "HatchPillar"
+	model:SetAttribute("HatcherUserId", hatcherUserId)
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic -- arrives whole, sound included
 	local upright = CFrame.Angles(0, 0, math.pi / 2) -- a cylinder's axis is its X
 	local center = CFrame.new(base + Vector3.new(0, height / 2, 0)) * upright
 	local beam = part(model, {

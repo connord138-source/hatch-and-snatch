@@ -37,6 +37,7 @@ local requests: { [string]: RemoteEvent } = {
 	WatchAd = makeEvent("WatchAd"), -- () show a rewarded video ad
 	ClaimDaily = makeEvent("ClaimDaily"), -- () today's login streak reward
 	RerollQuest = makeEvent("RerollQuest"), -- (index: number) swap one daily quest
+	RevealImpact = makeEvent("RevealImpact"), -- (id: number) a hatch reveal just hit the hatcher's screen
 }
 
 -- The owner's admin panel: (action, target, ...) → a line of text (Admin.luau

@@ -1,8 +1,8 @@
 --!strict
--- How long the hatch reveal takes, shared by the client's reveal (RevealController)
--- and the server, which times the world's light pillar and the server-wide news to
--- the moment the hatcher sees the creature. Owner, 2026-10-05: "a more involved
--- sequence when a legendary or higher is drawn".
+-- How long the hatch reveal takes (RevealController), and which tier a rarity
+-- gets. The server's light pillar and news wait for the hatcher's client to report
+-- the moment (RevealImpact), since queued reveals start late. Owner, 2026-10-05:
+-- "a more involved sequence when a legendary or higher is drawn".
 --   normal  Common to Epic: the reel, then the creature
 --   big     Legendary: a longer reel that creeps to a stop, a riser, a heartbeat
 --           pause, then an impact with light rays and confetti

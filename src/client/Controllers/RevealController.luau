@@ -21,11 +21,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local RevealTiming = require(ReplicatedStorage.Shared.RevealTiming)
+local ClientState = require(script.Parent.Parent.ClientState)
 local CreatureViewport = require(script.Parent.Parent.CreatureViewport)
 local Genetics = require(ReplicatedStorage.Shared.Genetics)
 local Sfx = require(script.Parent.Parent.Sfx)
@@ -540,6 +542,10 @@ local function playReveal(reveal: { [string]: any })
 	window.Visible = false
 	skipRequested = false
 	local shown = os.clock()
+	if typeof(reveal.id) == "number" then
+		-- Now the server lights the pillar and sends the news (HatchService)
+		ClientState.request("RevealImpact", reveal.id)
+	end
 	if big then
 		overlay.BackgroundTransparency = 0.15
 		Sfx.play("Impact", { volume = 1 })
@@ -774,6 +780,22 @@ function RevealController.start()
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	Ui.autoScale(gui)
 	Sfx.preload()
+
+	-- Someone's Legendary+ light pillar: its sound plays here for everyone but the
+	-- hatcher, whose reveal already played it (HatchPillar)
+	Workspace.ChildAdded:Connect(function(child)
+		if
+			child.Name ~= "HatchPillar"
+			or child:GetAttribute("HatcherUserId") == Players.LocalPlayer.UserId
+		then
+			return
+		end
+		local anchor = child:WaitForChild("Anchor", 2)
+		local sound = anchor and anchor:FindFirstChild("PillarSound")
+		if sound and sound:IsA("Sound") then
+			sound:Play()
+		end
+	end)
 
 	local remotes = ReplicatedStorage:WaitForChild("Remotes")
 	local revealRemote = remotes:WaitForChild("HatchReveal") :: RemoteEvent

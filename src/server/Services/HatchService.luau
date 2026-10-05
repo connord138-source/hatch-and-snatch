@@ -399,6 +399,43 @@ end
 -- Hatching
 ---------------------------------------------------------------------------
 
+-- Hatch effects waiting on the hatcher's screen (the light pillar, the server-wide
+-- news, the storage toast), keyed by reveal id. The client reports when each reveal
+-- hits (RevealImpact); queued reveals can play long after the hatch (PC playtest
+-- 2026-10-05: the pillar fired 14 s before the hatcher's own impact). A client that
+-- never reports (it left, or its reveal failed) gets them after REVEAL_TIMEOUT.
+type PendingReveal = { player: Player, at: number, run: () -> () }
+local pendingReveals: { [number]: PendingReveal } = {}
+local nextRevealId = 0
+local REVEAL_TIMEOUT = 90
+
+local function runReveal(id: number)
+	local pending = pendingReveals[id]
+	if pending then
+		pendingReveals[id] = nil
+		Guard.run("HatchService.reveal", pending.run)
+	end
+end
+
+local function onRevealImpact(player: Player, id: any)
+	if typeof(id) ~= "number" then
+		return
+	end
+	local pending = pendingReveals[id]
+	if pending and pending.player == player then
+		runReveal(id)
+	end
+end
+
+local function sweepReveals()
+	local now = os.clock()
+	for id, pending in pendingReveals do
+		if now - pending.at > REVEAL_TIMEOUT or pending.player.Parent == nil then
+			runReveal(id)
+		end
+	end
+end
+
 local function hatch(player: Player, data: PlayerData, index: number)
 	local egg = table.remove(data.incubators, index)
 	if egg == nil then
@@ -440,39 +477,31 @@ local function hatch(player: Player, data: PlayerData, index: number)
 		1,
 		{ tostring(creature.rarity), egg.biome, if finishId == "Normal" then "Normal" else "Finish" }
 	)
+	-- Effects that wait for this reveal to hit the hatcher's screen: reveals queue up
+	-- (Skip Hatch, several incubators at once), so the client reports the moment
+	nextRevealId += 1
+	local revealId = nextRevealId
 	Net.hatchReveal(player, {
+		id = revealId,
 		species = egg.species,
 		biome = egg.biome,
 		finish = finishId,
 		mutation = mutation,
 	})
-	if uid and data.creatures[uid] and data.creatures[uid].slot == nil then
-		task.delay(RevealTiming.revealAt(creature.rarity) + 1.5, function()
-			Net.notify(player, "Your pedestals are full, so it went to storage (Creatures menu).", "bad")
-		end)
-	end
-	-- Legendary and up: a pillar of light from the incubator as the hatcher's reveal
-	-- hits, so everyone nearby sees it too
-	local revealAt = RevealTiming.revealAt(creature.rarity)
+	local storageFull = uid ~= nil and data.creatures[uid] ~= nil and data.creatures[uid].slot == nil
 	local tier = RevealTiming.tier(creature.rarity)
 	local plot = PlotService.get(player)
 	local bay = if plot and egg.slot then plot.incubators[egg.slot] else nil
-	if bay and (tier == "big" or tier == "ultra") then
-		local at = bay.Position
-		task.delay(revealAt, function()
-			HatchPillar.spawn(at, rarity.color, creature.rarity, tier == "ultra")
-		end)
-	end
-	-- Server-wide news waits for the reveal on the hatcher's screen
-	task.delay(revealAt + 0.6, function()
+	local bayPosition = if bay then bay.Position else nil
+	local function announce()
 		if mutationEntry then
 			-- Mutations are the rarest roll in the game: everyone hears, with the odds
 			local look = MutationLooks.get(mutationEntry.id)
 			local odds = Format.count(1 / mutationEntry.chance)
-			local tier = if rarity.announce then `{creature.rarity:upper()} ` else ""
+			local rarityWord = if rarity.announce then `{creature.rarity:upper()} ` else ""
 			local article = if string.find(mutationEntry.displayName, "^[AEIOU]") then "an" else "a"
 			Net.announce(
-				`🧬 {player.DisplayName} hatched {article} {mutationEntry.displayName:upper()} {tier}{name}! (1 in {odds})`,
+				`🧬 {player.DisplayName} hatched {article} {mutationEntry.displayName:upper()} {rarityWord}{name}! (1 in {odds})`,
 				if look then look.accent else rarity.color
 			)
 		elseif rarity.announce then
@@ -480,7 +509,29 @@ local function hatch(player: Player, data: PlayerData, index: number)
 		elseif finish.announce ~= "none" then
 			Net.announce(`{player.DisplayName} hatched a {name}!`, rarity.color)
 		end
-	end)
+	end
+	pendingReveals[revealId] = {
+		player = player,
+		at = os.clock(),
+		run = function()
+			-- Legendary and up: a pillar of light from the incubator, for everyone nearby
+			if bayPosition and (tier == "big" or tier == "ultra") then
+				HatchPillar.spawn(bayPosition, rarity.color, creature.rarity, tier == "ultra", player.UserId)
+			end
+			task.delay(0.6, announce)
+			if storageFull then
+				task.delay(1.5, function()
+					if player.Parent then
+						Net.notify(
+							player,
+							"Your pedestals are full, so it went to storage (Creatures menu).",
+							"bad"
+						)
+					end
+				end)
+			end
+		end,
+	}
 
 	local order = if Config.Biomes[egg.biome].order > 0 then Config.Biomes[egg.biome].order else 3
 	ProgressionService.addXp(player, Progression.xp.hatchPerBiomeOrder * order)
@@ -627,6 +678,8 @@ function HatchService.start()
 		end
 	end)
 	Guard.loop("HatchService.tick", 1, tick)
+	Guard.loop("HatchService.reveals", 1, sweepReveals)
+	Net.onRequest("RevealImpact", onRevealImpact)
 end
 
 return HatchService
