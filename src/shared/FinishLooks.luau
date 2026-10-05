@@ -62,7 +62,10 @@ local LOOKS: { [string]: Look } = {
 		reflectance = 0.35,
 		sky = { texture = "rbxassetid://129645056585841", studsPerTile = 6 },
 	},
-	Prismatic = { material = Enum.Material.Neon }, -- the client cycles the color
+	-- Glossy and shaded, the client cycling its color through the rainbow. It was Neon,
+	-- which has no shading: with the bloom the creature melted into a glowing blob you
+	-- couldn't recognize (owner, 2026-10-05: "difficult to tell what creature it is").
+	Prismatic = { material = Enum.Material.SmoothPlastic, reflectance = 0.3 },
 	BloodMoon = {
 		color = Color3.fromRGB(165, 8, 24),
 		material = Enum.Material.CrackedLava,

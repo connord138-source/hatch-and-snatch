@@ -20,6 +20,7 @@ local PromptFilter = require(script.Controllers.PromptFilter)
 local RainbowController = require(script.Controllers.RainbowController)
 local CastleFxController = require(script.Controllers.CastleFxController)
 local RevealController = require(script.Controllers.RevealController)
+local SprintController = require(script.Controllers.SprintController)
 local TeleportController = require(script.Controllers.TeleportController)
 local ZoneGateController = require(script.Controllers.ZoneGateController)
 local ZoneMoodController = require(script.Controllers.ZoneMoodController)
@@ -35,6 +36,7 @@ DayNightController.start()
 IncubatorController.start()
 task.spawn(LuckWheelController.start) -- waits for the world to replicate
 RevealController.start()
+SprintController.start() -- hold Left Shift, click the left stick, or tap Run
 task.spawn(TeleportController.start) -- waits for the remotes
 OddsController.start() -- the egg odds panel (paid random items: odds before buying)
 task.spawn(ZoneGateController.start) -- waits for the world to replicate

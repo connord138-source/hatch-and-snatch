@@ -222,7 +222,7 @@ function CreatureViewport.create(
 				-- Faster than in the world, so the sheen shows during the reveal
 				MutationLooks.shimmer(parts, MutationLooks.sheen(t * 4, 0), appearances)
 			elseif not mutated and finish == "Prismatic" then
-				recolor(Color3.fromHSV((t * 0.25) % 1, 0.8, 1))
+				recolor(Color3.fromHSV((t * 0.25) % 1, 0.65, 1))
 			elseif not mutated and shine == "Diamond" then
 				recolor(Color3.fromRGB(244, 249, 255):Lerp(Color3.fromHSV((t * 0.3) % 1, 0.2, 1), 0.4))
 			elseif not mutated and shine == "BloodMoon" then

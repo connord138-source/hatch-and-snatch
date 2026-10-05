@@ -44,11 +44,14 @@ Use a fresh profile (a Local Server test player that has never played, or Admin 
 - [ ] Upgrade the base at a walk-over pad (stand 0.6 s); open the Base menu at the Command Terminal.
 - [ ] Buy a second incubator and upgrade one; its egg keeps its progress.
 
+- [ ] **Sprint:** hold Left Shift (keyboard), click the left stick (controller, toggles) or tap Run (phone, toggles): faster with a slightly wider view, a toggle stops after standing still. A walked creature keeps up. While carrying a stolen creature sprint does nothing, and the carry isn't dropped for speed.
+
 ## 4. Creatures
 
 - [ ] Creatures menu: tap a name to open the details card (model, genetics, earnings breakdown, growth, location).
 - [ ] Walk a creature: it follows with a hop and grows ×2 (×4 in its own biome's zone); it can't be stolen while walked.
 - [ ] Feed (10 Essence of its biome per 15 min), Sell (an average Adult sells for about half its egg's price, better ones for more; a fresh Baby for less than its egg), Release (pays Essence; spins for Legendary+), storage and nursery.
+- [ ] A Prismatic creature (Admin spawn one, e.g. Aurorox) cycles through the rainbow but stays shaded: its face, legs and shape read clearly, day and night, in the world and in the reveal.
 - [ ] Albino, Melanistic, Piebald, Chimera and Iridescent creatures wear their skins (Admin spawn a few across species); the held-back ones fall back to the v1 look without errors.
 
 ## 5. Stealing (Local Server, 2–3 players)

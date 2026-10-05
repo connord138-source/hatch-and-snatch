@@ -367,7 +367,10 @@ local function follow(info: Tracked, dt: number, root: BasePart): CFrame
 	if distance > SNAP_DISTANCE then
 		current = target
 	elseif distance > 1.5 then
-		speed = math.min(motion.speed, distance * 2.2)
+		-- Keeps up with a sprinting owner (SprintController) instead of falling behind
+		local owner = root.AssemblyLinearVelocity
+		local ownerSpeed = Vector3.new(owner.X, 0, owner.Z).Magnitude
+		speed = math.min(math.max(motion.speed, ownerSpeed * 1.15), distance * 2.2)
 		local step = math.min(distance, speed * dt)
 		current += flatDelta.Unit * step
 		info.facing = flatDelta.Unit
@@ -483,7 +486,7 @@ function CreatureAnimator.start()
 			end
 
 			if CollectionService:HasTag(model, "Prismatic") then
-				local color = Color3.fromHSV((t * 0.2 + info.seed) % 1, 0.8, 1)
+				local color = Color3.fromHSV((t * 0.2 + info.seed) % 1, 0.65, 1)
 				if info.parts == nil then
 					local parts: { BasePart } = {}
 					for _, part in model:GetDescendants() do
