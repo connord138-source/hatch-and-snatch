@@ -15,9 +15,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
+local RevealTiming = require(ReplicatedStorage.Shared.RevealTiming)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Analytics = require(script.Parent.Parent.Analytics)
+local HatchPillar = require(script.Parent.Parent.HatchPillar)
 local Net = require(script.Parent.Parent.Net)
 local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
@@ -444,12 +446,24 @@ local function hatch(player: Player, data: PlayerData, index: number)
 		mutation = mutation,
 	})
 	if uid and data.creatures[uid] and data.creatures[uid].slot == nil then
-		task.delay(5, function()
+		task.delay(RevealTiming.revealAt(creature.rarity) + 1.5, function()
 			Net.notify(player, "Your pedestals are full, so it went to storage (Creatures menu).", "bad")
 		end)
 	end
-	-- Server-wide news waits for the reveal to finish on the hatcher's screen
-	task.delay(5, function()
+	-- Legendary and up: a pillar of light from the incubator as the hatcher's reveal
+	-- hits, so everyone nearby sees it too
+	local revealAt = RevealTiming.revealAt(creature.rarity)
+	local tier = RevealTiming.tier(creature.rarity)
+	local plot = PlotService.get(player)
+	local bay = if plot and egg.slot then plot.incubators[egg.slot] else nil
+	if bay and (tier == "big" or tier == "ultra") then
+		local at = bay.Position
+		task.delay(revealAt, function()
+			HatchPillar.spawn(at, rarity.color, creature.rarity, tier == "ultra")
+		end)
+	end
+	-- Server-wide news waits for the reveal on the hatcher's screen
+	task.delay(revealAt + 0.6, function()
 		if mutationEntry then
 			-- Mutations are the rarest roll in the game: everyone hears, with the odds
 			local look = MutationLooks.get(mutationEntry.id)

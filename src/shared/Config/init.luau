@@ -50,4 +50,5 @@ return {
 	Daily = require(script.Daily),
 	Debug = require(script.Debug),
 	Materials = require(script.Materials),
+	Sounds = require(script.Sounds),
 }

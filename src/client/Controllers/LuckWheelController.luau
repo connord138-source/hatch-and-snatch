@@ -20,16 +20,15 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local ClientState = require(script.Parent.Parent.ClientState)
+local Sfx = require(script.Parent.Parent.Sfx)
 local Ui = require(script.Parent.Parent.Ui)
 
 local TAG = "LuckWheel"
-local PING = "rbxasset://sounds/electronicpingshort.wav"
 local CONFETTI_TEXTURE = "rbxasset://textures/particles/sparkles_main.dds"
 local FLAPPER_MAX = 38 -- degrees the flapper swings before a peg slips past it
 local SPRING = 900 -- the flapper's spring back (per degree, per second squared)
@@ -72,8 +71,6 @@ type Wheel = {
 	flashIndex: number?,
 	flashUntil: number,
 	emitters: { ParticleEmitter },
-	ticks: { Sound },
-	tickTurn: number,
 	lastPeg: number, -- pegs passed, for the ticks
 	mount: BasePart?,
 	button: BasePart?,
@@ -133,31 +130,10 @@ local function countParts(container: Instance): number
 	return count
 end
 
-local function sound(parent: Instance, volume: number): Sound
-	local s = Instance.new("Sound")
-	s.SoundId = PING
-	s.Volume = volume
-	s.RollOffMode = Enum.RollOffMode.InverseTapered
-	s.RollOffMinDistance = 12
-	s.RollOffMaxDistance = 90
-	s.Parent = parent
-	return s
-end
-
--- A short rising jingle: at the wheel when it's here, else on the spinner's screen.
-local function jingle(parent: Instance, jackpot: boolean)
-	local notes: { number } = if jackpot then { 1, 1.26, 1.5, 2, 1.5, 2, 2.52 } else { 1, 1.26, 1.5, 2 }
-	task.spawn(function()
-		for _, pitch in notes do
-			local s = sound(parent, 0.6)
-			s.PlaybackSpeed = pitch
-			s:Play()
-			s.Ended:Once(function()
-				s:Destroy()
-			end)
-			task.wait(0.09)
-		end
-	end)
+-- The win sound from the sound pack (Config.Sounds): the Legendary fanfare for the
+-- jackpot, the Rare chime otherwise; at the wheel, or on the spinner's screen (nil).
+local function jingle(parent: Instance?, jackpot: boolean)
+	Sfx.play(if jackpot then "Legendary" else "Rare", { parent = parent, volume = 0.9 })
 end
 
 local function readSpin(): Spin?
@@ -248,15 +224,14 @@ end
 
 local function tick(wheel: Wheel)
 	local now = os.clock()
-	if now - lastTickAt < TICK_GAP or #wheel.ticks == 0 then
+	if now - lastTickAt < TICK_GAP or wheel.mount == nil then
 		return
 	end
 	lastTickAt = now
-	wheel.tickTurn = wheel.tickTurn % #wheel.ticks + 1
-	local s = wheel.ticks[wheel.tickTurn]
-	s.PlaybackSpeed = 1.8 + rng:NextNumber() * 0.25
-	s.TimePosition = 0
-	s:Play()
+	Sfx.play(
+		"Tick",
+		{ parent = wheel.mount :: Instance?, volume = 0.55, pitch = 1 + rng:NextNumber() * 0.15 }
+	)
 end
 
 local function setBulbs(wheel: Wheel, colorOf: (Bulb) -> Color3)
@@ -438,7 +413,7 @@ local function celebrate(current: Spin)
 	if current.spinnerId == player.UserId then
 		showBanner(current)
 		if not heard then
-			jingle(SoundService, jackpot)
+			jingle(nil, jackpot)
 		end
 	end
 end
@@ -528,8 +503,6 @@ local function bind(instance: Instance)
 		flashIndex = nil,
 		flashUntil = 0,
 		emitters = {},
-		ticks = {},
-		tickTurn = 0,
 		lastPeg = math.floor(discAngle(Workspace:GetServerTimeNow()) / spacing),
 		mount = nil,
 		button = nil,
@@ -557,9 +530,6 @@ local function bind(instance: Instance)
 	local mount = model:FindFirstChild("FlapperMount")
 	if mount and mount:IsA("BasePart") then
 		wheel.mount = mount
-		for _ = 1, 4 do
-			table.insert(wheel.ticks, sound(mount, 0.4))
-		end
 		local attachment = Instance.new("Attachment")
 		attachment.Position = Vector3.new(0, 0, -0.8)
 		attachment.Parent = mount
