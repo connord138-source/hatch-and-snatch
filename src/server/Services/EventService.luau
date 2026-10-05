@@ -1,6 +1,9 @@
 --!strict
 -- Hourly server-wide Moon events (every 2 minutes in Studio). The Moon Egg's
--- color is the alarm; clients read the workspace attributes for the banner.
+-- color is the alarm; clients read the workspace attributes for the banner. A
+-- minute before a moon rises everyone gets a toast and a chime, then a fanfare as
+-- it rises and a soft chime as it sets (sound cues, owner 2026-10-05).
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -19,6 +22,7 @@ local MOON_COLORS: { [string]: Color3 } = {
 	PrismMoon = Color3.fromRGB(120, 255, 230),
 }
 local IDLE_MOON = Color3.fromRGB(235, 230, 210)
+local WARNING_SECONDS = 60 -- the heads-up before a moon rises
 
 local active: Types.MoonEvent? = nil
 local rng = Random.new()
@@ -80,9 +84,14 @@ function EventService.run(event: Types.MoonEvent)
 	setMoon(color)
 	WorldService.setMoonTint(color)
 	Net.announce(`{event.displayName} is rising!`, color)
+	Net.cueAll("MoonRising")
 	task.wait(event.durationSeconds)
 	if active == event then
 		active = nil
+		Net.cueAll("MoonEnd")
+		for _, player in Players:GetPlayers() do
+			Net.notify(player, `🌙 The {event.displayName} has set.`)
+		end
 		Workspace:SetAttribute("MoonEvent", nil)
 		Workspace:SetAttribute("MoonEventName", nil)
 		Workspace:SetAttribute("MoonEventEndsAt", nil)
@@ -100,10 +109,19 @@ function EventService.start()
 	task.spawn(function()
 		while true do
 			Workspace:SetAttribute("MoonEventNextAt", Timing.now() + interval)
-			task.wait(interval)
+			local event = pickEvent()
+			local warning = if interval > WARNING_SECONDS * 1.5 then WARNING_SECONDS else 0
+			task.wait(interval - warning)
+			if warning > 0 then
+				Net.cueAll("MoonWarning")
+				for _, player in Players:GetPlayers() do
+					Net.notify(player, `🌙 The {event.displayName} rises in 1 minute!`, "rare")
+				end
+				task.wait(warning)
+			end
 			Workspace:SetAttribute("MoonEventNextAt", nil)
 			Guard.run("EventService.run", function()
-				EventService.run(pickEvent())
+				EventService.run(event)
 			end)
 		end
 	end)

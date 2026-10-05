@@ -13,7 +13,8 @@ local Config = require(ReplicatedStorage.Shared.Config)
 
 local PING = "rbxasset://sounds/electronicpingshort.wav"
 
-export type Options = { volume: number?, pitch: number?, parent: Instance? }
+-- `range`: how far a sound played from a part carries (studs, default 120)
+export type Options = { volume: number?, pitch: number?, parent: Instance?, range: number? }
 
 -- Fallback tunes: { delay, pitch, volume } notes of the ping
 local FALLBACK: { [string]: { { number } } } = {
@@ -68,11 +69,11 @@ local function soundId(): string?
 	return if id and id > 0 then `rbxassetid://{id}` else nil
 end
 
-local function place(sound: Sound, parent: Instance?)
+local function place(sound: Sound, parent: Instance?, range: number?)
 	if parent and (parent:IsA("BasePart") or parent:IsA("Attachment")) then
 		sound.RollOffMode = Enum.RollOffMode.InverseTapered
 		sound.RollOffMinDistance = 14
-		sound.RollOffMaxDistance = 120
+		sound.RollOffMaxDistance = range or 120
 	end
 	sound.Parent = parent or SoundService
 end
@@ -105,6 +106,7 @@ function Sfx.play(name: string, options: Options?)
 	local volume = if options and options.volume then options.volume else 0.8
 	local pitch = if options and options.pitch then options.pitch else 1
 	local parent = if options then options.parent else nil
+	local range = if options then options.range else nil
 	local region = Config.Sounds.regions[name]
 	local id = soundId()
 	if id and region then
@@ -116,7 +118,7 @@ function Sfx.play(name: string, options: Options?)
 		sound.PlaybackRegion = NumberRange.new(region[1], region[1] + region[2])
 		sound.Volume = volume
 		sound.PlaybackSpeed = pitch
-		place(sound, parent)
+		place(sound, parent, range)
 		sound:Play()
 		task.delay(region[2] / pitch + 0.25, function()
 			sound:Destroy()
@@ -136,7 +138,7 @@ function Sfx.play(name: string, options: Options?)
 			sound.SoundId = PING
 			sound.Volume = note[3] * volume
 			sound.PlaybackSpeed = note[2] * pitch
-			place(sound, parent)
+			place(sound, parent, range)
 			sound:Play()
 			sound.Ended:Once(function()
 				sound:Destroy()

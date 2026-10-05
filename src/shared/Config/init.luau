@@ -51,4 +51,5 @@ return {
 	Debug = require(script.Debug),
 	Materials = require(script.Materials),
 	Sounds = require(script.Sounds),
+	Music = require(script.Music),
 }

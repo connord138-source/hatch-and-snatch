@@ -29,6 +29,7 @@ local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
 local RevealTiming = require(ReplicatedStorage.Shared.RevealTiming)
 local ClientState = require(script.Parent.Parent.ClientState)
 local CreatureViewport = require(script.Parent.Parent.CreatureViewport)
+local MusicController = require(script.Parent.MusicController)
 local Genetics = require(ReplicatedStorage.Shared.Genetics)
 local Sfx = require(script.Parent.Parent.Sfx)
 local Ui = require(script.Parent.Parent.Ui)
@@ -81,6 +82,7 @@ local function enqueue(job: () -> ())
 		-- The egg odds panel steps aside while reveals play. A failed reveal mustn't
 		-- leave it hidden (eggs show their odds before buying) or stall the queue.
 		OddsController.setRevealing(true)
+		MusicController.duck(true)
 		while #queue > 0 do
 			local next = table.remove(queue, 1) :: () -> ()
 			local ok, problem = pcall(function(): any
@@ -97,6 +99,7 @@ local function enqueue(job: () -> ())
 			end
 		end
 		OddsController.setRevealing(false)
+		MusicController.duck(false)
 		busy = false
 	end)
 end

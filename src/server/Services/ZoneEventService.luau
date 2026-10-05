@@ -638,10 +638,13 @@ function ZoneEventService.run(zone: Zone, skipWarning: boolean?): boolean
 		for player, data in DataService.loadedPlayers() do
 			if unlocked(data, zone.biome) then
 				Net.notify(player, WARNINGS[setup.kind], "rare")
+				Net.cue(player, "ZoneWarning")
 			end
 		end
 		task.wait(Events.warning)
 	end
+	-- Heard round the set piece as it starts (a sound in the world, so only nearby)
+	Net.cueAll("ZoneEvent", landmark.position)
 	local ok, problem = pcall(function(): any
 		runner(zone, landmark)
 		return nil

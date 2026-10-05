@@ -26,6 +26,9 @@ Admin → Creatures → spawn one of each rarity on yourself (the reveal plays):
 - [ ] Queued reveals: hatch a Legendary while two Common reveals are still queued (Admin → hatch all, or Skip Hatch). The pillar and any announcement wait for the Legendary's impact on the hatcher's screen, not the hatch. The hatcher hears the stinger once (only other players hear the pillar's copy).
 - [ ] With the sound pack's id set, all of the above uses the new sounds; with id 0, pitched pings (still different per rarity).
 
+- [ ] **Music** (once track ids are in `Config/Music.luau`): music plays from the start; it crossfades to the night list at dusk (Admin → hold night) and to the moon list when a moon rises; it drops low during a hatch reveal and comes back after; the 🎵 button left of the menu bar mutes and unmutes it. Output has no `[MusicController] ... didn't load` warning.
+- [ ] **Event cues:** in Studio a moon rises every 2 minutes: a minute before, a chime and the toast "The <moon> rises in 1 minute!"; as it rises, a fanfare with the announcement; as it sets, a soft chime and "has set". Each zone event's 10 s warning toast comes with a soft chime, and standing near the set piece you hear a sting as it goes off (far away you don't).
+
 ## 2. Luck Wheel
 
 - [ ] Spin 3 times: the flapper hangs straight when the wheel stops; the banner prize matches the slice under the flapper; ticks are clicks; a win plays the Rare chime, and the ×25 jackpot plays the Legendary fanfare.

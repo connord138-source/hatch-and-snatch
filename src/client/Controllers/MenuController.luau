@@ -43,6 +43,9 @@ local GUIDE_DONE = 6 -- the first-session guide's last step (GuideController's D
 
 local MenuController = {}
 
+local barGui: ScreenGui? = nil
+local barWidth = 0
+
 function MenuController.start()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "HatchMenus"
@@ -50,6 +53,7 @@ function MenuController.start()
 	gui.DisplayOrder = 5 -- above the HUD panels, below its toasts (HatchOverlay)
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	Ui.autoScale(gui)
+	barGui = gui
 
 	local window = Ui.panel(gui, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -107,6 +111,7 @@ function MenuController.start()
 			onBar += 1
 		end
 	end
+	barWidth = onBar * BUTTON_W + (onBar - 1) * BUTTON_GAP
 	local slot = 0
 	for _, entry in MENUS do
 		local content = Instance.new("Frame")
@@ -123,7 +128,6 @@ function MenuController.start()
 		end
 
 		slot += 1
-		local barWidth = onBar * BUTTON_W + (onBar - 1) * BUTTON_GAP
 		local button = Ui.button(gui, {
 			AnchorPoint = Vector2.new(0, 1),
 			Position = UDim2.new(0.5, -barWidth / 2 + (slot - 1) * (BUTTON_W + BUTTON_GAP), 1, -BAR_BOTTOM),
@@ -177,6 +181,16 @@ function MenuController.start()
 			show(menu)
 		end
 	end)
+end
+
+-- A small square button just left of the bar (the music toggle). Call after start.
+function MenuController.sideButton(text: string): TextButton
+	return Ui.button(barGui :: ScreenGui, {
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(0.5, -barWidth / 2 - BUTTON_GAP, 1, -BAR_BOTTOM),
+		Size = UDim2.fromOffset(BAR_HEIGHT, BAR_HEIGHT),
+		Text = text,
+	})
 end
 
 return MenuController

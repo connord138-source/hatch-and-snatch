@@ -8,6 +8,7 @@ local Ads = require(script.Ads)
 local AdminController = require(script.Controllers.AdminController)
 local BeltController = require(script.Controllers.BeltController)
 local ClientState = require(script.ClientState)
+local CueController = require(script.Controllers.CueController)
 local CreatureAnimator = require(script.Controllers.CreatureAnimator)
 local DayNightController = require(script.Controllers.DayNightController)
 local GuideController = require(script.Controllers.GuideController)
@@ -15,6 +16,7 @@ local HudController = require(script.Controllers.HudController)
 local IncubatorController = require(script.Controllers.IncubatorController)
 local LuckWheelController = require(script.Controllers.LuckWheelController)
 local MenuController = require(script.Controllers.MenuController)
+local MusicController = require(script.Controllers.MusicController)
 local OddsController = require(script.Controllers.OddsController)
 local PromptFilter = require(script.Controllers.PromptFilter)
 local RainbowController = require(script.Controllers.RainbowController)
@@ -28,6 +30,7 @@ local ZoneMoodController = require(script.Controllers.ZoneMoodController)
 ClientState.start()
 HudController.start()
 MenuController.start()
+MusicController.start() -- after the menus (its 🎵 button sits by their bar)
 CreatureAnimator.start()
 PromptFilter.start()
 RainbowController.start()
@@ -38,6 +41,7 @@ task.spawn(LuckWheelController.start) -- waits for the world to replicate
 RevealController.start()
 SprintController.start() -- hold Left Shift, click the left stick, or tap Run
 task.spawn(TeleportController.start) -- waits for the remotes
+task.spawn(CueController.start) -- waits for the remotes
 OddsController.start() -- the egg odds panel (paid random items: odds before buying)
 task.spawn(ZoneGateController.start) -- waits for the world to replicate
 task.spawn(ZoneMoodController.start) -- waits for the world to replicate

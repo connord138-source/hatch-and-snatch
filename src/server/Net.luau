@@ -22,6 +22,7 @@ local notify = makeEvent("Notify")
 local announce = makeEvent("Announce")
 local hatchReveal = makeEvent("HatchReveal") -- (reveal table, see Net.hatchReveal)
 local teleport = makeEvent("Teleport") -- (cframe) move your own character there
+local cue = makeEvent("Cue") -- (name, at: Vector3?) a short sound cue (CueController)
 local requests: { [string]: RemoteEvent } = {
 	CreatureAction = makeEvent("CreatureAction"), -- (action: string, uid: string, target: string?)
 	Rebirth = makeEvent("Rebirth"), -- ()
@@ -87,7 +88,16 @@ function Net.hatchReveal(player: Player, reveal: { [string]: any })
 	hatchReveal:FireClient(player, reveal)
 end
 
--- Handles one kind of client request. The handler gets the raw, untrusted arguments.
+-- A short sound cue on one player's screen (an event about to start); CueController
+-- maps the name to sounds. With `at` it sounds from that spot in the world instead.
+function Net.cue(player: Player, name: string, at: Vector3?)
+	cue:FireClient(player, name, at)
+end
+
+function Net.cueAll(name: string, at: Vector3?)
+	cue:FireAllClients(name, at)
+end
+
 -- Moves a player's character, on the server and on their own client. The client
 -- owns its character's physics, so a server-only move could be undone by the
 -- player still walking in (the auto-lock push "didn't stick" 2 times in 4, PC
@@ -114,6 +124,7 @@ function Net.onAdmin(handler: (Player, any, any, ...any) -> string)
 	end
 end
 
+-- Handles one kind of client request. The handler gets the raw, untrusted arguments.
 function Net.onRequest(name: string, handler: (Player, ...any) -> ())
 	requests[name].OnServerEvent:Connect(function(player: Player, ...: any)
 		local now = os.clock()
