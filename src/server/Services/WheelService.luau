@@ -21,6 +21,7 @@ local LuckWheel = require(script.Parent.Parent.LuckWheel)
 local Net = require(script.Parent.Parent.Net)
 local Reach = require(script.Parent.Parent.Reach)
 local DataService = require(script.Parent.DataService)
+local Guard = require(script.Parent.Parent.Guard)
 local EconomyService = require(script.Parent.EconomyService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local WorldService = require(script.Parent.WorldService)
@@ -34,7 +35,7 @@ local IDLE_TEXT = "Press the big red button to spin!"
 local tunables = Config.Economy.tunables
 local rng = Random.new()
 
-type Entry = { player: Player, auto: boolean }
+type Entry = { player: Player, auto: boolean, prize: Prize?, paid: boolean? }
 type Prize = { index: number, amount: number, detail: string }
 
 local queue: { Entry } = {}
@@ -150,7 +151,16 @@ end
 
 local startNext: () -> ()
 
-local function finish(entry: Entry, prize: Prize, to: number, id: number)
+-- Pays the entry's prize once (at the end of its spin, or as its player leaves).
+local function payOut(entry: Entry)
+	local prize = entry.prize
+	if prize and not entry.paid then
+		entry.paid = true
+		award(entry.player, prize)
+	end
+end
+
+local function settle(entry: Entry, prize: Prize, to: number)
 	local wheel = WorldService.luckWheel
 	local player = entry.player
 	state:SetAttribute("Angle", to % 360)
@@ -160,10 +170,9 @@ local function finish(entry: Entry, prize: Prize, to: number, id: number)
 	local data = DataService.get(player)
 	local before = if data then data.luckCharge else 1
 	if player.Parent and data then
-		award(player, prize)
+		payOut(entry)
 	end
 	local segment = tunables.luckWheel[prize.index]
-	current = nil
 
 	-- "Spin all": back of the line while spins last, unless it just won a big charge
 	if entry.auto and player.Parent and data then
@@ -183,6 +192,12 @@ local function finish(entry: Entry, prize: Prize, to: number, id: number)
 
 	local name = player.DisplayName
 	setStatus(`<font color="#{segment.color:ToHex()}"><b>{name}</b> won {segment.label}!</font>`)
+end
+
+local function finish(entry: Entry, prize: Prize, to: number, id: number)
+	-- Whatever goes wrong paying out, the wheel must free up for the next in line
+	Guard.run("WheelService.finish", settle, entry, prize, to)
+	current = nil
 	resting = true
 	task.delay(RESULT_SECONDS, function()
 		resting = false
@@ -210,6 +225,8 @@ local function begin(entry: Entry): boolean
 
 	local index = pickSegment()
 	local prize = prepare(player, data, index)
+	entry.prize = prize
+	entry.paid = false
 	local from = (state:GetAttribute("Angle") :: number) % 360
 	-- Five to six full turns, ending on the prize
 	local to = 6 * 360 + landingAngle(index)
@@ -236,9 +253,14 @@ startNext = function()
 	end
 	while #queue > 0 do
 		local entry = table.remove(queue, 1) :: Entry
-		if begin(entry) then
+		local started = false
+		Guard.run("WheelService.begin", function()
+			started = begin(entry)
+		end)
+		if started then
 			return
 		end
+		current = nil -- it failed part-way: don't leave the wheel held
 	end
 	state:SetAttribute("Queue", 0)
 end
@@ -291,6 +313,13 @@ function WheelService.start()
 	state:SetAttribute("Queue", 0)
 	state.Parent = ReplicatedStorage
 
+	-- Leaving mid-spin still pays (the spin was already spent)
+	DataService.releasing:connect(function(player: Player)
+		local spinning = current
+		if spinning and spinning.player == player then
+			Guard.run("WheelService.leave", payOut, spinning)
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		for i = #queue, 1, -1 do
 			if queue[i].player == player then

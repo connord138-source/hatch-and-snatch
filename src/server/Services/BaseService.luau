@@ -181,7 +181,38 @@ end
 
 -- Pushes the player's level + theme onto their plot: walls, floors, nursery,
 -- hiding spots, security fixtures, decor, pads and the terminal's screen.
-local function apply(player: Player, data: PlayerData)
+local applyAt: { [Player]: number } = {}
+local applyQueued: { [Player]: boolean } = {}
+local COSMETIC_GAP = 1 -- seconds between cosmetic rebuilds of one base
+
+local apply: (Player, PlayerData) -> ()
+
+-- Rebuilds a base for a cosmetic change (Castle Designer, decor toggles) at most
+-- once a second, folding quick clicks into one rebuild. Release audit
+-- 2026-10-05: each pick rebuilt the theme kit and decor even when nothing
+-- changed, and a client cycling the remotes could force ~20 rebuilds a second.
+local function applySoon(player: Player, data: PlayerData)
+	local wait = (applyAt[player] or -math.huge) + COSMETIC_GAP - os.clock()
+	if wait <= 0 then
+		applyAt[player] = os.clock()
+		apply(player, data)
+		return
+	end
+	if applyQueued[player] then
+		return
+	end
+	applyQueued[player] = true
+	task.delay(wait, function()
+		applyQueued[player] = nil
+		local current = if player.Parent then DataService.get(player) else nil
+		if current then
+			applyAt[player] = os.clock()
+			apply(player, current)
+		end
+	end)
+end
+
+function apply(player: Player, data: PlayerData)
 	local plot = PlotService.get(player)
 	if plot == nil then
 		return
@@ -271,9 +302,11 @@ function BaseService.designPick(player: Player, slot: any, id: any)
 		end
 		data.ownedDesigns[`{slot}:{id}`] = true
 		Net.notify(player, `{option.name} unlocked for your castle!`, "rare")
+	elseif data.design[slot] == id then
+		return -- already in use: nothing to rebuild
 	end
 	data.design[slot] = id
-	apply(player, data)
+	applySoon(player, data)
 	DataService.markDirty(player)
 end
 
@@ -309,10 +342,14 @@ function BaseService.designPreset(player: Player, presetId: any)
 	for _, key in buying do
 		data.ownedDesigns[key] = true
 	end
+	local changed = false
 	for slot, id in preset.picks do
+		changed = changed or data.design[slot] ~= id
 		data.design[slot] = id
 	end
-	apply(player, data)
+	if changed or total > 0 then
+		applySoon(player, data)
+	end
 	Net.notify(player, `{preset.name} applied!`, if total > 0 then "rare" else "info")
 	DataService.markDirty(player)
 end
@@ -395,6 +432,7 @@ function BaseService.buySecurity(player: Player)
 	data.security += 1
 	Net.notify(player, `{nextLevel.name} installed! {nextLevel.description}.`, "rare")
 	ProgressionService.addXp(player, 100 * data.security)
+	apply(player, data)
 	DataService.markDirty(player)
 end
 
@@ -475,7 +513,7 @@ function BaseService.toggleBuild(player: Player, id: any)
 	else
 		data.hiddenBuilds[id] = true
 	end
-	apply(player, data)
+	applySoon(player, data)
 	DataService.markDirty(player)
 end
 
@@ -496,10 +534,7 @@ local function buyOffer(player: Player, key: string)
 			BaseService.buyBuild(player, id)
 		end
 	end
-	local data = DataService.get(player)
-	if data then
-		apply(player, data) -- the pads move on to the next step either way
-	end
+	-- Each purchase rebuilds the base itself (and the pads with it) when it goes through
 end
 
 -- Watches each base owner's feet: standing on a pad for a moment buys it, once
@@ -599,6 +634,8 @@ function BaseService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		standing[player] = nil
 		statuesShown[player] = nil
+		applyAt[player] = nil
+		applyQueued[player] = nil
 	end)
 	Net.onRequest("ToggleBuild", BaseService.toggleBuild)
 	Net.onRequest("UpgradeBase", BaseService.upgrade)

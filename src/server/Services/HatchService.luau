@@ -20,6 +20,7 @@ local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local Analytics = require(script.Parent.Parent.Analytics)
 local HatchPillar = require(script.Parent.Parent.HatchPillar)
+local Guard = require(script.Parent.Parent.Guard)
 local Net = require(script.Parent.Parent.Net)
 local Props = require(script.Parent.Parent.Props)
 local CreatureService = require(script.Parent.CreatureService)
@@ -533,28 +534,30 @@ end
 local function tick()
 	local now = Timing.now()
 	for player, data in DataService.loadedPlayers() do
-		local changed = false
-		for i = #data.incubators, 1, -1 do
-			if now >= data.incubators[i].hatchAt then
-				hatch(player, data, i)
-				changed = true
+		Guard.run("HatchService.tick", function()
+			local changed = false
+			for i = #data.incubators, 1, -1 do
+				if now >= data.incubators[i].hatchAt then
+					hatch(player, data, i)
+					changed = true
+				end
 			end
-		end
-		-- Free Luck Wheel spins for time played
-		data.spinProgress += 1
-		if data.spinProgress >= tunables.freeSpinSeconds then
-			data.spinProgress = 0
-			if data.spins < tunables.maxBankedSpins then
-				data.spins += 1
-				Net.notify(player, `+1 Luck Wheel spin! ({data.spins} banked)`, "good")
-				changed = true
+			-- Free Luck Wheel spins for time played
+			data.spinProgress += 1
+			if data.spinProgress >= tunables.freeSpinSeconds then
+				data.spinProgress = 0
+				if data.spins < tunables.maxBankedSpins then
+					data.spins += 1
+					Net.notify(player, `+1 Luck Wheel spin! ({data.spins} banked)`, "good")
+					changed = true
+				end
 			end
-		end
-		if changed then
-			refreshIncubators(player, data)
-			DataService.markDirty(player)
-		end
-		updateHints(player, data, now)
+			if changed then
+				refreshIncubators(player, data)
+				DataService.markDirty(player)
+			end
+			updateHints(player, data, now)
+		end)
 	end
 end
 
@@ -623,12 +626,7 @@ function HatchService.start()
 			refreshBay(nil, slot, part, plot.incubatorPads[slot])
 		end
 	end)
-	task.spawn(function()
-		while true do
-			task.wait(1)
-			tick()
-		end
-	end)
+	Guard.loop("HatchService.tick", 1, tick)
 end
 
 return HatchService

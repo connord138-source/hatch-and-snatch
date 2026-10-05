@@ -483,10 +483,24 @@ local function tryGrab(thief: Player, owner: Player, uid: string)
 		humanoid.JumpHeight = 0
 	end
 
+	-- The owner must really be there and really hold it (release audit 2026-10-05:
+	-- a fired Take Back from anywhere cancelled every theft at once)
+	local takeBackBegan: number? = nil
+	table.insert(
+		carry.connections,
+		takeBack.PromptButtonHoldBegan:Connect(function(who)
+			if who == owner then
+				takeBackBegan = os.clock()
+			end
+		end)
+	)
 	table.insert(
 		carry.connections,
 		takeBack.Triggered:Connect(function(who)
-			if who == owner then
+			local began = takeBackBegan
+			takeBackBegan = nil
+			local held = if began then os.clock() - began else 0
+			if who == owner and held >= takeBack.HoldDuration * 0.7 and Reach.prompt(who, takeBack) then
 				endCarry(carry, "takenBack")
 			end
 		end)
@@ -945,7 +959,9 @@ function StealService.start()
 
 	for _, plot in WorldService.plots do
 		plot.lockPrompt.Triggered:Connect(function(player)
-			tryLock(player, plot)
+			if Reach.prompt(player, plot.lockPrompt) then
+				tryLock(player, plot)
+			end
 		end)
 		for _, spot in plot.hides do
 			local holdStarts: { [Player]: number } = {}

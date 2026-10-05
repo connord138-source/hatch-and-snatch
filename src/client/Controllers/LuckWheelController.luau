@@ -590,9 +590,11 @@ local function refreshPrompts()
 		local all = wheel.allPrompt
 		if all then
 			all.ActionText = `Spin all {spins}`
-			-- PromptFilter shows a prompt by its Active attribute (it owns Enabled)
-			if all:GetAttribute("Active") ~= (spins >= 2) then
-				all:SetAttribute("Active", spins >= 2)
+			-- Shown only with 2+ spins. PromptFilter leaves this prompt alone (it has no
+			-- VisibleTo), so its Enabled is ours (release audit 2026-10-05: an Active
+			-- attribute did nothing and "Spin all 0" showed to everyone)
+			if all.Enabled ~= (spins >= 2) then
+				all.Enabled = spins >= 2
 			end
 		end
 	end

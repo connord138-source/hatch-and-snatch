@@ -8,6 +8,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
+local Guard = require(script.Parent.Parent.Guard)
 local Net = require(script.Parent.Parent.Net)
 local WorldService = require(script.Parent.WorldService)
 
@@ -101,7 +102,9 @@ function EventService.start()
 			Workspace:SetAttribute("MoonEventNextAt", Timing.now() + interval)
 			task.wait(interval)
 			Workspace:SetAttribute("MoonEventNextAt", nil)
-			EventService.run(pickEvent())
+			Guard.run("EventService.run", function()
+				EventService.run(pickEvent())
+			end)
 		end
 	end)
 	-- The board at the South Event Grounds: what's up now, or when the next moon rises

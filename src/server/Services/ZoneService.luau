@@ -11,6 +11,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
+local Guard = require(script.Parent.Parent.Guard)
 local Net = require(script.Parent.Parent.Net)
 local Reach = require(script.Parent.Parent.Reach)
 local CreatureService = require(script.Parent.CreatureService)
@@ -380,12 +381,7 @@ function ZoneService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		lastWarned[player] = nil
 	end)
-	task.spawn(function()
-		while true do
-			task.wait(0.25)
-			enforceGates()
-		end
-	end)
+	Guard.loop("ZoneService.gates", 0.25, enforceGates)
 end
 
 return ZoneService

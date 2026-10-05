@@ -8,6 +8,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Analytics = require(script.Parent.Parent.Analytics)
+local Guard = require(script.Parent.Parent.Guard)
 local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DataService = require(script.Parent.DataService)
@@ -166,19 +167,21 @@ end
 local function tick()
 	local now = Timing.now()
 	for player, data in DataService.loadedPlayers() do
-		local rate = EconomyService.rate(player)
-		if rate > 0 then
-			data.uncollected += rate
-			DataService.markDirty(player)
-		end
-		if MonetizationService.hasPass(player, "AutoCollect") then
-			collect(player, true)
-		end
-		data.lastSeen = now
-		local plot = PlotService.get(player)
-		if plot then
-			plot.collectorLabel.Text = Format.cash(data.uncollected)
-		end
+		Guard.run("EconomyService.tick", function()
+			local rate = EconomyService.rate(player)
+			if rate > 0 then
+				data.uncollected += rate
+				DataService.markDirty(player)
+			end
+			if MonetizationService.hasPass(player, "AutoCollect") then
+				collect(player, true)
+			end
+			data.lastSeen = now
+			local plot = PlotService.get(player)
+			if plot then
+				plot.collectorLabel.Text = Format.cash(data.uncollected)
+			end
+		end)
 	end
 end
 
@@ -239,12 +242,7 @@ function EconomyService.start()
 		end)
 	end
 
-	task.spawn(function()
-		while true do
-			task.wait(1)
-			tick()
-		end
-	end)
+	Guard.loop("EconomyService.tick", 1, tick)
 end
 
 return EconomyService

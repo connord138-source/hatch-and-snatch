@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Timing = require(ReplicatedStorage.Shared.Timing)
+local Guard = require(script.Parent.Parent.Guard)
 local Net = require(script.Parent.Parent.Net)
 local CreatureService = require(script.Parent.CreatureService)
 local DailyService = require(script.Parent.DailyService)
@@ -151,10 +152,10 @@ function StateService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		sent[player] = nil
 	end)
-	task.spawn(function()
-		while true do
-			task.wait(0.25)
-			for _, player in DataService.takeDirty() do
+	Guard.loop("StateService.flush", 0.25, function()
+		for _, player in DataService.takeDirty() do
+			-- One player's failure mustn't drop everyone else's update
+			Guard.run("StateService.send", function()
 				local state = snapshot(player)
 				if state then
 					local changes, cleared, full = diff(player, state)
@@ -162,7 +163,7 @@ function StateService.start()
 						Net.sendState(player, changes, cleared, full)
 					end
 				end
-			end
+			end)
 		end
 	end)
 end

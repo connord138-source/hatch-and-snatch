@@ -304,12 +304,32 @@ function MonetizationService.start()
 			if pass.id == passId and pass.id ~= 0 then
 				-- Confirm with Roblox first: this event alone isn't proof of purchase.
 				-- (Studio test purchases never show up as owned, so Studio trusts them.)
+				-- Only a "yes" grants it (release audit 2026-10-05: an unreachable Roblox
+				-- used to count as a yes, so a faked signal worked while the API was down);
+				-- if Roblox can't answer, try again a few times, and the next join checks too.
 				task.spawn(function()
-					if not RunService:IsStudio() and ownsOnRoblox(player, pass.id) == false then
-						warn(
-							`[MonetizationService] {player.Name}: purchase of {pass.key} not confirmed by Roblox`
-						)
-						return
+					if not RunService:IsStudio() then
+						local owns = ownsOnRoblox(player, pass.id)
+						for _ = 1, 3 do
+							if owns ~= nil or player.Parent ~= Players then
+								break
+							end
+							task.wait(20)
+							owns = ownsOnRoblox(player, pass.id)
+						end
+						if owns ~= true then
+							warn(
+								`[MonetizationService] {player.Name}: purchase of {pass.key} not confirmed by Roblox`
+							)
+							if owns == nil and player.Parent == Players then
+								Net.notify(
+									player,
+									`Roblox hasn't confirmed {pass.name} yet. It unlocks the next time you join.`,
+									"info"
+								)
+							end
+							return
+						end
 					end
 					MonetizationService.grantPass(player, pass.key)
 					Net.notify(player, `Thanks! {pass.name} is yours.`, "rare")

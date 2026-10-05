@@ -22,6 +22,12 @@ function ZoneGateController.start()
 	end
 	local gates: { Gate } = {}
 	local function refresh(state: { [string]: any })
+		-- Gates that streamed out are gone for good (a streamed-in copy is a new part)
+		for i = #gates, 1, -1 do
+			if gates[i].part.Parent == nil then
+				table.remove(gates, i)
+			end
+		end
 		for _, gate in gates do
 			local biome = Config.Biomes[gate.biome]
 			local open = biome.order <= (state.unlockedBiome or 1)

@@ -58,7 +58,10 @@ local function assign(player: Player)
 			return
 		end
 	end
+	-- Only if Max Players is set above the plot count (it should be 6): a player
+	-- without a base can't play, so send them to another server instead
 	warn(`[PlotService] No free plot for {player.Name}`)
+	player:Kick("This server is full. Please join another server.")
 end
 
 local function release(player: Player)

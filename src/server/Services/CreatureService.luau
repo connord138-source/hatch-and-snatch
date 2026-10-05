@@ -17,6 +17,7 @@ local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
 local ZoneShape = require(ReplicatedStorage.Shared.ZoneShape)
 local Signal = require(ReplicatedStorage.Shared.Signal)
+local Guard = require(script.Parent.Parent.Guard)
 local Net = require(script.Parent.Parent.Net)
 local DataService = require(script.Parent.DataService)
 local MonetizationService = require(script.Parent.MonetizationService)
@@ -1454,44 +1455,46 @@ end
 local function tick()
 	local now = Timing.now()
 	for player, data in DataService.loadedPlayers() do
-		-- Growth Elixir: every creature grows faster while it lasts (on top of walking)
-		local elixir = (data.boosts.growth or 0) > now
-		for uid, record in data.creatures do
-			if elixir then
-				record.stageStartedAt -= passTuning.growthElixir.multiplier - 1
-			end
-			if walking[player] == uid then
-				-- Walked creatures grow faster, fastest in their own biome's zone
-				local home = inBiomeZone(player, Config.CreaturesById[record.species].biome)
-				local multiplier = if home
-					then tunables.homeWalkGrowthMultiplier
-					else tunables.walkGrowthMultiplier
-				record.stageStartedAt -= multiplier - 1
-				ProgressionService.bump(player, "walkSeconds")
-				followOwner(player, uid)
-			end
-			if advance(record, now) then
-				recordInIndex(player, data, record)
-				ProgressionService.addXp(
-					player,
-					if record.stage == "Adult"
-						then Config.Progression.xp.growAdult
-						else Config.Progression.xp.growJuvenile
-				)
-				if record.stage == "Adult" then
-					ProgressionService.bump(player, "adults")
+		Guard.run("CreatureService.tick", function()
+			-- Growth Elixir: every creature grows faster while it lasts (on top of walking)
+			local elixir = (data.boosts.growth or 0) > now
+			for uid, record in data.creatures do
+				if elixir then
+					record.stageStartedAt -= passTuning.growthElixir.multiplier - 1
 				end
-				spawn(player, uid, record)
-				local grown = models[player] and models[player][uid]
-				if grown then
-					grown:SetAttribute("GrewAt", Workspace:GetServerTimeNow()) -- client plays the grow-up burst
+				if walking[player] == uid then
+					-- Walked creatures grow faster, fastest in their own biome's zone
+					local home = inBiomeZone(player, Config.CreaturesById[record.species].biome)
+					local multiplier = if home
+						then tunables.homeWalkGrowthMultiplier
+						else tunables.walkGrowthMultiplier
+					record.stageStartedAt -= multiplier - 1
+					ProgressionService.bump(player, "walkSeconds")
+					followOwner(player, uid)
 				end
-				local name = Config.CreaturesById[record.species].displayName
-				local article = if string.find(record.stage, "^[AEIOU]") then "an" else "a"
-				Net.notify(player, `Your {name} grew into {article} {record.stage}!`, "good")
-				DataService.markDirty(player)
+				if advance(record, now) then
+					recordInIndex(player, data, record)
+					ProgressionService.addXp(
+						player,
+						if record.stage == "Adult"
+							then Config.Progression.xp.growAdult
+							else Config.Progression.xp.growJuvenile
+					)
+					if record.stage == "Adult" then
+						ProgressionService.bump(player, "adults")
+					end
+					spawn(player, uid, record)
+					local grown = models[player] and models[player][uid]
+					if grown then
+						grown:SetAttribute("GrewAt", Workspace:GetServerTimeNow()) -- client plays the grow-up burst
+					end
+					local name = Config.CreaturesById[record.species].displayName
+					local article = if string.find(record.stage, "^[AEIOU]") then "an" else "a"
+					Net.notify(player, `Your {name} grew into {article} {record.stage}!`, "good")
+					DataService.markDirty(player)
+				end
 			end
-		end
+		end)
 	end
 end
 
@@ -1546,12 +1549,7 @@ function CreatureService.start()
 			"rare"
 		)
 	end)
-	task.spawn(function()
-		while true do
-			task.wait(1)
-			tick()
-		end
-	end)
+	Guard.loop("CreatureService.tick", 1, tick)
 end
 
 return CreatureService

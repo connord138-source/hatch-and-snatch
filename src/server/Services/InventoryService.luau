@@ -119,6 +119,8 @@ local function onCreatureAction(player: Player, action: any, uid: any, target: a
 	-- No pulling a pedestal creature out of a thief's hands at the last second
 	local dodge = action == "store"
 		or action == "move"
+		or action == "sell" -- (release audit 2026-10-05: selling dodged a Steal hold too)
+		or action == "release"
 		or (action == "walk" and CreatureService.walkingUid(player) ~= uid)
 		or (
 			action == "nursery" and not CreatureService.isNursery(data :: DataService.PlayerData, record.slot)
