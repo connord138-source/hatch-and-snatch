@@ -39,13 +39,20 @@ function Odds.percents(chances: { number }): { string }
 	return out
 end
 
--- The luck a new egg of `biomeId` rolls with: the player's Luck Wheel charge ×
--- Server Luck (Junk eggs ignore luck), as in HatchService.giveEgg.
-function Odds.luck(biomeId: string, luckCharge: number, serverLuck: number): number
+-- The launch-week luck at server time `now` (1 once it's over).
+function Odds.launchLuck(now: number): number
+	local launch = Config.Economy.tunables.launchLuck
+	return if now < launch.endsAt then math.max(launch.multiplier, 1) else 1
+end
+
+-- The luck a new egg of `biomeId` rolls with at server time `now`: the player's
+-- Luck Wheel charge × Server Luck × the launch-week luck (Junk eggs ignore luck).
+-- HatchService.giveEgg rolls with exactly this.
+function Odds.luck(biomeId: string, luckCharge: number, serverLuck: number, now: number): number
 	if biomeId == "Junk" then
 		return 1
 	end
-	return (if luckCharge > 1 then luckCharge else 1) * math.max(serverLuck, 1)
+	return (if luckCharge > 1 then luckCharge else 1) * math.max(serverLuck, 1) * Odds.launchLuck(now)
 end
 
 local function eventById(eventId: string?): Config.MoonEvent?

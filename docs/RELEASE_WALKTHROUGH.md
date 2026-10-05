@@ -82,6 +82,7 @@ Use a fresh profile (a Local Server test player that has never played, or Admin 
 
 - [ ] Shop: every pass and product shows its name and price; Studio test-buy Skip Hatch, a Cash pouch and Server Luck: each applies once (Server Luck announces and shows its timer).
 - [ ] The odds panel opens before buying an egg and lists species, finishes and mutations summing to 100%.
+- [ ] **Launch week ×2 luck:** a toast on join; the HUD shows "🍀 Launch Week ×2 luck" with a days countdown (two lines with a Server Luck running); the odds panel says "Luck ×2 … Launch Week ×2" and its Epic+ odds are higher than with no luck, still summing to 100%.
 - [ ] Codes: HATCH, MOONEGG and SNATCH redeem once each (Admin → Reset codes to retest); the group perk stays hidden (no group yet).
 - [ ] Daily: claim the streak reward; quests track and can be rerolled; Admin → Next day advances the streak.
 - [ ] Achievements pay XP and spins; Hatcher Level unlocks biome eggs; Rebirth (Admin cash) works and the Rebirth menu shows the next castle unlock.
@@ -89,7 +90,7 @@ Use a fresh profile (a Local Server test player that has never played, or Admin 
 ## 9. Devices and performance
 
 - [ ] Phone and tablet (emulator): HUD, menus above the bottom bar, prompts without " (E)", the reveal and the wheel banner fit.
-- [ ] Xbox controller: prompts show X / Y / B and don't hide each other; A closes a reveal; menus usable with the View-button cursor. Decide whether Console goes on at launch (docs/LAUNCH.md).
+- [ ] Xbox controller: prompts show X / Y / B and don't hide each other; A closes a reveal. Menus: "D-pad ▲: menus" shows beside the bar; D-pad ▲ selects the bar, A opens a menu with its first button selected, the D-pad moves between buttons (Shop buy, Creatures details card, Daily claim), B closes. The Command Terminal's prompt opens the Base menu the same way. Console is on at launch (owner).
 - [ ] Local Server with 6 players: F9 shows no error spam on the server or clients; frame rate stays smooth at a full base and the busy Commons.
 - [ ] Leave and rejoin: cash, creatures, incubators, designs and the daily streak are still there.
 
@@ -101,8 +102,8 @@ Use a fresh profile (a Local Server test player that has never played, or Admin 
 
 ## 11. Launch settings (owner, in Creator Hub)
 
-- [ ] Store page: icon, thumbnails (re-upload 2 and 7, which changed), title and description from `docs/STORE_PAGE.md`.
+- [x] Store page: icon, thumbnails (2 and 7 re-uploaded by the owner, 2026-10-05), title and description from `docs/STORE_PAGE.md`.
 - [ ] Find why the console showed "Ages 16+" and set the lowest age the content allows (the questionnaire answers are Minimal).
-- [ ] Max Players 6; Private Servers 99 R$/month; genre set; devices (Console only if section 9 passed).
+- [ ] Max Players 6; Private Servers 99 R$/month; genre set; devices: Computer, Phone, Tablet and Console (owner: yes).
 - [ ] Delete the Open Cloud API key used for the archive attempt, if it still exists.
 - [ ] Audience → **Public** when you're ready.

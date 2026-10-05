@@ -2,9 +2,9 @@
 -- The odds panel: while an egg's Buy prompt (or a shrine's Forge prompt) is on
 -- screen, it lists everything that egg can give with the exact chances
 -- (Shared/Odds): every species, finish and mutation, each list adding up to 100%,
--- updated live for the player's luck charge, Server Luck and moon events. Eggs
--- are paid random items (Robux buys cash and Server Luck), so the odds must be
--- shown before buying. Presentation only; the server rolls with the same odds.
+-- updated live for the player's luck charge, Server Luck, the launch week's luck
+-- and moon events. Eggs are paid random items (Robux buys cash and Server Luck),
+-- so the odds must be shown before buying. Presentation only; the server rolls with the same odds.
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -184,7 +184,7 @@ function OddsController.start()
 		local state = ClientState.current
 		local charge: number = if state then state.luckCharge or 1 else 1
 		local server = serverLuck()
-		local luck = Odds.luck(biomeId, charge, server)
+		local luck = Odds.luck(biomeId, charge, server, Workspace:GetServerTimeNow())
 		local eventId = Workspace:GetAttribute("MoonEvent")
 		local event = if typeof(eventId) == "string" then eventId else nil
 		local key = `{biomeId}|{luck}|{event}`
@@ -207,6 +207,10 @@ function OddsController.start()
 			end
 			if charge > 1 then
 				table.insert(parts, `your wheel charge ×{charge}`)
+			end
+			local launch = Odds.launchLuck(Workspace:GetServerTimeNow())
+			if launch > 1 then
+				table.insert(parts, `Launch Week ×{launch}`)
 			end
 			note(
 				`🍀 Luck ×{luck} on Epic and rarer ({table.concat(parts, " · ")}). The odds below include it.`

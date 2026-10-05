@@ -11,10 +11,12 @@
 --    next egg bought: its species roll uses Epic+ weights × the luck.
 --  * Finish + mutation roll at hatch, then the client plays the hatch reveal.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local MutationLooks = require(ReplicatedStorage.Shared.MutationLooks)
+local Odds = require(ReplicatedStorage.Shared.Odds)
 local RevealTiming = require(ReplicatedStorage.Shared.RevealTiming)
 local Timing = require(ReplicatedStorage.Shared.Timing)
 local Types = require(ReplicatedStorage.Shared.Config.Types)
@@ -274,10 +276,11 @@ function HatchService.giveEgg(player: Player, biomeId: string, preset: EggPreset
 		DataService.markDirty(player)
 		return
 	end
-	-- A luck charge from the Luck Wheel is spent on this egg, and a Server Luck boost
-	-- multiplies it (Junk eggs ignore luck)
+	-- A luck charge from the Luck Wheel is spent on this egg, and Server Luck and
+	-- the launch week multiply it (Junk eggs ignore luck)
 	local charge = if data.luckCharge > 1 then data.luckCharge else nil
-	local luck = if biomeId ~= "Junk" then (charge or 1) * MonetizationService.serverLuck() else 1
+	local luck =
+		Odds.luck(biomeId, charge or 1, MonetizationService.serverLuck(), Workspace:GetServerTimeNow())
 	-- Everything random about the egg is rolled now, when it's bought, with the
 	-- same odds the odds panel showed the buyer (Eggs.speciesOdds,
 	-- Economy.finishOdds and mutationOdds): paid random items must disclose them

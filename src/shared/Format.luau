@@ -38,7 +38,9 @@ function Format.duration(seconds: number): string
 	local hours = s // 3600
 	local minutes = (s % 3600) // 60
 	local secs = s % 60
-	if hours > 0 then
+	if hours >= 24 then
+		return `{hours // 24}d {hours % 24}h`
+	elseif hours > 0 then
 		return `{hours}h {minutes}m`
 	elseif minutes > 0 then
 		return `{minutes}m {secs}s`

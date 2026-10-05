@@ -57,6 +57,15 @@ local Tunables = {
 	-- Moon events
 	moonEventIntervalSeconds = 60 * 60,
 
+	-- Launch week (owner, 2026-10-05): ×2 luck on every biome egg for everyone
+	-- until `endsAt` (unix seconds, UTC), on top of the Luck Wheel charge and Server
+	-- Luck, shown in the HUD and the odds panel (Odds.launchLuck). Move `endsAt` if
+	-- the launch date moves; multiplier 1 switches it off.
+	launchLuck = {
+		multiplier = 2,
+		endsAt = 1_791_950_400, -- 2026-10-14 04:00 UTC (Oct 13, midnight US Eastern)
+	},
+
 	-- Base upgrades: each level widens and deepens the plot (longer escape run for
 	-- thieves) and lengthens the laser lock. Levels 2-3 add 5 ground pedestals each
 	-- (`pedestals` = ground pedestals, up to 20, in two wings either side of an open

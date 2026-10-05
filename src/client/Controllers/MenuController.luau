@@ -2,8 +2,15 @@
 -- Menu buttons (a bar along the bottom of the screen) and the window they open, one
 -- menu at a time. Each menu lives in Menus/ and only renders ClientState; its
 -- buttons send requests that the server validates.
+--
+-- On a controller (Console on at launch, owner 2026-10-05): D-pad up selects the
+-- bar, A opens a menu and selects its first button, the D-pad moves between
+-- buttons (Roblox's own UI navigation), and B closes the menu.
+local ContextActionService = game:GetService("ContextActionService")
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
+local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
@@ -42,6 +49,41 @@ local WINDOW_BOTTOM = BAR_BOTTOM + BAR_HEIGHT + 10
 local GUIDE_DONE = 6 -- the first-session guide's last step (GuideController's DONE)
 
 local MenuController = {}
+
+local function usingGamepad(): boolean
+	return UserInputService:GetLastInputType().Name:match("^Gamepad") ~= nil
+end
+
+-- Whether `object` shows, up to `root` (a hidden tab hides the buttons inside it)
+local function shown(object: Instance, root: Instance): boolean
+	local node: Instance? = object
+	while node and node ~= root do
+		if node:IsA("GuiObject") and not node.Visible then
+			return false
+		end
+		node = node.Parent
+	end
+	return true
+end
+
+-- The top-left visible button in a menu (where a controller's selection starts)
+local function firstButton(root: Instance): GuiButton?
+	local best: GuiButton? = nil
+	for _, child in root:GetDescendants() do
+		if child:IsA("GuiButton") and child.Selectable and shown(child, root) then
+			local at = child.AbsolutePosition
+			local bestAt = if best then best.AbsolutePosition else nil
+			if
+				bestAt == nil
+				or at.Y < bestAt.Y - 4
+				or (math.abs(at.Y - bestAt.Y) <= 4 and at.X < bestAt.X)
+			then
+				best = child
+			end
+		end
+	end
+	return best
+end
 
 local barGui: ScreenGui? = nil
 local barWidth = 0
@@ -103,6 +145,28 @@ function MenuController.start()
 			end
 		end
 		refreshOpen()
+		if id then
+			ContextActionService:BindActionAtPriority("MenuClose", function(_, state: Enum.UserInputState)
+				if state == Enum.UserInputState.Begin then
+					show(nil)
+				end
+				return Enum.ContextActionResult.Sink
+			end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.ButtonB)
+		else
+			ContextActionService:UnbindAction("MenuClose")
+		end
+		if usingGamepad() then
+			local selected = GuiService.SelectedObject
+			if id then
+				task.defer(function() -- once the menu has drawn its rows
+					if open == id then
+						GuiService.SelectedObject = firstButton(contents[id]) or close
+					end
+				end)
+			elseif selected and selected:IsDescendantOf(window) then
+				GuiService.SelectedObject = nil
+			end
+		end
 	end
 
 	local onBar = 0
@@ -144,6 +208,27 @@ function MenuController.start()
 	end
 	close.Activated:Connect(function()
 		show(nil)
+	end)
+
+	-- Controllers: D-pad up selects the bar (only when nothing is selected, so it
+	-- still moves the selection inside menus), with a hint beside it
+	ContextActionService:BindAction("MenuBar", function(_, state: Enum.UserInputState)
+		if state ~= Enum.UserInputState.Begin or open ~= nil or GuiService.SelectedObject ~= nil then
+			return Enum.ContextActionResult.Pass
+		end
+		GuiService.SelectedObject = buttons.Creatures
+		return Enum.ContextActionResult.Sink
+	end, false, Enum.KeyCode.DPadUp)
+	local padHint = Ui.label(gui, {
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0.5, barWidth / 2 + BUTTON_GAP, 1, -BAR_BOTTOM - 8),
+		Size = UDim2.fromOffset(110, 22),
+		Text = "D-pad ▲: menus",
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Visible = usingGamepad(),
+	})
+	UserInputService.LastInputTypeChanged:Connect(function()
+		padHint.Visible = usingGamepad()
 	end)
 
 	ClientState.changed:connect(refreshOpen)

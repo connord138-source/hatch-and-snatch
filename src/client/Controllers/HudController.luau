@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Odds = require(ReplicatedStorage.Shared.Odds)
 local Ads = require(script.Parent.Parent.Ads)
 local ClientState = require(script.Parent.Parent.ClientState)
 local Ui = require(script.Parent.Parent.Ui)
@@ -127,7 +128,9 @@ function HudController.start()
 		})
 	end
 
-	-- Server Luck (under the incubators while a Server Luck purchase is running)
+	-- Luck boosts (under the incubators): a Server Luck purchase running, and the
+	-- launch week's luck (a line each)
+	local launchLuck = Config.Economy.tunables.launchLuck
 	local luckPanel = panel(gui, {
 		Size = UDim2.fromOffset(250, 30),
 		Position = UDim2.fromOffset(12, 284),
@@ -268,6 +271,11 @@ function HudController.start()
 	local notify = remotes:WaitForChild("Notify") :: RemoteEvent
 	local announceRemote = remotes:WaitForChild("Announce") :: RemoteEvent
 	notify.OnClientEvent:Connect(toast)
+	task.delay(6, function()
+		if Odds.launchLuck(Workspace:GetServerTimeNow()) > 1 then
+			toast(`🍀 Launch Week: ×{launchLuck.multiplier} luck on every egg, for everyone!`, "rare")
+		end
+	end)
 	announceRemote.OnClientEvent:Connect(announce)
 
 	-- Per-frame refresh (cheap: a handful of labels)
@@ -364,6 +372,7 @@ function HudController.start()
 			end
 		end
 
+		local luckLines: { string } = {}
 		local serverLuck = Workspace:GetAttribute("ServerLuck")
 		local serverLuckUntil = Workspace:GetAttribute("ServerLuckUntil")
 		if
@@ -372,16 +381,28 @@ function HudController.start()
 			and typeof(serverLuckUntil) == "number"
 			and serverLuckUntil > now
 		then
-			luckPanel.Visible = true
-			luckLabel.Text = `🍀 Server Luck ×{serverLuck} — {Format.duration(serverLuckUntil - now)}`
-		else
-			luckPanel.Visible = false
+			table.insert(
+				luckLines,
+				`🍀 Server Luck ×{serverLuck} — {Format.duration(serverLuckUntil - now)}`
+			)
 		end
+		if Odds.launchLuck(now) > 1 then
+			table.insert(
+				luckLines,
+				`🍀 Launch Week ×{launchLuck.multiplier} luck — {Format.duration(launchLuck.endsAt - now)}`
+			)
+		end
+		luckPanel.Visible = #luckLines > 0
+		luckPanel.Size = UDim2.fromOffset(250, 8 + 22 * math.max(#luckLines, 1))
+		luckLabel.Text = table.concat(luckLines, "\n")
 
 		local boostEnds: number = if current and current.boosts then current.boosts.cash or 0 else 0
 		local boosted = boostEnds > os.time()
 		adButton.Visible = Ads.available or boosted
-		adButton.Position = UDim2.fromOffset(12, columnBottom + (if luckPanel.Visible then 38 else 0))
+		adButton.Position = UDim2.fromOffset(
+			12,
+			columnBottom + (if luckPanel.Visible then luckPanel.Size.Y.Offset + 8 else 0)
+		)
 		adButton.AutoButtonColor = Ads.available
 		adButton.BackgroundColor3 = if Ads.available then Ui.colors.good else Ui.colors.disabled
 		adButton.Text = if boosted and Ads.available
