@@ -8,7 +8,8 @@ Test in **Studio Play** or **Test → Local Server** (2–6 players). Don't use 
 
 1. `git pull origin claude/core-systems`; Rojo syncing; Studio's scripts match the repo.
 2. **Sound pack:** upload `assets/audio/hatch_sfx.ogg` once (Creator Hub → Creations → Development Items → Audio → Upload Asset). Wait until it's approved, then put its id in `src/shared/Config/Sounds.luau` `id`, commit ("Sound pack id") and push. Don't paste the id before it's approved: a pending sound plays silence, while id 0 plays the fallback pings.
-3. Output on start: no errors (red) from any script. Note any warnings.
+3. Output on start: no errors (red) from any script. Note any warnings. A warning that starts with a loop's name in brackets, like `[CreatureService.tick]` or `[StateService.send]`, means a loop hit an error and carried on (the new guards): report it with its full text, it's a bug.
+4. **Skins in the place:** count `ReplicatedStorage.MutationSkins` (it should hold the 573 screened skins) and check that none of their texture ids appears in `tools/mutations/old_skin_images_2026-10-03.csv` (the 462 old pink images). Any match is a moderation risk: report it before publishing.
 
 ## 1. Hatch reveal and sounds (new 2026-10-05)
 
@@ -28,6 +29,8 @@ Admin → Creatures → spawn one of each rarity on yourself (the reveal plays):
 
 - [ ] Spin 3 times: the flapper hangs straight when the wheel stops; the banner prize matches the slice under the flapper; ticks are clicks; a win plays the Rare chime, and the ×25 jackpot plays the Legendary fanfare.
 - [ ] A second player pressing mid-spin joins the line; Spin all (R) runs until spins run out or a ×10+ luck win.
+- [ ] Spin all only shows with 2 or more spins (with 0 or 1 it's hidden).
+- [ ] A player who leaves mid-spin still gets the prize next time they join (check their cash, spins or "next egg ×N").
 - [ ] Night: the bulbs chase; the sign text reads.
 
 ## 3. New player, start to finish
@@ -51,6 +54,7 @@ Use a fresh profile (a Local Server test player that has never played, or Admin 
 
 - [ ] Steal a Baby, a Juvenile and an Adult: carry speed 100% / 75% / 50%; deliver to your base; the "Stolen from X" tag stays.
 - [ ] A homegrown creature struggles and breaks free once; nursery creatures can't be stolen.
+- [ ] Take Back: the owner must be next to the thief and hold the prompt; it does nothing from across the base. Sell and Release are refused while an intruder is inside (like Store and Move).
 - [ ] Alarm, tripwire and auto-lock trigger; every security item has a timer or release (no base is unbreakable).
 - [ ] Floors: grab only from the same floor, longer hold; vaults lock on a timer; hiding spots can be searched (empty ones are decoys; Mythic+ sparkle).
 
@@ -58,6 +62,7 @@ Use a fresh profile (a Local Server test player that has never played, or Admin 
 
 - [ ] Base levels 1–5 (Admin → max base on a test player): walls grow Camp → Citadel; pedestals in two roomy wings; floors and ramps.
 - [ ] Castle Designer: try 3–4 presets (Ice, Fire, Rainbow, Diamond); theme kits show their 3D pieces and niche glows; no z-fighting or floating parts.
+- [ ] Click through designer options quickly: the base updates at most once a second and always ends on the last pick; re-picking the option in use does nothing. Buying at a pad rebuilds once (Security included).
 
 ## 7. World
 
