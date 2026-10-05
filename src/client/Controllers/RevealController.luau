@@ -376,6 +376,22 @@ local function playReveal(reveal: { [string]: any })
 	window.ZIndex = 11
 	window.Parent = stage
 	corner(window, 12)
+	-- The creature, drawn small behind the reel, so its meshes, textures and skin have
+	-- downloaded by the reveal. A model's assets only load once something draws it
+	-- (a hidden viewport draws nothing, and PreloadAsync skips SurfaceAppearances):
+	-- a species' first reveal showed it late and then white (PC, 2026-10-05).
+	local warmUp = Instance.new("Frame")
+	warmUp.AnchorPoint = Vector2.new(0.5, 0.5)
+	warmUp.Position = UDim2.fromScale(0.5, 0.5)
+	warmUp.Size = UDim2.fromOffset(120, 120)
+	warmUp.BackgroundTransparency = 1
+	warmUp.ZIndex = 10
+	warmUp.Parent = stage
+	CreatureViewport.create(warmUp, speciesId, "Baby", finishId, mutationId, {
+		position = UDim2.fromScale(0.5, 0.5),
+		size = UDim2.fromScale(1, 1),
+		zIndex = 1,
+	})
 	local windowStroke = Instance.new("UIStroke")
 	windowStroke.Color = GOLD
 	windowStroke.Thickness = 0
@@ -520,6 +536,7 @@ local function playReveal(reveal: { [string]: any })
 	end
 
 	-- The reveal
+	warmUp:Destroy()
 	window.Visible = false
 	skipRequested = false
 	local shown = os.clock()
