@@ -34,4 +34,4 @@ LUA
 	luau "$chunk" > "$OUT/level$level.txt"
 	rm "$chunk"
 done
-EGL_PLATFORM=surfaceless ${BPY:-/tmp/claude-0/bpyenv/bin/python} render_parts.py -- "$OUT" 2>&1 | grep -E "wrote|Error" || true
+EGL_PLATFORM=surfaceless ${BPY:-/tmp/claude-0/bpyenv/bin/python} render_parts.py -- "$OUT" ${VIEW:-aerial} 2>&1 | grep -E "wrote|Error" || true

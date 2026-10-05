@@ -180,7 +180,9 @@ function plotContext(parent, level)
 			trim(Vector3.new(1.8, 1.8, 1.8), CFrame.new(at.X, top + FLOOR_WALL + 0.9, at.Z), "Merlon")
 		end
 	end
-	-- A ramp between two points on its surface, drawn as stairs, walled both sides
+	-- A ramp between two points on its surface, drawn as stairs with a stone
+	-- balustrade both sides (WorldService: the security walls behind it are
+	-- invisible, and the inner side's bottom quarter is open)
 	local function ramp(a, b)
 		local length = (b - a).Magnitude
 		p({
@@ -201,14 +203,19 @@ function plotContext(parent, level)
 			local at = Vector3.new(a.X, top - height / 2, a.Z) + along * (step + 0.5) * run
 			trim(Vector3.new(5.6, height, run + 0.02), CFrame.lookAt(at, at + along), "Stair")
 		end
-		for step = 0, 3 do
-			local p0, p1 = a:Lerp(b, step / 4), a:Lerp(b, (step + 1) / 4)
-			local bottom = p0.Y - 1
-			local height = p1.Y + FLOOR_WALL - bottom
-			local mid = Vector3.new((p0.X + p1.X) / 2, bottom + height / 2, (p0.Z + p1.Z) / 2)
-			for _, side in { -1, 1 } do
-				local at = mid + right * side * 3.2
-				wall(Vector3.new(0.4, height, flat.Magnitude / 4 + 0.05), CFrame.lookAt(at, at + along), "RampWall")
+		for _, side in { -1, 1 } do
+			local offset = right * side * 3.2
+			local start = if side == 1 then 0.25 else 0
+			local railA, railB = a:Lerp(b, start) + offset, b + offset
+			local railLength = (railB - railA).Magnitude
+			local railFrame = CFrame.lookAt((railA + railB) / 2, railB)
+			trim(Vector3.new(0.8, 3, length), CFrame.lookAt((a + b) / 2 + offset, b + offset) * CFrame.new(0, -2, 0), "RampStringer")
+			trim(Vector3.new(0.9, 2.6, railLength), railFrame * CFrame.new(0, 1.3, 0), "RampRail")
+			trim(Vector3.new(1.3, 0.45, railLength + 0.3), railFrame * CFrame.new(0, 2.8, 0), "RampRailCap")
+			local posts = math.max(2, math.floor(railLength / 6) + 1)
+			for i = 0, posts - 1 do
+				local at = railA:Lerp(railB, i / (posts - 1))
+				trim(Vector3.new(1.3, 3.8, 1.3), CFrame.new(at + Vector3.new(0, 1.9, 0)), "RampPost")
 			end
 		end
 	end

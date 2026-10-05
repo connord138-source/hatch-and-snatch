@@ -947,10 +947,16 @@ local function buildPlot(index: number): PlotLayout
 			vault
 		)
 	end
-	-- A ramp between two points, with glass walls on both sides. The walls stand
-	-- upright in steps, each at least FLOOR_WALL above the ramp along its whole
-	-- length (a wall tilted with the ramp would sink low enough to hop near the top).
+	-- A ramp between two points, drawn as stone stairs with a balustrade both sides
+	-- (owner, 2026-10-05: the old tall stepped walls looked "pretty crude" and left
+	-- "too little space to get up them from the ground floor"). For security the
+	-- sides still have walls at least FLOOR_WALL above the ramp along its whole
+	-- length, in upright steps (a wall tilted with the ramp would sink low enough to
+	-- hop near the top), but they're invisible behind the balustrade, like the
+	-- arcades'. The inner side (+right: toward the floor) stays open for the bottom
+	-- quarter, so you can step on from the side instead of squeezing in at the foot.
 	local RAMP_STEPS = 4
+	local RAIL = 3.2 -- the balustrade's distance from the ramp's center line
 	local function ramp(from: number, a: Vector3, b: Vector3)
 		local length = (b - a).Magnitude
 		local frame = CFrame.lookAt((a + b) / 2, b) * CFrame.new(0, -0.5, 0)
@@ -979,6 +985,62 @@ local function buildPlot(index: number): PlotLayout
 				true
 			)
 		end
+		for _, side in { -1, 1 } do
+			local offset = right * side * RAIL
+			-- The stone stringer under the edge, then the balustrade, its cap and posts
+			local start = if side == 1 then 1 / RAMP_STEPS else 0
+			local railA, railB = a:Lerp(b, start) + offset, b + offset
+			local railLength = (railB - railA).Magnitude
+			local railFrame = CFrame.lookAt((railA + railB) / 2, railB)
+			piece(
+				from,
+				nil,
+				"RampStringer",
+				Vector3.new(0.8, 3, length),
+				CFrame.lookAt((a + b) / 2 + offset, b + offset) * CFrame.new(0, -2, 0),
+				nil,
+				nil,
+				nil,
+				true
+			)
+			piece(
+				from,
+				nil,
+				"RampRail",
+				Vector3.new(0.9, 2.6, railLength),
+				railFrame * CFrame.new(0, 1.3, 0),
+				nil,
+				nil,
+				nil,
+				true
+			)
+			piece(
+				from,
+				nil,
+				"RampRailCap",
+				Vector3.new(1.3, 0.45, railLength + 0.3),
+				railFrame * CFrame.new(0, 2.8, 0),
+				nil,
+				nil,
+				nil,
+				true
+			)
+			local posts = math.max(2, math.floor(railLength / 6) + 1)
+			for i = 0, posts - 1 do
+				local at = railA:Lerp(railB, i / (posts - 1))
+				piece(
+					from,
+					nil,
+					"RampPost",
+					Vector3.new(1.3, 3.8, 1.3),
+					CFrame.new(at + Vector3.new(0, 1.9, 0)),
+					nil,
+					nil,
+					nil,
+					true
+				)
+			end
+		end
 		for step = 0, RAMP_STEPS - 1 do
 			local p0 = a:Lerp(b, step / RAMP_STEPS)
 			local p1 = a:Lerp(b, (step + 1) / RAMP_STEPS)
@@ -986,13 +1048,18 @@ local function buildPlot(index: number): PlotLayout
 			local height = p1.Y + FLOOR_WALL - bottom
 			local mid = Vector3.new((p0.X + p1.X) / 2, bottom + height / 2, (p0.Z + p1.Z) / 2)
 			for _, side in { -1, 1 } do
-				local at = mid + right * side * 3.2
+				if side == 1 and step == 0 then
+					continue -- the open bottom quarter on the inner side
+				end
+				local at = mid + right * side * RAIL
 				piece(
 					from,
 					nil,
 					"RampWall",
 					Vector3.new(0.4, height, flat.Magnitude / RAMP_STEPS + 0.05),
 					CFrame.lookAt(at, at + along),
+					true,
+					nil,
 					true
 				)
 			end

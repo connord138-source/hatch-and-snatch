@@ -461,7 +461,10 @@ def setup_scene():
     scene.camera = cam
     cam.data.lens = 35
     target = mathutils.Vector((0, -14, 12))
-    if VIEW in ("wheel", "wheel34"):  # the Luck Wheel (run_wheel.sh): its face toward Roblox -Z
+    if VIEW == "ramp":  # the keep's ground ramp, up the right side (plot x +37), from the hall
+        target = mathutils.Vector((36, 2, 8))
+        cam.location = (4, 34, 26)
+    elif VIEW in ("wheel", "wheel34"):  # the Luck Wheel (run_wheel.sh): its face toward Roblox -Z
         target = mathutils.Vector((0, 0, 15))
         cam.location = (0, 52, 15) if VIEW == "wheel" else (-34, 40, 12)
     elif VIEW == "front":  # the theme concepts' camera: high, square on to the gate
