@@ -22,7 +22,7 @@ Admin → Creatures → spawn one of each rarity on yourself (the reveal plays):
 - [ ] A finish (spawn a Gold one) adds a shine sound; a mutation (spawn an Albino one) adds its chime, flash and banner.
 - [ ] Skip and close: clicking during a Common reel slides it straight to the result; clicking the result closes it after ~1 s ("Click to continue" appears). A Legendary reel can't be skipped, and closes after ~3 s. Several reveals in a row play one after another.
 - [ ] **Phones** (Studio's device emulator: an iPhone and a small Android): the reel stops with the winner exactly under the gold marker (this was a card off before); "Tap to continue".
-- [ ] **Light pillar:** Local Server, 2 players. Player 1: Admin → Eggs → set to hatch a Legendary, place it, wait for it to hatch. Player 2, standing near player 1's base, sees a colored light pillar shoot up from the incubator with a shockwave ring and sparkles, hears the fanfare, and gets the server announcement after the reveal. Then repeat with a Mythic (a taller, wider pillar).
+- [ ] **Light pillar:** Local Server, 2 players. Player 1: Admin → Eggs → set to hatch a Legendary, place it, wait for it to hatch. Player 2, standing near player 1's base, sees a colored light pillar shoot up from the incubator with a shockwave ring and sparkles, and hears the fanfare. Then repeat with a Mythic: a taller, wider pillar, and a server announcement in chat after the reveal. (Legendary has no chat announcement on purpose, since 1 egg in 33 is Legendary and it would spam a full server; its pillar is its public moment. Mythic and up announce.)
 - [ ] With the sound pack's id set, all of the above uses the new sounds; with id 0, pitched pings (still different per rarity).
 
 ## 2. Luck Wheel

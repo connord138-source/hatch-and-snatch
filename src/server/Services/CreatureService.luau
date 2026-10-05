@@ -1213,6 +1213,11 @@ function CreatureService.moveTo(player: Player, uid: string, target: string)
 		local other = data.creatures[swapUid]
 		other.slot = record.slot -- its old pedestal, or storage
 		CreatureService.respawn(player, swapUid)
+		Net.notify(
+			player,
+			`That spot was full: your {Config.CreaturesById[other.species].displayName} swapped places with it.`,
+			"info"
+		)
 	end
 	record.slot = slot
 	spawn(player, uid, record)
@@ -1392,11 +1397,17 @@ function CreatureService.toggleNursery(player: Player, uid: string)
 			end
 		end
 	end
-	-- Swap with whatever currently occupies the target slot
+	-- Swap with whatever currently occupies the target slot (and say so: a full
+	-- nursery swapping silently looked like nothing happened, playtest 2026-10-05)
 	for otherUid, other in data.creatures do
 		if otherUid ~= uid and other.slot == target then
 			other.slot = record.slot
 			spawn(player, otherUid, other)
+			Net.notify(
+				player,
+				`Nursery full: your {Config.CreaturesById[other.species].displayName} swapped out to make room.`,
+				"info"
+			)
 		end
 	end
 	record.slot = target

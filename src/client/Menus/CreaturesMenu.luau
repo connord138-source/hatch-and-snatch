@@ -77,6 +77,16 @@ local walkingUid: string? = nil
 
 local CreaturesMenu = {}
 
+-- "Coral & bioluminescence · Fish nibble its horns." The roster's element tags
+-- ("coral/bioluminescence", "storm cloud + lightning") read as notes, not prose
+-- (playtest 2026-10-05: "coral. Fish nibble its horns").
+local function aboutText(element: string, gag: string): string
+	local material = (element:gsub("%s*[/+]%s*", " & "))
+	material = material:sub(1, 1):upper() .. material:sub(2)
+	local line = if gag:match("[%.!?]$") then gag else gag .. "."
+	return `{material} · {line}`
+end
+
 local function isNursery(slot: number?): boolean
 	local state = ClientState.current
 	local nursery: number = if state and state.nurserySlots
@@ -338,7 +348,7 @@ local function fillCard(creature: Creature)
 		else `💰 Would earn +{Format.cash(creature.rate)}/s on a pedestal`
 	lines.breakdown.Text = table.concat(parts, " × ")
 	lines.worth.Text = `Sells for {Format.cash(creature.value)}`
-	lines.about.Text = `{species.element}. {species.gag}`
+	lines.about.Text = aboutText(species.element, species.gag)
 	lines.where.Text = `📍 {spotText(creature)}`
 
 	local text, progress = growthText(creature)
