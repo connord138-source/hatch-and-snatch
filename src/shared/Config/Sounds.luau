@@ -13,7 +13,7 @@
 export type Region = { number } -- { start, length } in seconds
 
 local Sounds: { id: number, regions: { [string]: Region } } = {
-	id = 0, -- the uploaded hatch_sfx.ogg (Creator Hub → Development Items → Audio)
+	id = 95589840561667, -- the uploaded hatch_sfx.ogg (Creator Hub → Development Items → Audio)
 	regions = {
 		-- BEGIN REGIONS (written by tools/audio/make_sfx.py; { start, length } in seconds)
 		Common = { 0.100, 1.000 },
