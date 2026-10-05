@@ -13,6 +13,8 @@ local Belt = {
 	TUNNEL_CENTER = TUNNEL_CENTER,
 	TUNNEL_HALF = math.rad(conveyor.tunnelHalfDegrees),
 	LAP_SECONDS = 2 * math.pi / ANGULAR_SPEED,
+	ANGULAR_SPEED = ANGULAR_SPEED, -- radians a second round the loop
+	BELT_TOP = 1.6, -- the belt's surface above the ground (Conveyor.luau)
 }
 
 -- The loop angle of an egg that has been riding for `age` seconds.
@@ -36,6 +38,17 @@ function Belt.cframe(center: Vector3, angle: number): CFrame
 			math.sin(angle) * conveyor.radius
 		)
 	return CFrame.new(position) * CFrame.Angles(0, -angle, 0)
+end
+
+-- A cross-slat on the belt's surface at that angle (BeltController moves them
+-- round with the eggs, so the belt reads as moving).
+function Belt.slatCFrame(center: Vector3, angle: number): CFrame
+	local radial = Vector3.new(math.cos(angle), 0, math.sin(angle))
+	return CFrame.fromMatrix(
+		center + radial * conveyor.radius + Vector3.new(0, Belt.BELT_TOP + 0.06, 0),
+		radial,
+		Vector3.yAxis
+	)
 end
 
 return Belt

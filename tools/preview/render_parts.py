@@ -461,7 +461,10 @@ def setup_scene():
     scene.camera = cam
     cam.data.lens = 35
     target = mathutils.Vector((0, -14, 12))
-    if VIEW == "ramp":  # the keep's ground ramp, up the right side (plot x +37), from the hall
+    if VIEW == "belt":  # the conveyor loop (run_conveyor.sh), low over its outer edge
+        target = mathutils.Vector((0, -40, 2))
+        cam.location = (22, -82, 14)
+    elif VIEW == "ramp":  # the keep's ground ramp, up the right side (plot x +37), from the hall
         target = mathutils.Vector((36, 2, 8))
         cam.location = (4, 34, 26)
     elif VIEW in ("wheel", "wheel34"):  # the Luck Wheel (run_wheel.sh): its face toward Roblox -Z

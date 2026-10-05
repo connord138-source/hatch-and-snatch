@@ -24,6 +24,7 @@ local Landmarks = require(script.Parent.Parent.Landmarks)
 local BaseKit = require(script.Parent.Parent.BaseKit)
 local BaseDecor = require(script.Parent.Parent.BaseDecor)
 local LuckWheel = require(script.Parent.Parent.LuckWheel)
+local Conveyor = require(script.Parent.Parent.Conveyor)
 
 export type PlotLayout = {
 	index: number,
@@ -547,24 +548,9 @@ local function buildHub()
 		Parent = worldFolder,
 	})
 
-	-- Conveyor loop: a ring of belt segments
-	local conveyor = Config.Eggs.conveyor
-	local segments = 56
-	local circumference = 2 * math.pi * conveyor.radius
-	for i = 1, segments do
-		local angle = (i - 1) / segments * 2 * math.pi
-		local position =
-			Vector3.new(math.cos(angle) * conveyor.radius, GROUND_Y + 1, math.sin(angle) * conveyor.radius)
-		local tangent = Vector3.new(-math.sin(angle), 0, math.cos(angle))
-		part({
-			Name = "Belt",
-			Size = Vector3.new(5, 1.2, circumference / segments + 0.3),
-			CFrame = CFrame.lookAt(position, position + tangent),
-			Material = Enum.Material.DiamondPlate,
-			Color = Color3.fromRGB(70, 72, 80),
-			Parent = worldFolder,
-		})
-	end
+	-- Conveyor loop: a steel-framed rubber belt with rails, rollers, running lights
+	-- and moving slats (Conveyor.luau)
+	Conveyor.build(worldFolder, Vector3.new(0, GROUND_Y, 0), Config.Eggs.conveyor.radius)
 	buildTunnel()
 
 	-- The Moon Egg — EventService recolors it for moon events
