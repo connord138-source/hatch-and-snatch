@@ -5,7 +5,8 @@
 --
 -- On a controller (Console on at launch, owner 2026-10-05): D-pad up selects the
 -- bar, A opens a menu and selects its first button, the D-pad moves between
--- buttons (Roblox's own UI navigation), and B closes the menu.
+-- buttons (Roblox's own UI navigation, kept inside the open menu), and B closes the
+-- menu, or steps back off the bar when none is open.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -107,6 +108,13 @@ function MenuController.start()
 	local sizeLimit = Instance.new("UISizeConstraint")
 	sizeLimit.MaxSize = Vector2.new(660, 500)
 	sizeLimit.Parent = window
+	-- A controller's selection stays inside the open menu (D-pad left from a row in
+	-- Creatures went on to the HUD's ad button, and stayed there after B; PC 2026-10-05)
+	window.SelectionGroup = true
+	window.SelectionBehaviorUp = Enum.SelectionBehavior.Stop
+	window.SelectionBehaviorDown = Enum.SelectionBehavior.Stop
+	window.SelectionBehaviorLeft = Enum.SelectionBehavior.Stop
+	window.SelectionBehaviorRight = Enum.SelectionBehavior.Stop
 	local title = Ui.label(window, {
 		Position = UDim2.fromOffset(16, 10),
 		Size = UDim2.new(1, -80, 0, 30),
@@ -219,6 +227,16 @@ function MenuController.start()
 		GuiService.SelectedObject = buttons.Creatures
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.KeyCode.DPadUp)
+	-- B steps back off the bar: while a button is selected the stick steers the
+	-- selection, and nothing cleared it short of opening a menu and closing it
+	-- (PC, 2026-10-05)
+	ContextActionService:BindAction("MenuDeselect", function(_, state: Enum.UserInputState)
+		if state ~= Enum.UserInputState.Begin or open ~= nil or GuiService.SelectedObject == nil then
+			return Enum.ContextActionResult.Pass
+		end
+		GuiService.SelectedObject = nil
+		return Enum.ContextActionResult.Sink
+	end, false, Enum.KeyCode.ButtonB)
 	local padHint = Ui.label(gui, {
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.new(0.5, barWidth / 2 + BUTTON_GAP, 1, -BAR_BOTTOM - 8),

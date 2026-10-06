@@ -620,6 +620,9 @@ function CreaturesMenu.build(content: Frame)
 		Position = UDim2.fromOffset(0, 30),
 		Size = UDim2.new(1, 0, 1, -30),
 	})
+	-- Every row is buttons, so a controller's D-pad goes straight to them (it stopped
+	-- on the list itself first); the list still scrolls to the selected row
+	list.Selectable = false
 	emptyLabel = Ui.label(content, {
 		Position = UDim2.fromOffset(0, 70),
 		Size = UDim2.new(1, 0, 0, 30),
