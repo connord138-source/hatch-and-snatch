@@ -189,7 +189,7 @@ local items: { Item } = {
 		kind = "Security",
 		cost = 40_000_000_000,
 		baseLevel = 4,
-		description = "Fire the ballista (E) to net the nearest thief carrying your creature within 80 studs: they drop it (2 min recharge)",
+		description = "Fire the ballista (E): it nets a thief running off with your creature (they drop it) or any intruder in your base, holding them 3 s (2 min recharge)",
 		recharge = 120,
 	},
 }

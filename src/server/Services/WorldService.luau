@@ -231,6 +231,18 @@ local function floorTop(floor: number): number
 	return TOP + (floor - 1) * FLOOR_HEIGHT
 end
 
+-- The ramps' feet and heads, plot-local (the build and the Ramp Gates' bars):
+-- ramp 1 climbs the keep's right side from the front yard to the Second Floor,
+-- ramp 2 leaves the Second Floor's back left for the Top Floor's front left.
+local RAMP_STEPS = 4 -- the side walls' steps; the inner side is open for the first one
+local function rampEnds(ramp: number): (Vector3, Vector3)
+	if ramp == 1 then
+		return Vector3.new(FLOOR_X + 3, TOP, -18), Vector3.new(FLOOR_X + 3, floorTop(2), 6)
+	end
+	return Vector3.new(-FLOOR_X - 3, floorTop(2), RAMP2_EXIT[1]),
+		Vector3.new(-FLOOR_X - 3, floorTop(3), RAMP2_ENTRY[2])
+end
+
 -- A vault's floor, side (-1 left, 1 right) and center, plot-local.
 local function vaultLayout(vault: number): (number, number, Vector3)
 	local floor = Config.Economy.tunables.vaults[vault].floor
@@ -941,7 +953,6 @@ local function buildPlot(index: number): PlotLayout
 	-- hop near the top), but they're invisible behind the balustrade, like the
 	-- arcades'. The inner side (+right: toward the floor) stays open for the bottom
 	-- quarter, so you can step on from the side instead of squeezing in at the foot.
-	local RAMP_STEPS = 4
 	local RAIL = 3.2 -- the balustrade's distance from the ramp's center line
 	local function ramp(from: number, a: Vector3, b: Vector3)
 		local length = (b - a).Magnitude
@@ -1183,7 +1194,8 @@ local function buildPlot(index: number): PlotLayout
 	end
 	-- Ground → Second Floor: up the right side from the front
 	local secondTop = floorTop(2)
-	ramp(2, Vector3.new(FLOOR_X + 3, TOP, -18), Vector3.new(FLOOR_X + 3, secondTop, 6))
+	local foot1, head1 = rampEnds(1)
+	ramp(2, foot1, head1)
 	piece(2, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(FLOOR_X + 3, secondTop - 0.5, 9))
 	wallZ(2, nil, 6, 12, FLOOR_X + 6, secondTop)
 	wallX(2, nil, FLOOR_X, FLOOR_X + 6, 12, secondTop)
@@ -1196,7 +1208,7 @@ local function buildPlot(index: number): PlotLayout
 		piece(3, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(rampX, secondTop - 0.5, foot + 3))
 		wallX(3, nil, -FLOOR_X - 6, -FLOOR_X, RAMP2_EXIT[2], secondTop)
 		wallZ(3, nil, RAMP2_EXIT[1], RAMP2_EXIT[2], -FLOOR_X - 6, secondTop)
-		ramp(3, Vector3.new(rampX, secondTop, foot), Vector3.new(rampX, thirdTop, head))
+		ramp(3, rampEnds(2))
 		piece(3, nil, "RampLanding", Vector3.new(6, 1, 6), CFrame.new(rampX, thirdTop - 0.5, head - 3))
 		wallZ(3, nil, RAMP2_ENTRY[1], RAMP2_ENTRY[2], -FLOOR_X - 6, thirdTop)
 		wallX(3, nil, -FLOOR_X - 6, -FLOOR_X, RAMP2_ENTRY[1], thirdTop)
@@ -1712,6 +1724,14 @@ end
 -- Places the security fixtures the owner has (Config.BaseBuilds items, and the
 -- alarm bell from security level 1).
 function WorldService.setSecurity(plot: PlotLayout, owned: { [string]: boolean }, alarm: boolean)
+	-- Each bar stands across its stairs just above their open bottom quarter: you
+	-- can step onto the first ramp from the side below that, so a bar at its foot
+	-- was simply walked round (owner, 2026-10-06: defenses audit)
+	local function barOn(ramp: number): Vector3
+		local foot, head = rampEnds(ramp)
+		local at = foot:Lerp(head, 1 / RAMP_STEPS + 0.5 / (head - foot).Magnitude)
+		return at + Vector3.new(0, 4.5, 0) -- 9 tall, standing on the slope
+	end
 	BaseKit.placeSecurity(
 		plot.model,
 		plot.security,
@@ -1723,14 +1743,8 @@ function WorldService.setSecurity(plot: PlotLayout, owned: { [string]: boolean }
 		alarm,
 		plot.floors,
 		{
-			-- The lever beside the first ramp's foot; each bar just off its ramp's foot,
-			-- on the landing side (the first ramp climbs +Z from the yard, the second
-			-- -Z from the Second Floor's back left)
-			lever = Vector3.new(FLOOR_X - 3.5, TOP + 1.7, PLOT_FRONT + 2.5),
-			bars = {
-				Vector3.new(FLOOR_X + 3, TOP + 4.5, -19.6),
-				Vector3.new(-FLOOR_X - 3, floorTop(2) + 4.5, RAMP2_EXIT[1] + 0.4),
-			},
+			lever = Vector3.new(FLOOR_X - 3.5, TOP + 1.7, PLOT_FRONT + 2.5), -- beside the first ramp's foot
+			bars = { barOn(1), barOn(2) },
 		}
 	)
 end

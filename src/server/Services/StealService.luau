@@ -19,6 +19,7 @@
 --     pays no steal rewards for a while (so two accounts can't farm each other).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
@@ -87,7 +88,8 @@ local spikes: { [number]: Timer } = {}
 local rampGates: { [number]: Timer } = {}
 local ballistaReadyAt: { [number]: number } = {}
 local searchlightReadyAt: { [number]: number } = {}
-local rooted: { [Player]: boolean } = {} -- caught in a spike strip right now
+local rooted: { [Player]: boolean } = {} -- caught in a spike strip or a net right now
+local NET_SECONDS = 3 -- how long the ballista's net holds whoever it hits
 
 local function ownsBuild(owner: Player?, id: string): boolean
 	local data = owner and DataService.get(owner)
@@ -318,34 +320,45 @@ local function markThief(owner: Player, plot: WorldService.PlotLayout, thief: Pl
 	end)
 end
 
--- Spike strip: the first intruder through the gate is stuck for a moment.
-local function trySpikes(owner: Player, plot: WorldService.PlotLayout, player: Player)
-	local now = serverNow()
-	local state = spikes[plot.index]
-	if not ownsBuild(owner, "SpikeStrip") or (state and now < state.readyAt) or rooted[player] then
-		return
-	end
+-- Holds a player in place for `seconds` (spike strip, ballista net): no walking,
+-- no jumping, no grabbing. False if they're already held or have no character.
+local function hold(player: Player, seconds: number): boolean
 	local humanoid = humanoidOf(player)
-	if humanoid == nil or carries[player] then
-		return
+	if humanoid == nil or rooted[player] then
+		return false
 	end
-	local active, recharge = buildTimes("SpikeStrip")
-	spikes[plot.index] = { activeUntil = now + active, readyAt = now + active + recharge }
 	rooted[player] = true
 	local walkSpeed, jumpPower, jumpHeight = humanoid.WalkSpeed, humanoid.JumpPower, humanoid.JumpHeight
 	humanoid.WalkSpeed = 0
 	humanoid.JumpPower = 0
 	humanoid.JumpHeight = 0
-	BaseKit.raiseSpikes(plot.security, true)
-	Net.notify(player, "Ouch! Caught in the spikes!", "bad")
-	Net.notify(owner, `Your spike strip caught {player.DisplayName}!`, "info")
-	task.delay(active, function()
+	task.delay(seconds, function()
 		rooted[player] = nil
 		if humanoid.Parent and humanoid.WalkSpeed == 0 then
 			humanoid.WalkSpeed = walkSpeed
 			humanoid.JumpPower = jumpPower
 			humanoid.JumpHeight = jumpHeight
 		end
+	end)
+	return true
+end
+
+-- Spike strip: the first intruder through the gate is stuck for a moment.
+local function trySpikes(owner: Player, plot: WorldService.PlotLayout, player: Player)
+	local now = serverNow()
+	local state = spikes[plot.index]
+	if not ownsBuild(owner, "SpikeStrip") or (state and now < state.readyAt) or carries[player] then
+		return
+	end
+	local active, recharge = buildTimes("SpikeStrip")
+	if not hold(player, active) then
+		return
+	end
+	spikes[plot.index] = { activeUntil = now + active, readyAt = now + active + recharge }
+	BaseKit.raiseSpikes(plot.security, true)
+	Net.notify(player, "Ouch! Caught in the spikes!", "bad")
+	Net.notify(owner, `Your spike strip caught {player.DisplayName}!`, "info")
+	task.delay(active, function()
 		BaseKit.raiseSpikes(plot.security, false)
 	end)
 end
@@ -741,7 +754,77 @@ local function barRamps(player: Player, plot: WorldService.PlotLayout)
 	Net.notify(player, `Ramps barred for {Format.duration(active)}!`, "info")
 end
 
--- Net ballista: the owner nets the nearest thief carrying one of their creatures.
+-- Net ballista (owner, 2026-10-06: "the net launcher doesn't do anything"; it only
+-- ever fired at a thief already carrying your creature, so it said "no thief in
+-- range" every other time). Its target: the nearest thief carrying one of the
+-- owner's creatures within range (they drop it and it runs home), else the
+-- nearest intruder inside the base. Either way the net holds them NET_SECONDS.
+local function ballistaTarget(owner: Player, plot: WorldService.PlotLayout): (Player?, Carry?)
+	local from = plot.security.ballista.Position
+	local best, target, targetCarry = Config.BaseBuilds.ballistaRange, nil :: Player?, nil :: Carry?
+	for _, carry in carries do
+		local _, root = humanoidOf(carry.thief)
+		if carry.owner == owner and root and (root.Position - from).Magnitude <= best then
+			best, target, targetCarry = (root.Position - from).Magnitude, carry.thief, carry
+		end
+	end
+	if target then
+		return target, targetCarry
+	end
+	local nearest = math.huge
+	local inside: { [Player]: number } = intruders[plot.index] or {}
+	for player in inside do
+		local _, root = humanoidOf(player)
+		if player ~= owner and root and not rooted[player] and (root.Position - from).Magnitude < nearest then
+			nearest, target = (root.Position - from).Magnitude, player
+		end
+	end
+	return target, nil
+end
+
+-- The net flies from the ballista and wraps the target while it holds them.
+local function netVisual(from: Vector3, root: BasePart)
+	local net = Instance.new("Part")
+	net.Name = "BallistaNet"
+	net.Shape = Enum.PartType.Ball
+	net.Size = Vector3.new(2, 2, 2)
+	net.Material = Enum.Material.Fabric
+	net.Color = Color3.fromRGB(205, 182, 128)
+	net.Transparency = 0.25
+	net.Anchored = true
+	net.CanCollide = false
+	net.CanQuery = false
+	net.CanTouch = false
+	net.CastShadow = false
+	net.CFrame = CFrame.new(from + Vector3.new(0, 2.5, 0))
+	net.Parent = Workspace
+	local flight = TweenService:Create(
+		net,
+		TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ CFrame = root.CFrame, Size = Vector3.new(6.5, 6.5, 6.5) }
+	)
+	flight:Play()
+	flight.Completed:Once(function()
+		if root.Parent == nil then
+			net:Destroy()
+			return
+		end
+		-- Wrapped round the target until the net lets go
+		net.Transparency = 0.45
+		net.Anchored = false
+		net.Massless = true
+		net.CFrame = root.CFrame
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = root
+		weld.Part1 = net
+		weld.Parent = net
+		Net.cueAll("BallistaHit", root.Position)
+	end)
+	task.delay(NET_SECONDS + 0.35, function()
+		net:Destroy()
+	end)
+end
+
 local function fireNet(player: Player, plot: WorldService.PlotLayout)
 	if PlotService.ownerOf(plot) ~= player or not ownsBuild(player, "NetBallista") then
 		return
@@ -752,48 +835,26 @@ local function fireNet(player: Player, plot: WorldService.PlotLayout)
 		Net.notify(player, `The ballista is reloading ({Format.duration(readyAt - now)}).`, "info")
 		return
 	end
-	local from = plot.security.ballista.Position
-	local target: Carry? = nil
-	local best = Config.BaseBuilds.ballistaRange
-	for _, carry in carries do
-		if carry.owner == player then
-			local _, root = humanoidOf(carry.thief)
-			local distance = if root then (root.Position - from).Magnitude else math.huge
-			if distance <= best then
-				best, target = distance, carry
-			end
-		end
+	local target, carry = ballistaTarget(player, plot)
+	local root: BasePart? = nil
+	if target then
+		root = select(2, humanoidOf(target))
 	end
-	if target == nil then
-		Net.notify(player, "No thief with your creature in range.", "info")
+	if target == nil or root == nil then
+		Net.notify(player, "No intruder in your base and no thief in range to net.", "info")
 		return
 	end
 	local _, recharge = buildTimes("NetBallista")
 	ballistaReadyAt[plot.index] = now + recharge
-	local _, root = humanoidOf(target.thief)
-	-- The net flies, then the creature goes home
-	local net = Instance.new("Part")
-	net.Name = "BallistaNet"
-	net.Size = Vector3.new(4, 4, 0.3)
-	net.Material = Enum.Material.Fabric
-	net.Color = Color3.fromRGB(200, 180, 130)
-	net.Transparency = 0.2
-	net.Anchored = true
-	net.CanCollide = false
-	net.CanQuery = false
-	net.CFrame = CFrame.new(from + Vector3.new(0, 2, 0))
-	net.Parent = Workspace
-	if root then
-		game:GetService("TweenService")
-			:Create(net, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { CFrame = CFrame.new(root.Position) })
-			:Play()
+	local from = plot.security.ballista.Position
+	Net.cueAll("BallistaFire", from)
+	netVisual(from, root)
+	if carry then
+		endCarry(carry, "takenBack") -- the creature runs home
 	end
-	task.delay(1.2, function()
-		net:Destroy()
-	end)
-	Net.notify(target.thief, `Netted by {player.DisplayName}'s ballista! The creature ran home.`, "bad")
-	Net.notify(player, `Got {target.thief.DisplayName}! Your creature is home.`, "rare")
-	endCarry(target, "takenBack")
+	hold(target, NET_SECONDS)
+	Net.notify(target, `🕸 Netted by {player.DisplayName}'s ballista!`, "bad")
+	Net.notify(player, `🕸 Netted {target.DisplayName}!`, "good")
 end
 
 -- Security fixtures' prompts follow their timers.
@@ -811,10 +872,13 @@ local function refreshFixtures(now: number)
 		else
 			security.leverPrompt.ActionText = "Bar the Ramps"
 		end
+		-- The ballista says whether it has someone to shoot at
 		local readyAt = ballistaReadyAt[plot.index] or 0
+		local owner = PlotService.ownerOf(plot)
 		security.ballistaPrompt.ActionText = if now < readyAt
 			then `Reloading {Format.duration(readyAt - now)}`
-			else "Fire Net"
+			elseif owner and ballistaTarget(owner, plot) then "Fire Net!"
+			else "No target"
 	end
 end
 

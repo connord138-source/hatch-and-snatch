@@ -7,6 +7,7 @@
 --   MoonEnd      the moon sets
 --   ZoneWarning  a zone's set-piece event starts in 10 s (with its toast)
 --   ZoneEvent    the set piece going off, heard from nearby
+--   BallistaFire / BallistaHit  a base's Net Ballista shooting, and its net landing
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -23,6 +24,11 @@ local CUES: { [string]: { Note } } = {
 	MoonEnd = { { sound = "Shine", volume = 0.5, pitch = 0.7 } },
 	ZoneWarning = { { sound = "Shine", volume = 0.4, pitch = 1.15 } },
 	ZoneEvent = { { sound = "Epic", volume = 1 } },
+	BallistaFire = {
+		{ sound = "Whoosh", volume = 1, pitch = 0.75 },
+		{ sound = "Impact", volume = 0.45, pitch = 1.6 },
+	},
+	BallistaHit = { { sound = "Impact", volume = 0.6, pitch = 1.25 } },
 }
 local WORLD_RANGE = 220 -- how far a cue in the world carries (studs)
 
