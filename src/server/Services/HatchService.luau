@@ -492,34 +492,52 @@ local function hatch(player: Player, data: PlayerData, index: number)
 		mutation = mutation,
 	})
 	local storageFull = uid ~= nil and data.creatures[uid] ~= nil and data.creatures[uid].slot == nil
-	local tier = RevealTiming.tier(creature.rarity)
+	-- The whole roll sets how big the moment is (a Prismatic Common is far rarer than
+	-- a Legendary), and its rarest part leads the pillar's color and sound
+	local tier = RevealTiming.tierFor(creature.rarity, finishId, mutation)
+	local lead = RevealTiming.lead(RevealTiming.speciesChance(egg.biome, egg.species), finishId, mutation)
+	local flair = RevealTiming.FINISHES[finishId]
+	local mutationLook = if mutationEntry then MutationLooks.get(mutationEntry.id) else nil
+	local leadColor, leadSound, rainbow = rarity.color, creature.rarity, false
+	if lead == "finish" and flair then
+		leadColor, leadSound, rainbow = flair.color, flair.sound, flair.rainbow == true
+	elseif lead == "mutation" and mutationLook then
+		leadColor, leadSound = mutationLook.accent, RevealTiming.MUTATION_SOUND
+	end
 	local plot = PlotService.get(player)
 	local bay = if plot and egg.slot then plot.incubators[egg.slot] else nil
 	local bayPosition = if bay then bay.Position else nil
 	local function announce()
+		local rarityWord = if rarity.announce then `{creature.rarity:upper()} ` else ""
 		if mutationEntry then
 			-- Mutations are the rarest roll in the game: everyone hears, with the odds
-			local look = MutationLooks.get(mutationEntry.id)
 			local odds = Format.count(1 / mutationEntry.chance)
-			local rarityWord = if rarity.announce then `{creature.rarity:upper()} ` else ""
 			local article = if string.find(mutationEntry.displayName, "^[AEIOU]") then "an" else "a"
 			Net.announce(
 				`🧬 {player.DisplayName} hatched {article} {mutationEntry.displayName:upper()} {rarityWord}{name}! (1 in {odds})`,
-				if look then look.accent else rarity.color
+				if mutationLook then mutationLook.accent else rarity.color
+			)
+		elseif finish.announce ~= "none" and finish.oneIn then
+			-- A rare finish, named, with its odds
+			local article = if string.find(finish.displayName, "^[AEIOU]") then "an" else "a"
+			Net.announce(
+				`✨ {player.DisplayName} hatched {article} {finish.displayName:upper()} {rarityWord}{creature.displayName}! (1 in {Format.count(
+					finish.oneIn
+				)})`,
+				if flair then flair.color else rarity.color
 			)
 		elseif rarity.announce then
 			Net.announce(`{player.DisplayName} hatched a {creature.rarity:upper()} {name}!`, rarity.color)
-		elseif finish.announce ~= "none" then
-			Net.announce(`{player.DisplayName} hatched a {name}!`, rarity.color)
 		end
 	end
 	pendingReveals[revealId] = {
 		player = player,
 		at = os.clock(),
 		run = function()
-			-- Legendary and up: a pillar of light from the incubator, for everyone nearby
+			-- Legendary and up (or a roll as rare): a pillar of light from the incubator,
+			-- for everyone nearby, in the color of the roll's rarest part
 			if bayPosition and (tier == "big" or tier == "ultra") then
-				HatchPillar.spawn(bayPosition, rarity.color, creature.rarity, tier == "ultra", player.UserId)
+				HatchPillar.spawn(bayPosition, leadColor, leadSound, tier == "ultra", player.UserId, rainbow)
 			end
 			task.delay(0.6, announce)
 			if storageFull then

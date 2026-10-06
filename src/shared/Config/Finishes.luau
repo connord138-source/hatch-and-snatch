@@ -12,7 +12,7 @@ local Finishes: { Types.Finish } = {
 	{ id = "Gold", displayName = "Gold", oneIn = 8, earningsMultiplier = 1.5, announce = "none" },
 	{ id = "Chrome", displayName = "Chrome", oneIn = 25, earningsMultiplier = 2, announce = "none" },
 	{ id = "Diamond", displayName = "Diamond", oneIn = 80, earningsMultiplier = 3, announce = "none" },
-	{ id = "Molten", displayName = "Molten", oneIn = 250, earningsMultiplier = 5, announce = "none" },
+	{ id = "Molten", displayName = "Molten", oneIn = 250, earningsMultiplier = 5, announce = "server" },
 	{ id = "Galaxy", displayName = "Galaxy", oneIn = 4000, earningsMultiplier = 8, announce = "server" },
 	{
 		id = "Prismatic",

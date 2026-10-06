@@ -218,7 +218,8 @@ local function rays(parent: Instance, color: Color3, count: number): (Frame, (nu
 end
 
 -- A soft glow (stacked rings standing in for a radial gradient).
-local function glow(parent: Instance, color: Color3)
+local function glow(parent: Instance, color: Color3): { Frame }
+	local rings: { Frame } = {}
 	for i, transparency in { 0.93, 0.88, 0.82, 0.76 } do
 		local ring = Instance.new("Frame")
 		ring.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -232,7 +233,9 @@ local function glow(parent: Instance, color: Color3)
 		local round = Instance.new("UICorner")
 		round.CornerRadius = UDim.new(0.5, 0)
 		round.Parent = ring
+		table.insert(rings, ring)
 	end
+	return rings
 end
 
 -- Confetti flying out from the creature and falling, for `seconds`.
@@ -308,6 +311,254 @@ local function pop(target: Instance, from: number, seconds: number)
 		:Play()
 end
 
+-- The rainbow, in `count` steps (Prismatic).
+local function rainbowColors(count: number): { Color3 }
+	local colors: { Color3 } = {}
+	for i = 0, count - 1 do
+		table.insert(colors, Color3.fromHSV(i / count, 0.7, 1))
+	end
+	return colors
+end
+
+-- A bright band sweeping across the screen, `times` times (Chrome's polish,
+-- Prismatic's gleam).
+local function sweep(parent: Instance, color: Color3, times: number)
+	for n = 0, times - 1 do
+		task.delay(n * 0.8, function()
+			if parent.Parent == nil then
+				return
+			end
+			local bar = Instance.new("Frame")
+			bar.AnchorPoint = Vector2.new(0.5, 0.5)
+			bar.Position = UDim2.fromScale(-0.25, 0.4)
+			bar.Size = UDim2.new(0, 170, 2.2, 0)
+			bar.Rotation = 18
+			bar.BackgroundColor3 = color
+			bar.BorderSizePixel = 0
+			bar.ZIndex = 45
+			local fade = Instance.new("UIGradient")
+			fade.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(0.5, 0.5),
+				NumberSequenceKeypoint.new(1, 1),
+			})
+			fade.Parent = bar
+			bar.Parent = parent
+			local pass = TweenService:Create(
+				bar,
+				TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+				{ Position = UDim2.fromScale(1.25, 0.4) }
+			)
+			pass:Play()
+			pass.Completed:Once(function()
+				bar:Destroy()
+			end)
+		end)
+	end
+end
+
+-- Points of light twinkling in a patch of the screen (scale coordinates): Diamond's
+-- sparkle round the creature, Galaxy's stars behind everything.
+local function twinkle(
+	parent: Instance,
+	colors: { Color3 },
+	count: number,
+	sizes: NumberRange,
+	area: Rect,
+	zIndex: number
+)
+	for i = 1, count do
+		local star = Instance.new("Frame")
+		star.AnchorPoint = Vector2.new(0.5, 0.5)
+		star.Position = UDim2.fromScale(
+			area.Min.X + math.random() * (area.Max.X - area.Min.X),
+			area.Min.Y + math.random() * (area.Max.Y - area.Min.Y)
+		)
+		local size = sizes.Min + math.random() * (sizes.Max - sizes.Min)
+		star.Size = UDim2.fromOffset(size, size)
+		star.Rotation = 45
+		star.BackgroundColor3 = colors[(i - 1) % #colors + 1]
+		star.BackgroundTransparency = 1
+		star.BorderSizePixel = 0
+		star.ZIndex = zIndex
+		star.Parent = parent
+		TweenService:Create(
+			star,
+			TweenInfo.new(
+				0.35 + math.random() * 0.75,
+				Enum.EasingStyle.Sine,
+				Enum.EasingDirection.InOut,
+				-1,
+				true,
+				math.random() * 0.8
+			),
+			{ BackgroundTransparency = 0.05 }
+		):Play()
+	end
+end
+
+-- Glowing embers drifting up from the bottom of the screen (Molten).
+local function embers(parent: Instance, colors: { Color3 }, count: number, seconds: number)
+	local pieces = {}
+	for i = 1, count do
+		local ember = Instance.new("Frame")
+		ember.AnchorPoint = Vector2.new(0.5, 0.5)
+		local size = math.random(4, 9)
+		ember.Size = UDim2.fromOffset(size, size)
+		ember.BackgroundColor3 = colors[(i - 1) % #colors + 1]
+		ember.BorderSizePixel = 0
+		ember.ZIndex = 40
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0.5, 0)
+		round.Parent = ember
+		ember.Parent = parent
+		table.insert(pieces, {
+			frame = ember,
+			x = math.random(),
+			delay = math.random() * seconds * 0.5,
+			speed = 0.18 + math.random() * 0.22, -- screen heights a second
+			wobble = math.random() * math.pi * 2,
+		})
+	end
+	local started = os.clock()
+	local connection: RBXScriptConnection
+	connection = RunService.RenderStepped:Connect(function()
+		local age = os.clock() - started
+		if age > seconds or parent.Parent == nil then
+			connection:Disconnect()
+			for _, p in pieces do
+				p.frame:Destroy()
+			end
+			return
+		end
+		for _, p in pieces do
+			local life = age - p.delay
+			p.frame.Visible = life > 0
+			if life > 0 then
+				local y = 1.05 - life * p.speed
+				p.frame.Position = UDim2.fromScale(p.x + math.sin(p.wobble + life * 3) * 0.015, y)
+				p.frame.BackgroundTransparency = math.clamp((0.45 - y) / 0.4, 0, 1)
+			end
+		end
+	end)
+end
+
+-- The screen's edge throbbing like a heartbeat (Blood Moon).
+local function throb(parent: Instance, color: Color3, beats: number)
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.fromScale(1, 1)
+	frame.BackgroundColor3 = color
+	frame.BackgroundTransparency = 1
+	frame.BorderSizePixel = 0
+	frame.ZIndex = 12
+	local edge = Instance.new("UIGradient") -- clear in the middle, color at the edges
+	edge.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.3, 0.85),
+		NumberSequenceKeypoint.new(0.7, 0.85),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	edge.Parent = frame
+	frame.Parent = parent
+	for i = 0, beats - 1 do
+		for _, at in { 0, 0.22 } do
+			task.delay(i * 0.9 + at, function()
+				local up = TweenService:Create(frame, TweenInfo.new(0.07), { BackgroundTransparency = 0.25 })
+				up:Play()
+				up.Completed:Once(function()
+					TweenService:Create(frame, TweenInfo.new(0.35), { BackgroundTransparency = 1 }):Play()
+				end)
+			end)
+		end
+	end
+end
+
+-- The color each finish's banner and effects use (the rare ones share
+-- RevealTiming's, which the world's pillar uses too).
+local FINISH_COLORS: { [string]: Color3 } = {
+	Gold = Color3.fromRGB(255, 205, 60),
+	Chrome = Color3.fromRGB(215, 225, 240),
+	Diamond = Color3.fromRGB(150, 230, 255),
+}
+local function finishColor(finishId: string): Color3
+	local flair = RevealTiming.FINISHES[finishId]
+	return if flair then flair.color else FINISH_COLORS[finishId] or Color3.new(1, 1, 1)
+end
+
+-- Each finish's own moment on top of the reveal (owner, 2026-10-06: "I haven't
+-- noticed any flashy add-ons when a prismatic or other rarity skin is rolled").
+local AROUND_CREATURE = Rect.new(0.32, 0.08, 0.68, 0.55)
+local FINISH_FX: { [string]: (stage: Frame, overlay: Frame) -> () } = {
+	Gold = function(stage)
+		confetti(stage, { finishColor("Gold"), Color3.fromRGB(255, 240, 160), Color3.new(1, 1, 1) }, 40, 2.4)
+		Sfx.play("Shine", { volume = 0.65 })
+	end,
+	Chrome = function(stage)
+		sweep(stage, Color3.new(1, 1, 1), 2)
+		Sfx.play("Shine", { volume = 0.65, pitch = 0.85 })
+	end,
+	Diamond = function(stage)
+		twinkle(
+			stage,
+			{ finishColor("Diamond"), Color3.new(1, 1, 1) },
+			28,
+			NumberRange.new(6, 14),
+			AROUND_CREATURE,
+			22
+		)
+		Sfx.play("Shine", { volume = 0.7, pitch = 1.3 })
+		task.delay(0.15, function()
+			Sfx.play("Shine", { volume = 0.5, pitch = 1.65 })
+		end)
+	end,
+	Molten = function(stage)
+		embers(
+			stage,
+			{ finishColor("Molten"), Color3.fromRGB(255, 190, 60), Color3.fromRGB(255, 70, 20) },
+			70,
+			4
+		)
+		Sfx.play("Shine", { volume = 0.6, pitch = 0.7 })
+	end,
+	BloodMoon = function(stage)
+		throb(stage, finishColor("BloodMoon"), 3)
+		Sfx.play("Heartbeat", { volume = 0.85 })
+	end,
+	Galaxy = function(stage, overlay)
+		-- Night falls behind the creature and the stars come out
+		TweenService:Create(
+			overlay,
+			TweenInfo.new(0.8),
+			{ BackgroundColor3 = Color3.fromRGB(14, 6, 40), BackgroundTransparency = 0.06 }
+		):Play()
+		twinkle(
+			stage,
+			{ Color3.new(1, 1, 1), Color3.fromRGB(200, 180, 255), Color3.fromRGB(170, 210, 255) },
+			110,
+			NumberRange.new(2, 5),
+			Rect.new(0, 0, 1, 1),
+			11
+		)
+		Sfx.play("Shine", { volume = 0.7, pitch = 0.75 })
+	end,
+	Prismatic = function(stage, overlay)
+		-- The whole backdrop runs through the rainbow
+		local cycle = RunService.RenderStepped:Connect(function()
+			overlay.BackgroundColor3 = Color3.fromHSV(os.clock() * 0.22 % 1, 0.7, 0.32)
+		end)
+		overlay.Destroying:Once(function()
+			cycle:Disconnect()
+		end)
+		confetti(stage, rainbowColors(7), 90, 3.2)
+		sweep(stage, Color3.new(1, 1, 1), 3)
+		twinkle(stage, rainbowColors(6), 30, NumberRange.new(5, 11), AROUND_CREATURE, 22)
+		Sfx.play("Shine", { volume = 0.8 })
+		task.delay(0.12, function()
+			Sfx.play("Shine", { volume = 0.6, pitch = 1.5 })
+		end)
+	end,
+}
+
 -- The chance of this species from this egg, as "1 in N" (for the ultra reveal).
 local function oddsText(odds: { { id: string, chance: number } }, speciesId: string): string?
 	for _, entry in odds do
@@ -325,12 +576,31 @@ local function playReveal(reveal: { [string]: any })
 		return
 	end
 	local rarity = Config.Rarities[creature.rarity]
-	local tier = RevealTiming.tier(creature.rarity)
-	local big = tier == "big" or tier == "ultra"
-	local ultra = tier == "ultra"
 	local odds = Config.Eggs.speciesOdds(reveal.biome, true)
 	local finishId: string = if typeof(reveal.finish) == "string" then reveal.finish else "Normal"
 	local mutationId: string? = if typeof(reveal.mutation) == "string" then reveal.mutation else nil
+	-- The whole roll sets the tier, and its rarest part leads the color, the title and
+	-- the stinger (a Prismatic Common is a far bigger pull than a Legendary)
+	local tier = RevealTiming.tierFor(creature.rarity, finishId, mutationId)
+	local big = tier == "big" or tier == "ultra"
+	local ultra = tier == "ultra"
+	local speciesChance = RevealTiming.speciesChance(reveal.biome, speciesId)
+	local lead = RevealTiming.lead(speciesChance, finishId, mutationId)
+	local flair = RevealTiming.FINISHES[finishId]
+	local finishEntry = nil
+	for _, entry in Config.Finishes do
+		if entry.id == finishId and entry.id ~= "Normal" then
+			finishEntry = entry
+		end
+	end
+	local mutationEntry = if mutationId then Config.MutationsById[mutationId] else nil
+	local mutationLook = MutationLooks.get(mutationId)
+	local accent, stinger, rainbow = rarity.color, creature.rarity, false
+	if lead == "finish" and flair then
+		accent, stinger, rainbow = flair.color, flair.sound, flair.rainbow == true
+	elseif lead == "mutation" and mutationLook then
+		accent, stinger = mutationLook.accent, RevealTiming.MUTATION_SOUND
+	end
 
 	local overlay = Instance.new("Frame")
 	overlay.Size = UDim2.fromScale(1, 1)
@@ -521,6 +791,13 @@ local function playReveal(reveal: { [string]: any })
 			cover.Parent = window
 			TweenService:Create(cover, TweenInfo.new(0.3), { BackgroundTransparency = 0.25 }):Play()
 		end
+		if lead ~= "species" then
+			-- The tell: the winning card's frame turns the color of what's really inside
+			local stroke = winnerCard:FindFirstChildOfClass("UIStroke")
+			if stroke then
+				TweenService:Create(stroke, TweenInfo.new(0.35), { Color = accent, Thickness = 6 }):Play()
+			end
+		end
 		local beat = Instance.new("UIScale")
 		beat.Parent = winnerCard
 		Sfx.play("Heartbeat", { volume = 0.9 })
@@ -552,29 +829,52 @@ local function playReveal(reveal: { [string]: any })
 	if big then
 		overlay.BackgroundTransparency = 0.15
 		Sfx.play("Impact", { volume = 1 })
-		Sfx.play(creature.rarity, { volume = 0.95 })
+		Sfx.play(stinger, { volume = 0.95 })
 		flash(overlay, Color3.new(1, 1, 1), 0.9, 0.5)
 		task.delay(0.12, function()
-			flash(overlay, rarity.color, 0.6, 1.4)
+			flash(overlay, accent, 0.6, 1.4)
 		end)
 		shake(stage, if ultra then 22 else 14, 0.55)
-		local spokes, turn = rays(stage, rarity.color, if ultra then 16 else 12)
-		glow(stage, rarity.color)
+		local spokes, turn = rays(stage, accent, if ultra then 16 else 12)
+		local rings = glow(stage, accent)
 		local spin = RunService.RenderStepped:Connect(function(dt: number)
 			turn(dt * (if ultra then 16 else 10))
+			if rainbow then
+				-- Prismatic: the rays and the glow run through the rainbow
+				local hue = os.clock() * 0.3
+				for i, bar in spokes:GetChildren() do
+					if bar:IsA("Frame") and i % 2 == 0 then
+						bar.BackgroundColor3 = Color3.fromHSV((hue + i * 0.13) % 1, 0.7, 1)
+					end
+				end
+				for i, ring in rings do
+					ring.BackgroundColor3 = Color3.fromHSV((hue + i * 0.08) % 1, 0.6, 1)
+				end
+			end
 		end)
 		overlay.Destroying:Once(function()
 			spin:Disconnect()
 		end)
 		pop(spokes, 0.2, 0.6)
-		confetti(stage, { rarity.color, GOLD, Color3.new(1, 1, 1) }, if ultra then 80 else 55, 2.8)
+		local burst = if rainbow then rainbowColors(7) else { accent, GOLD, Color3.new(1, 1, 1) }
+		confetti(stage, burst, if ultra then 80 else 55, 2.8)
 		if ultra then
 			for i, at in { 0.9, 1.8 } do
 				task.delay(at, function()
 					if overlay.Parent then
-						flash(overlay, rarity.color, 0.45, 0.8)
+						flash(
+							overlay,
+							if rainbow then Color3.fromHSV(math.random(), 0.7, 1) else accent,
+							0.45,
+							0.8
+						)
 						if i == 1 then
-							confetti(stage, { rarity.color, Color3.new(1, 1, 1) }, 50, 2.4)
+							confetti(
+								stage,
+								if rainbow then burst else { accent, Color3.new(1, 1, 1) },
+								50,
+								2.4
+							)
 						end
 					end
 				end)
@@ -587,24 +887,30 @@ local function playReveal(reveal: { [string]: any })
 		Sfx.play(creature.rarity, { volume = 0.85 })
 		flash(overlay, rarity.color, 0.45)
 	end
-	if finishId ~= "Normal" then
+	-- The finish's own effect (Gold glitter, Chrome polish, Diamond sparkle, Molten
+	-- embers, Blood Moon heartbeat, Galaxy stars, Prismatic rainbow)
+	local finishFx = FINISH_FX[finishId]
+	if finishFx then
 		task.delay(if big then 0.9 else 0.35, function()
-			Sfx.play("Shine", { volume = 0.6 })
+			if overlay.Parent then
+				finishFx(stage, overlay)
+			end
 		end)
 	end
 
-	local finish: string? = nil
-	for _, entry in Config.Finishes do
-		if entry.id == finishId and entry.id ~= "Normal" then
-			finish = entry.displayName
-		end
-	end
+	local finish: string? = if finishEntry then finishEntry.displayName else nil
+	-- The title names the roll's rarest part: the rarity, or the finish or mutation
+	-- when that was rarer ("PRISMATIC!")
+	local titleText = if lead == "finish" and finishEntry
+		then finishEntry.displayName:upper()
+		elseif lead == "mutation" and mutationEntry then mutationEntry.displayName:upper()
+		else creature.rarity:upper()
 	local title = label(stage, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.6),
 		Size = UDim2.fromOffset(700, if big then 84 else 70),
-		Text = `{creature.rarity:upper()}!`,
-		TextColor3 = rarity.color,
+		Text = `{titleText}!`,
+		TextColor3 = accent,
 		ZIndex = 21,
 	})
 	label(stage, {
@@ -656,8 +962,14 @@ local function playReveal(reveal: { [string]: any })
 		pop(viewport, if big then 0.1 else 0.6, if big then 0.55 else 0.35)
 	end
 	if ultra then
-		-- The flex: how rare that was, from this egg
-		local chance = oddsText(odds, speciesId)
+		-- The flex: how rare that was, from this egg (the whole roll: species × finish ×
+		-- mutation)
+		local whole = speciesChance
+			* (if finishEntry and finishEntry.oneIn then 1 / finishEntry.oneIn else 1)
+			* (if mutationEntry then mutationEntry.chance else 1)
+		local chance = if whole < speciesChance
+			then `1 in {Format.count(math.floor(1 / whole + 0.5))}`
+			else oddsText(odds, speciesId)
 		if chance then
 			local line = label(stage, {
 				AnchorPoint = Vector2.new(0.5, 0.5),
@@ -677,29 +989,53 @@ local function playReveal(reveal: { [string]: any })
 		end
 	end
 
-	local mutationEntry = if mutationId then Config.MutationsById[mutationId] else nil
-	local mutationLook = MutationLooks.get(mutationId)
-	if mutationEntry and mutationLook then
-		-- The rarest roll in the game gets its own moment: a banner in its accent
-		-- color with the odds, a second flash and its own sound
+	-- A banner over the title spells out the mutation and the finish with their odds,
+	-- with a second flash (a mutation, the rarest roll in the game, also its sound)
+	local bannerParts: { string } = {}
+	if mutationEntry then
+		table.insert(
+			bannerParts,
+			`🧬 {mutationEntry.displayName:upper()} MUTATION · 1 in {Format.count(1 / mutationEntry.chance)}`
+		)
+	end
+	if finishEntry and finishEntry.oneIn then
+		table.insert(
+			bannerParts,
+			`✨ {finishEntry.displayName:upper()} FINISH · 1 in {Format.count(finishEntry.oneIn)}`
+		)
+	end
+	if #bannerParts > 0 then
+		local bannerColor = if mutationEntry and mutationLook
+			then mutationLook.accent
+			else finishColor(finishId)
 		local banner = label(stage, {
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.fromScale(0.5, 0.535),
 			Size = UDim2.fromOffset(700, 30),
-			Text = `🧬 {mutationEntry.displayName:upper()} MUTATION · 1 in {Format.count(
-				1 / mutationEntry.chance
-			)}`,
-			TextColor3 = mutationLook.accent,
+			Text = table.concat(bannerParts, "   "),
+			TextColor3 = bannerColor,
 			TextTransparency = 1,
 			TextStrokeTransparency = 1,
 			ZIndex = 21,
 		})
+		if finishId == "Prismatic" and mutationEntry == nil then
+			banner.TextColor3 = Color3.new(1, 1, 1)
+			local hues = Instance.new("UIGradient")
+			local keys: { ColorSequenceKeypoint } = {}
+			for i, color in rainbowColors(7) do
+				table.insert(keys, ColorSequenceKeypoint.new((i - 1) / 6, color))
+			end
+			hues.Color = ColorSequence.new(keys)
+			hues.Parent = banner
+		end
 		task.delay(if big then 1.5 else 0.7, function()
 			if overlay.Parent == nil then
 				return
 			end
-			flash(overlay, mutationLook.accent, 0.55)
-			Sfx.play("Mutation", { volume = 0.9 })
+			flash(overlay, bannerColor, if mutationEntry then 0.55 else 0.35)
+			if mutationEntry then
+				Sfx.play("Mutation", { volume = 0.9 })
+			end
 			TweenService
 				:Create(banner, TweenInfo.new(0.35), { TextTransparency = 0, TextStrokeTransparency = 0.2 })
 				:Play()
@@ -713,13 +1049,22 @@ local function playReveal(reveal: { [string]: any })
 		-- carries the rarity color with a white band sweeping across
 		title.TextColor3 = Color3.new(1, 1, 1)
 		local shine = Instance.new("UIGradient")
-		shine.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, rarity.color),
-			ColorSequenceKeypoint.new(0.4, rarity.color),
-			ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-			ColorSequenceKeypoint.new(0.6, rarity.color),
-			ColorSequenceKeypoint.new(1, rarity.color),
-		})
+		if rainbow then
+			-- Prismatic: the title is the rainbow, rolling across
+			local keys: { ColorSequenceKeypoint } = {}
+			for i, color in rainbowColors(7) do
+				table.insert(keys, ColorSequenceKeypoint.new((i - 1) / 6, color))
+			end
+			shine.Color = ColorSequence.new(keys)
+		else
+			shine.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, accent),
+				ColorSequenceKeypoint.new(0.4, accent),
+				ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
+				ColorSequenceKeypoint.new(0.6, accent),
+				ColorSequenceKeypoint.new(1, accent),
+			})
+		end
 		shine.Offset = Vector2.new(-1, 0)
 		shine.Parent = title
 		TweenService:Create(
@@ -743,7 +1088,7 @@ local function playReveal(reveal: { [string]: any })
 	end
 
 	-- Hold, then close: early once it's been seen, if the player taps
-	local hold = HOLD_SECONDS[tier] + (if mutationEntry then 1.8 else 0)
+	local hold = HOLD_SECONDS[tier] + (if mutationEntry then 1.8 else 0) + (if flair then 1 else 0)
 	local minimum = MIN_SECONDS[tier] + (if mutationEntry then 1 else 0)
 	local hint: TextLabel? = nil
 	while os.clock() - shown < hold do

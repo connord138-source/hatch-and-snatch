@@ -7,6 +7,7 @@
 -- non-colliding and gone after a few seconds. The sound is played by each client
 -- (RevealController) except the hatcher's, whose reveal already played it (PC
 -- playtest 2026-10-05: the hatcher heard the stinger twice, 19 ms apart).
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
@@ -55,14 +56,17 @@ local function sound(parent: BasePart, name: string)
 	s.Parent = parent
 end
 
--- `base`: where the pillar stands (the incubator); `ultra`: Mythic and up (taller,
--- wider); `hatcherUserId`: whose hatch it is (their client doesn't replay the sound).
+-- `base`: where the pillar stands (the incubator); `sound`: the stinger to play
+-- (Config.Sounds); `ultra`: Mythic and up (taller, wider); `hatcherUserId`: whose
+-- hatch it is (their client doesn't replay the sound); `rainbow`: a Prismatic roll
+-- (the beam and ring cycle the rainbow on every client, RainbowController).
 function HatchPillar.spawn(
 	base: Vector3,
 	color: Color3,
-	rarityId: string,
+	soundName: string,
 	ultra: boolean,
-	hatcherUserId: number
+	hatcherUserId: number,
+	rainbow: boolean?
 )
 	local height = if ultra then 420 else 260
 	local width = if ultra then 6 else 4
@@ -126,7 +130,16 @@ function HatchPillar.spawn(
 	sparkles.Parent = anchor
 	model.Parent = Workspace
 
-	sound(anchor, rarityId)
+	if rainbow then
+		CollectionService:AddTag(beam, "Rainbow")
+		CollectionService:AddTag(ring, "Rainbow")
+		local hues: { ColorSequenceKeypoint } = {}
+		for i = 0, 6 do
+			table.insert(hues, ColorSequenceKeypoint.new(i / 6, Color3.fromHSV(i / 6, 0.7, 1)))
+		end
+		sparkles.Color = ColorSequence.new(hues)
+	end
+	sound(anchor, soundName)
 	local grow = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 	TweenService:Create(beam, grow, { Size = Vector3.new(height, width, width) }):Play()
 	TweenService:Create(core, grow, { Size = Vector3.new(height, width * 0.35, width * 0.35) }):Play()
