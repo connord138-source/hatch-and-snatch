@@ -419,6 +419,7 @@ Built 2026-09-30 (`Config/Monetization.luau`, `MonetizationService`). Prices are
   - **Roblox Premium:** +10% cash. Premium Payouts pay for Premium members' time in the game, so this perk helps keep them.
   - **Rewarded video ad:** ×2 cash for 15 minutes a watch, stacking to 60 minutes (the `AdBoost` product). Changed from "a free egg" because Roblox forbids random ad rewards. Roblox only serves ads to public games with 2,000+ monthly visitors and an ID-verified owner, and the button stays hidden until then.
 - **Other income:** Premium Payouts (automatic), private servers.
+- **Creature Pass (planned, owner 2026-10-06):** a monthly season pass with tiers earned by playing (hatching, quests, steals), a free track and a paid one (about 449 R$, plus a 49 R$ "skip a tier"). Its headline rewards are not handed out: **reaching a tier adds the season's new creature, or its new skin, to your own egg rolls**. Until then it can't hatch for you; after, it rolls like any species or finish (its odds shown in the odds panel for you, as every roll must be). Season 1 idea: Harvest Moon (October).
 - **Analytics** (`src/server/Analytics.luau`, Creator Hub → Analytics):
   - Economy: every cash source and sink, with an item SKU.
   - Onboarding funnel: joined → bought an egg → placed it → hatched → collected cash → upgraded the base.
