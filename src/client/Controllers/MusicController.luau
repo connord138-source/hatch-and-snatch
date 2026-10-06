@@ -23,6 +23,7 @@ local group: SoundGroup? = nil
 local current: Sound? = nil
 local currentList: string? = nil
 local lastId = 0
+local trackVolume = Music.volume -- the current track's own level (Config.Music.trackVolume)
 local startedAt = 0
 local endedAt: number? = nil
 local muted = false
@@ -36,7 +37,7 @@ local function level(): number
 	if muted then
 		return 0
 	end
-	return Music.volume * (if ducked then DUCK else 1)
+	return trackVolume * (if ducked then DUCK else 1)
 end
 
 local function fade(sound: Sound, volume: number, seconds: number)
@@ -78,6 +79,7 @@ local function play(list: string)
 		id = ids[rng:NextInteger(1, #ids)]
 	end
 	lastId = id
+	trackVolume = Music.trackVolume[id] or Music.volume
 	local old = current
 	local sound = Instance.new("Sound")
 	sound.Name = "Music"
@@ -107,9 +109,11 @@ local function step()
 		return
 	end
 	local sound = current
-	if sound == nil or list ~= currentList then
-		play(list) -- first track, or day/night/moon changed: crossfade
-	elseif endedAt and os.clock() - endedAt >= Music.gapSeconds then
+	if
+		sound == nil
+		or list ~= currentList -- first track, or day/night/moon changed: crossfade
+		or (endedAt and os.clock() - endedAt >= Music.gapSeconds) -- the next track
+	then
 		play(list)
 	elseif not sound.IsLoaded and os.clock() - startedAt > LOAD_SECONDS then
 		if not warned[sound.SoundId] then
