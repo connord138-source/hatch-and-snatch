@@ -51,6 +51,26 @@ Every egg on the conveyor could hatch a 1 in 20,000 Secret. Raise it, show it of
 
 Keep the first line punchy, because only the first ~150 characters show in search and on mobile.
 
+### Launch week (2026-10-06 to 10-13)
+
+The ×2 luck runs until 2026-10-14 04:00 UTC (`Config/Economy.luau` `tunables.launchLuck`). For that week, use this description (943 characters: the luck line leads, and the 🆕 line makes room), and the title `[🍀 2x LUCK] Hatch & Snatch 🥚`. Switch both back to the ones above on Oct 14.
+
+```
+🍀 LAUNCH WEEK: ×2 LUCK on every egg for everyone, until Oct 13!
+
+Every egg on the conveyor could hatch a 1 in 20,000 Secret. Raise it, show it off, and keep it safe, because everyone in your server wants it. 🥚
+
+🐣 Grab eggs off the hatchery belt, carry them home and watch the incubator glow. Every hatch rolls a species, a shiny finish and a mutation.
+🐾 Babies grow into Juveniles and Adults. Bigger creatures earn more, but they're harder to protect.
+🏃 Sneak into other bases and run off with their creatures. Adults slow you to half speed, so the owner can knock them loose.
+🔒 Lock your laser gate, set alarms and tripwires, and guard your nursery.
+🌋 41 creatures across 6 biomes: a magma lynx, a black-hole tortoise, a toaster that thinks it's a turtle...
+🌕 When the Moon Egg turns red, gold, void or prism, the odds change for the whole server.
+
+🎁 Free codes: HATCH · MOONEGG · SNATCH (Shop → Free rewards)
+👍 Like the game for more codes!
+```
+
 ## Sources
 
 - Icon: `IconRealEyesB` / `IconRealEyesA` (Tripo, `tools/tripo_jobs_marketing.json`).

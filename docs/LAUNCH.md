@@ -15,7 +15,8 @@ The owner does these steps in Creator Hub (signed in as **Dillionaire138**) and 
   - Re-answer it if the game adds anything that changes these (e.g. new paid items).
 - [x] **Devices:** Computer, Phone, Tablet and **Console** (owner, 2026-10-05; menus work on a controller since then: D-pad ▲ selects the menu bar, A opens, B closes). VR off.
 - [x] **Thumbnails** 2 and 7 re-uploaded (owner, 2026-10-05).
-- [ ] **Launch week ×2 luck** runs by itself until 2026-10-14 04:00 UTC (`Config/Economy.luau` `tunables.launchLuck`). Optional: open the store description with "🍀 LAUNCH WEEK: ×2 LUCK for everyone!" and remove the line when it ends.
+- [ ] **Launch week ×2 luck** runs by itself until 2026-10-14 04:00 UTC (`Config/Economy.luau` `tunables.launchLuck`). Use the launch-week description and title in `docs/STORE_PAGE.md` that week, then switch back on Oct 14.
+- [x] **Published v177** from 5dd0f66 (2026-10-05), after the final PC re-test passed.
 - [x] **Server size:** Max Players 6.
 - [x] **Private servers** (Monetization → Private Servers): turn them on at **99 Robux a month**. In a stealing game a friends-only server is worth paying for, and it's recurring income. The re-steal rule (no rewards for 30 min) stops alt-account farming there too.
 - [x] **Genre:** Simulation or Tycoon, whichever fits best among Creator Hub's current genre options.
