@@ -18,6 +18,8 @@ unrelated to the Polymarket worker.
 ## Decisions already made (do not re-litigate)
 
 - **Concept:** the "Hatch & Snatch" tycoon won over survival co-op, obby and fishing ideas.
+  - **Competitors (found 2026-10-06, after launch; owner: "an almost identical game ... launched about a week before we started"):** *Steal An Egg* (created 2026-07-25, billions of visits) and *Break and Steal an Egg* (2026-09-05), both hatch-and-steal egg tycoons. Our edge to sell: creatures that grow up (Sonaria-style art), castles with floors, vaults and the Castle Designer, biome zones and moon events, finishes and mutations.
+  - **Rule:** before committing to a new concept or a big feature, search Roblox (and the web) for games doing the same thing and tell the owner what's out there.
 - **World:** Crackpoint Island.
   - A **Moon Egg** hangs cracked in the sky and drives the events: Blood, Gold, Void and Prism moons.
   - A Hatchery Reactor sits in the center, with a **conveyor loop** carrying eggs.
